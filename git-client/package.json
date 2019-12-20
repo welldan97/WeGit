@@ -1,0 +1,20 @@
+{
+  "name": "wegit-server-client",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ungap/event": "^0.1.4",
+    "@ungap/event-target": "^0.1.0",
+    "clipboardy": "^2.1.0",
+    "inquirer": "^7.0.1",
+    "uuid": "^3.3.3",
+    "wegit-lib": "file:../lib",
+    "wrtc": "^0.4.2"
+  }
+}

@@ -1,6 +1,7 @@
 // Imports
 // =============================================================================
 
+import uuid from './lib/uuid';
 import WgAppStore from 'wegit-lib/WgAppStore';
 import 'regenerator-runtime/runtime';
 
@@ -112,8 +113,8 @@ const main = () => {
   const $iframe = document.getElementById('iframe');
 
   const $inputLoadApp = document.getElementById('input-load-app');
-
-  wgAppStore = new WgAppStore({ user });
+  const wrtc = { RTCPeerConnection, RTCSessionDescription };
+  wgAppStore = new (WgAppStore({ Event, EventTarget, uuid, wrtc }))({ user });
   window.wgAppStore = wgAppStore;
   wgAppStore.addEventListener('change', () => changeState({ onAppRun }));
 
