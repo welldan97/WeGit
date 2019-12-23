@@ -3,9 +3,16 @@
 
 import { useEffect, useState } from '../shims/React';
 import git from '../shims/git';
+import AppContext from '../shims/AppContext';
 
 // Main
 // =============================================================================
+
+AppContext.on('gitmessage', ({ value }) => {
+  if (value === 'capabilities\n')
+    AppContext.sendAll('message', { value: 'fetch\n\n' });
+  else console.log(value);
+});
 
 export default ({ fs, onChange }) => {
   const [isReady, setIsReady] = useState(false);

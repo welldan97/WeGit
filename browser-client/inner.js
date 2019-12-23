@@ -3,7 +3,7 @@ import 'regenerator-runtime/runtime';
 const main = () => {
   const eventTarget = new EventTarget();
   // TODO: make events cleanable
-  const send = (type, payload) =>
+  const sendAll = (type, payload) =>
     window.top.postMessage({ type, payload }, '*');
   const on = (type, fn) =>
     eventTarget.addEventListener(type, e => fn(e.payload));
@@ -22,7 +22,7 @@ const main = () => {
 
     if (type === 'transport:init') {
       //const evaluate = new Function('AppContext', payload.app.source);
-      const AppContext = { send, on, user: payload.user };
+      const AppContext = { sendAll, on, user: payload.user };
       //evaluate({ transport, user: payload.user });
       // dev
       window.AppContext = AppContext;

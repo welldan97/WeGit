@@ -1,0 +1,37 @@
+#!/usr/bin/env node
+
+// Imports
+// =============================================================================
+
+const net = require('net');
+
+// Main
+// =============================================================================
+
+const main = async () => {
+  const connection = net.connect({ port: 9001 }, () => {
+    connection.on('data', message => {
+      const { payload } = JSON.parse(message.toString());
+      process.stdout.write(payload.value);
+    });
+
+    process.stdin.setEncoding('utf8');
+
+    process.stdin.on('readable', () => {
+      const value = process.stdin.read();
+      //console.warn('!!', process.argv, chunk);
+      connection.write(
+        JSON.stringify({
+          type: 'app:gitmessage',
+          payload: { value },
+        }),
+      );
+    });
+  });
+
+  connection.on('end', () => {
+    console.log('disconnected from server');
+  });
+};
+
+main();

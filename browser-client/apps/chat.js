@@ -36,7 +36,7 @@ const main = () => {
     const $messages = document.getElementById('messages');
     $messages.innerText =
       $messages.innerText + '\n' + user.userName + ': ' + message;
-    AppContext.send('message', {
+    AppContext.sendAll('message', {
       user,
       message,
     });

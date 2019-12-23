@@ -1,5 +1,10 @@
 // Imports
 // =============================================================================
+
+const net = require('net');
+
+// Imports
+// =============================================================================
 const wrtc = require('wrtc');
 const EventTarget = require('@ungap/event-target');
 const Event = require('./lib/event-shim');
@@ -10,7 +15,9 @@ const WgAppStore = require('wegit-lib/WgAppStore');
 const inquirer = require('inquirer');
 const clipboardy = require('clipboardy');
 
-clipboardy.readSync(); // Main // =============================================================================
+// Main
+// =============================================================================
+
 const main = async () => {
   const userName = Math.random()
     .toString(36)
@@ -53,5 +60,29 @@ const main = async () => {
   const { wgAnswerKey } = await inquirer.prompt(questions);
 
   wgAppStore.establish(wgAnswerKey);
+  const server = net.createServer(async connection => {
+    connection.on('data', message => {
+      const parsedMessage = JSON.parse(message.toString());
+      //const { type, payload } = parsedMessage;
+      wgAppStore.sendAll(parsedMessage);
+    });
+
+    const onMessage = e => {
+      const { type, payload } = e.data;
+      if (!type.startsWith('app:')) return;
+      connection.write(JSON.stringify({ type, payload }));
+    };
+
+    wgAppStore.addEventListener('message', onMessage);
+
+    connection.on('end', () => {
+      wgAppStore.removeEventListener('message', onMessage);
+      //
+    });
+  });
+
+  server.listen(9001, () => {
+    console.log('server is listening on 9001');
+  });
 };
 main();
