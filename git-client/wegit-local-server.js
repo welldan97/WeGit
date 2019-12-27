@@ -60,6 +60,7 @@ const main = async () => {
   const { wgAnswerKey } = await inquirer.prompt(questions);
 
   wgAppStore.establish(wgAnswerKey);
+
   const server = net.createServer(async connection => {
     connection.on('data', message => {
       const parsedMessage = JSON.parse(message.toString());

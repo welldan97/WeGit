@@ -146,7 +146,6 @@ const main = () => {
 
   window.addEventListener('message', e => {
     const { type, payload } = e.data;
-    console.log(type, payload, 'hh');
     wgAppStore.sendAll({ type: `app:${type}`, payload });
   });
 

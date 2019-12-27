@@ -19,9 +19,18 @@ addScript('https://unpkg.com/react@16/umd/react.development.js')
   .then(
     Promise.all([
       addScript('https://unpkg.com/browserfs'),
-      addScript('https://unpkg.com/isomorphic-git'),
+      addScript(
+        'https://unpkg.com/isomorphic-git@0.72.0/dist/internal.umd.min.js',
+      ),
     ]),
   )
+  .then(resolve => setTimeout(resolve, 300)) // TODO
+  .then(() => {
+    window.gitInternals = window.git;
+    delete window.git;
+    return addScript('https://unpkg.com/isomorphic-git');
+  })
+  .then(resolve => setTimeout(resolve, 100)) //TODO
   .then(() => import('./components/App'))
   .then(({ default: App }) => {
     document.body.appendChild(document.createElement('main'));

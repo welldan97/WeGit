@@ -4,28 +4,133 @@
 // =============================================================================
 
 const net = require('net');
+const cp = require('child_process');
 
 // Main
 // =============================================================================
 
+/*
+    const gitProcess = cp.spawn('git', [
+      'hash-object',
+      '-t',
+      payload.type,
+      '-w',
+      '--stdin',
+    ]);*/
+
+const MAX_SIZE = 10000;
+
+let chunks;
+const hasChunks = [];
+
+const onFetchResponse = (connection, { chunk, chunkNo, type, totalLength }) => {
+  if (type !== 'pack') throw new Error('Not implemented');
+  if (!chunks) chunks = new Uint8Array(totalLength);
+
+  chunk.map((e, i) => (chunks[i + MAX_SIZE * chunkNo] = e));
+  hasChunks.push(chunkNo);
+  const partsCount = Math.ceil(totalLength / MAX_SIZE);
+  //console.warn({ chunkNo, hasChunks });
+
+  if (hasChunks.length === partsCount) {
+    const gitProcess = cp.spawn('git', [
+      'index-pack',
+      '--stdin',
+      '-v',
+      '--fix-thin',
+    ]);
+
+    gitProcess.on('exit', code => {
+      console.warn('[4]');
+
+      console.warn({ code });
+      process.stdout.write('\n');
+
+      chunks = undefined;
+      hasChunks.length = 0;
+    });
+    gitProcess.stdin.write(Buffer.from(chunks.buffer), () => {
+      console.warn('[3]');
+
+      gitProcess.stdin.end();
+    });
+  } else {
+    connection.write(
+      JSON.stringify({
+        type: 'app:transport:fetchContinue',
+      }),
+    );
+  }
+};
+
+const createRef = async ({ sha, ref }) =>
+  new Promise(resolve => {
+    const gitProcess = cp.spawn('git', ['update-ref', ref, sha]);
+
+    gitProcess.on('exit', () => resolve());
+  });
+
 const main = async () => {
   const connection = net.connect({ port: 9001 }, () => {
-    connection.on('data', message => {
-      const { payload } = JSON.parse(message.toString());
-      process.stdout.write(payload.value);
+    connection.on('data', async message => {
+      const { payload, type } = JSON.parse(message.toString());
+      console.warn('IN', { type, payload });
+      if (type === 'app:transport:capabilitiesResponse') {
+        process.stdout.write(payload.value);
+      } else if (type === 'app:transport:listResponse') {
+        await Promise.all(
+          payload.value.map(({ sha, ref }) => createRef({ sha, ref })),
+        );
+        const output =
+          payload.value.map(({ sha, ref }) => `${sha} ${ref}`).join('\n') +
+          '\n\n';
+        payload.value;
+        process.stdout.write(output);
+      } else if (type === 'app:transport:fetchResponse') {
+        onFetchResponse(connection, payload);
+      }
     });
 
     process.stdin.setEncoding('utf8');
 
     process.stdin.on('readable', () => {
       const value = process.stdin.read();
-      //console.warn('!!', process.argv, chunk);
-      connection.write(
-        JSON.stringify({
-          type: 'app:gitmessage',
-          payload: { value },
-        }),
-      );
+      console.warn('OUT', value);
+      switch (value) {
+        case null:
+          process.exit();
+          break;
+        case 'capabilities\n':
+          connection.write(
+            JSON.stringify({
+              type: 'app:transport:capabilities',
+            }),
+          );
+          break;
+        case 'list\n':
+          connection.write(
+            JSON.stringify({
+              type: 'app:transport:list',
+            }),
+          );
+          break;
+
+        default:
+      }
+
+      if (value.startsWith('fetch')) {
+        const [_, sha, ref] = value.trim().split(' ');
+
+        connection.write(
+          JSON.stringify({
+            type: 'app:transport:fetch',
+            payload: {
+              sha,
+              ref,
+            },
+          }),
+        );
+      }
     });
   });
 
