@@ -47,8 +47,7 @@ AppContext.on('transport:listForPush', () => onList({ forPush: true }));
 //   write code faster realistically it should be implemented via streams or on
 //   infrastructure level
 
-const MAX_SIZE = 10000;
-const continueFetch = async function*({ sha, ref }) {
+AppContext.on('transport:fetch', async ({ sha /*, ref */ }) => {
   const { /*object, type: objectType,*/ source } = await git.readObject({
     dir: '/',
     oid: sha,
@@ -57,36 +56,11 @@ const continueFetch = async function*({ sha, ref }) {
 
   if (source.startsWith('objects/pack')) {
     const packContents = await window.fs.readFile('.git/' + source);
-    const partsCount = Math.ceil(packContents.length / MAX_SIZE);
-    for (let i = 0; i < partsCount; i++) {
-      const chunk = Array.from(
-        packContents.slice(i * MAX_SIZE, (i + 1) * MAX_SIZE),
-      );
-      AppContext.sendAll('transport:fetchResponse', {
-        chunk,
-        totalLength: packContents.length,
-        chunkNo: i,
-        type: 'pack',
-      });
-      yield;
-    }
+    AppContext.sendAll('transport:fetchResponse', {
+      value: Array.from(packContents),
+      type: 'pack',
+    });
   } else throw new Error('Not Implemented: it is not an pack');
-};
-
-let currentFetch;
-AppContext.on('transport:fetch', (...args) => {
-  currentFetch = continueFetch(...args);
-  currentFetch.next();
-});
-
-AppContext.on('transport:fetchContinue', () => {
-  if (!continueFetch) {
-    throw new Error('tried to fetch more');
-  }
-  const { done } = currentFetch.next();
-  if (done) {
-    currentFetch = undefined;
-  }
 });
 
 export default ({ fs, onChange }) => {

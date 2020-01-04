@@ -18,49 +18,30 @@ const cp = require('child_process');
       '--stdin',
     ]);*/
 
-const MAX_SIZE = 10000;
+//const MAX_SIZE = 10000;
 
-let chunks;
-const hasChunks = [];
-
-const onFetchResponse = (connection, { chunk, chunkNo, type, totalLength }) => {
+const onFetchResponse = ({ value, type }) => {
   if (type !== 'pack') throw new Error('Not implemented');
-  if (!chunks) chunks = new Uint8Array(totalLength);
 
-  chunk.map((e, i) => (chunks[i + MAX_SIZE * chunkNo] = e));
-  hasChunks.push(chunkNo);
-  const partsCount = Math.ceil(totalLength / MAX_SIZE);
-  //console.warn({ chunkNo, hasChunks });
+  const gitProcess = cp.spawn('git', [
+    'index-pack',
+    '--stdin',
+    '-v',
+    '--fix-thin',
+  ]);
 
-  if (hasChunks.length === partsCount) {
-    const gitProcess = cp.spawn('git', [
-      'index-pack',
-      '--stdin',
-      '-v',
-      '--fix-thin',
-    ]);
+  gitProcess.on('exit', code => {
+    console.warn('[4]');
 
-    gitProcess.on('exit', code => {
-      console.warn('[4]');
+    console.warn({ code });
+    process.stdout.write('\n');
+  });
 
-      console.warn({ code });
-      process.stdout.write('\n');
+  gitProcess.stdin.write(Buffer.from(Uint8Array.from(value).buffer), () => {
+    console.warn('[3]');
 
-      chunks = undefined;
-      hasChunks.length = 0;
-    });
-    gitProcess.stdin.write(Buffer.from(chunks.buffer), () => {
-      console.warn('[3]');
-
-      gitProcess.stdin.end();
-    });
-  } else {
-    connection.write(
-      JSON.stringify({
-        type: 'app:transport:fetchContinue',
-      }),
-    );
-  }
+    gitProcess.stdin.end();
+  });
 };
 
 const createRef = async ({ sha, ref }) =>
@@ -72,46 +53,79 @@ const createRef = async ({ sha, ref }) =>
 
 let inRef;
 let outRef;
+let chunks = {};
+
+const receiveChunk = (
+  connection,
+  { id, type, chunk, chunkNo, chunksCount, ...messageData },
+) => {
+  if (!chunks[id]) {
+    chunks[id] = '';
+  }
+  chunks[id] = chunks[id] + chunk;
+  if (chunkNo !== chunksCount - 1) {
+    connection.write(
+      JSON.stringify({
+        type: 'app:nextChunk',
+        payload: { id },
+      }),
+    );
+  } else {
+    const message = {
+      ...messageData,
+      id,
+      type,
+      payload: JSON.parse(chunks[id]),
+    };
+    onMessageFromWeGit(connection)(message);
+    delete chunks[id];
+  }
+};
+
+const onMessageFromWeGit = connection => async ({ type, payload }) => {
+  if (type === 'app:chunks') {
+    receiveChunk(connection, payload);
+  } else if (type === 'app:transport:capabilitiesResponse') {
+    process.stdout.write(payload.value.join('\n') + '\n\n');
+  } else if (type === 'app:transport:listResponse') {
+    await Promise.all(
+      payload.value.map(({ sha, ref }) => createRef({ sha, ref })),
+    );
+    const output =
+      payload.value.map(({ sha, ref }) => `${sha} ${ref}`).join('\n') + '\n\n';
+
+    process.stdout.write(output);
+  } else if (type === 'app:transport:listForPushResponse') {
+    const gitProcess = cp.spawn('git', ['show-ref', '--head']);
+    gitProcess.stdout.on('readable', () => {
+      const value = gitProcess.stdout.read();
+      if (!value) return;
+      outRef = payload.value;
+      inRef = value
+        .toString()
+        .trim()
+        .split('\n')
+        .map(l => {
+          const [sha, ref] = l.split(' ');
+          return { sha, ref };
+        });
+
+      const output =
+        payload.value.map(({ sha, ref }) => `${sha} ${ref}`).join('\n') +
+        '\n\n';
+      process.stdout.write(output);
+    });
+  } else if (type === 'app:transport:fetchResponse') {
+    onFetchResponse(payload);
+  }
+};
 
 const main = async () => {
   const connection = net.connect({ port: 9001 }, () => {
-    connection.on('data', async message => {
-      const { payload, type } = JSON.parse(message.toString());
-      console.warn('IN', JSON.stringify({ type, payload }));
-      if (type === 'app:transport:capabilitiesResponse') {
-        process.stdout.write(payload.value.join('\n') + '\n\n');
-      } else if (type === 'app:transport:listResponse') {
-        await Promise.all(
-          payload.value.map(({ sha, ref }) => createRef({ sha, ref })),
-        );
-        const output =
-          payload.value.map(({ sha, ref }) => `${sha} ${ref}`).join('\n') +
-          '\n\n';
-
-        process.stdout.write(output);
-      } else if (type === 'app:transport:listForPushResponse') {
-        const gitProcess = cp.spawn('git', ['show-ref', '--head']);
-        gitProcess.stdout.on('readable', () => {
-          const value = gitProcess.stdout.read();
-          if (!value) return;
-          outRef = payload.value;
-          inRef = value
-            .toString()
-            .trim()
-            .split('\n')
-            .map(l => {
-              const [sha, ref] = l.split(' ');
-              return { sha, ref };
-            });
-
-          const output =
-            payload.value.map(({ sha, ref }) => `${sha} ${ref}`).join('\n') +
-            '\n\n';
-          process.stdout.write(output);
-        });
-      } else if (type === 'app:transport:fetchResponse') {
-        onFetchResponse(connection, payload);
-      }
+    connection.on('data', message => {
+      const parsedMessage = JSON.parse(message.toString());
+      console.warn('IN', JSON.stringify(parsedMessage).slice(0, 200), '\n');
+      onMessageFromWeGit(connection)(parsedMessage);
     });
 
     process.stdin.setEncoding('utf8');
@@ -171,7 +185,7 @@ const main = async () => {
   });
 
   connection.on('end', () => {
-    console.log('disconnected from server');
+    console.warn('disconnected from server');
   });
 };
 
