@@ -70,13 +70,16 @@ const createRef = async ({ sha, ref }) =>
     gitProcess.on('exit', () => resolve());
   });
 
+let inRef;
+let outRef;
+
 const main = async () => {
   const connection = net.connect({ port: 9001 }, () => {
     connection.on('data', async message => {
       const { payload, type } = JSON.parse(message.toString());
-      console.warn('IN', { type, payload });
+      console.warn('IN', JSON.stringify({ type, payload }));
       if (type === 'app:transport:capabilitiesResponse') {
-        process.stdout.write(payload.value);
+        process.stdout.write(payload.value.join('\n') + '\n\n');
       } else if (type === 'app:transport:listResponse') {
         await Promise.all(
           payload.value.map(({ sha, ref }) => createRef({ sha, ref })),
@@ -84,8 +87,28 @@ const main = async () => {
         const output =
           payload.value.map(({ sha, ref }) => `${sha} ${ref}`).join('\n') +
           '\n\n';
-        payload.value;
+
         process.stdout.write(output);
+      } else if (type === 'app:transport:listForPushResponse') {
+        const gitProcess = cp.spawn('git', ['show-ref', '--head']);
+        gitProcess.stdout.on('readable', () => {
+          const value = gitProcess.stdout.read();
+          if (!value) return;
+          outRef = payload.value;
+          inRef = value
+            .toString()
+            .trim()
+            .split('\n')
+            .map(l => {
+              const [sha, ref] = l.split(' ');
+              return { sha, ref };
+            });
+
+          const output =
+            payload.value.map(({ sha, ref }) => `${sha} ${ref}`).join('\n') +
+            '\n\n';
+          process.stdout.write(output);
+        });
       } else if (type === 'app:transport:fetchResponse') {
         onFetchResponse(connection, payload);
       }
@@ -114,6 +137,13 @@ const main = async () => {
             }),
           );
           break;
+        case 'list for-push\n':
+          connection.write(
+            JSON.stringify({
+              type: 'app:transport:listForPush',
+            }),
+          );
+          break;
 
         default:
       }
@@ -130,6 +160,12 @@ const main = async () => {
             },
           }),
         );
+      } else if (value.startsWith('push')) {
+        const [srcRef, distRef] = value
+          .trim()
+          .split(' ')[1]
+          .split(':');
+        console.warn(value, { srcRef, distRef });
       }
     });
   });

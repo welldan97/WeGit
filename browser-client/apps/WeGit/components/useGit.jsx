@@ -10,10 +10,12 @@ import AppContext from '../shims/AppContext';
 
 //  TODO: remove window. usage
 AppContext.on('transport:capabilities', async () => {
-  AppContext.sendAll('transport:capabilitiesResponse', { value: 'fetch\n\n' });
+  AppContext.sendAll('transport:capabilitiesResponse', {
+    value: ['fetch', 'push'],
+  });
 });
 
-AppContext.on('transport:list', async () => {
+const onList = async ({ forPush = false } = {}) => {
   const refs = [
     'HEAD',
     ...(await window.gitInternals.GitRefManager.listRefs({
@@ -28,11 +30,18 @@ AppContext.on('transport:list', async () => {
       return { sha, ref };
     }),
   );
+  if (forPush)
+    AppContext.sendAll('transport:listForPushResponse', {
+      value,
+    });
+  else
+    AppContext.sendAll('transport:listResponse', {
+      value,
+    });
+};
 
-  AppContext.sendAll('transport:listResponse', {
-    value,
-  });
-});
+AppContext.on('transport:list', () => onList());
+AppContext.on('transport:listForPush', () => onList({ forPush: true }));
 
 // HACK: Split huge files and send them in chunks. This is temporary, just to
 //   write code faster realistically it should be implemented via streams or on
