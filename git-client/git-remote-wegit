@@ -88,9 +88,6 @@ const onMessageFromWeGit = connection => async ({ type, payload }) => {
   } else if (type === 'app:transport:capabilitiesResponse') {
     process.stdout.write(payload.value.join('\n') + '\n\n');
   } else if (type === 'app:transport:listResponse') {
-    await Promise.all(
-      payload.value.map(({ sha, ref }) => createRef({ sha, ref })),
-    );
     const output =
       payload.value.map(({ sha, ref }) => `${sha} ${ref}`).join('\n') + '\n\n';
 
@@ -130,7 +127,7 @@ const main = async () => {
 
     process.stdin.setEncoding('utf8');
 
-    process.stdin.on('readable', () => {
+    process.stdin.on('readable', async () => {
       const value = process.stdin.read();
       console.warn('OUT', value);
       switch (value) {
@@ -163,15 +160,21 @@ const main = async () => {
       }
 
       if (value.startsWith('fetch')) {
-        const [_, sha, ref] = value.trim().split(' ');
+        const refs = value
+          .trim()
+          .replace(/fetch /g, '')
+          .split('\n')
+          .map(line => {
+            const [sha, ref] = line.split(' ');
+            return { sha, ref };
+          });
+
+        await Promise.all(refs.map(({ sha, ref }) => createRef({ sha, ref })));
 
         connection.write(
           JSON.stringify({
             type: 'app:transport:fetch',
-            payload: {
-              sha,
-              ref,
-            },
+            payload: { value: refs },
           }),
         );
       } else if (value.startsWith('push')) {

@@ -47,7 +47,7 @@ AppContext.on('transport:listForPush', () => onList({ forPush: true }));
 //   write code faster realistically it should be implemented via streams or on
 //   infrastructure level
 
-AppContext.on('transport:fetch', async ({ sha /*, ref */ }) => {
+AppContext.on('transport:fetch', async ({ value: [{ sha /*, ref */ }] }) => {
   const { /*object, type: objectType,*/ source } = await git.readObject({
     dir: '/',
     oid: sha,
