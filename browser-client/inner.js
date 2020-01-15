@@ -43,6 +43,7 @@ const sendAllInChunks = (type, fullPayload) => {
 const main = () => {
   const eventTarget = new EventTarget();
   // TODO: make events cleanable
+
   const sendAll = (type, payload) => {
     const fullPayload = JSON.stringify(payload);
     if (fullPayload.length > MAX_SIZE) sendAllInChunks(type, fullPayload);
@@ -52,13 +53,48 @@ const main = () => {
   const on = (type, fn) =>
     eventTarget.addEventListener(type, e => fn(e.payload));
 
+  let chunks = {};
+
+  const receiveChunk = ({
+    id,
+    type,
+    chunk,
+    chunkNo,
+    chunksCount,
+    ...messageData
+  }) => {
+    if (!chunks[id]) {
+      chunks[id] = '';
+    }
+    chunks[id] = chunks[id] + chunk;
+    if (chunkNo !== chunksCount - 1) {
+      sendAll('nextChunk', { id });
+    } else {
+      // FIXME: duplication with `if (type.startsWith('app:'))``
+      const [prefix, ...typeSegments] = type.split(':');
+      const passedType = typeSegments.join(':');
+      const appEvent = new Event(passedType);
+      appEvent.payload = JSON.parse(chunks[id]);
+      eventTarget.dispatchEvent(appEvent);
+
+      delete chunks[id];
+    }
+  };
+
   window.addEventListener('message', e => {
     if (!e.data) return; // TODO: why message with no data happens
     const { type, payload } = e.data;
+
+    if (type === 'app:chunks') {
+      receiveChunk(payload);
+      return;
+    }
+
     if (type === 'app:nextChunk') {
       const { id } = payload;
       const { done } = sentInChunksGenerators[id].next();
       if (done) delete sentInChunksGenerators[id];
+      return;
     }
 
     if (type.startsWith('app:')) {
@@ -77,6 +113,7 @@ const main = () => {
       //evaluate({ transport, user: payload.user });
       // dev
       window.AppContext = AppContext;
+      //import('./apps/chat').then();
       import('./apps/WeGit').then();
     }
   });

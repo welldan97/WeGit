@@ -43,10 +43,6 @@ const onList = async ({ forPush = false } = {}) => {
 AppContext.on('transport:list', () => onList());
 AppContext.on('transport:listForPush', () => onList({ forPush: true }));
 
-// HACK: Split huge files and send them in chunks. This is temporary, just to
-//   write code faster realistically it should be implemented via streams or on
-//   infrastructure level
-
 AppContext.on('transport:fetch', async ({ value: [{ sha /*, ref */ }] }) => {
   const { /*object, type: objectType,*/ source } = await git.readObject({
     dir: '/',
@@ -62,6 +58,48 @@ AppContext.on('transport:fetch', async ({ value: [{ sha /*, ref */ }] }) => {
     });
   } else throw new Error('Not Implemented: it is not an pack');
 });
+
+const ArrayToString = array => new TextDecoder().decode(Uint8Array.from(array));
+
+const writeObject = async object => {
+  const { type, contents } = object;
+  if (type === 'blob') {
+    await git.writeBlob({ dir: '/', blob: Uint8Array.from(contents) });
+  } else if (type === 'tree') {
+    const parsedTree = ArrayToString(contents)
+      .toString()
+      .trim()
+      .split('\n')
+      .map(row => {
+        const [mode, type, sha, path] = row.split(/\t| /);
+        return { mode, type, sha, path };
+      });
+
+    await git.writeTree({ dir: '/', tree: parsedTree });
+  } else if (type === 'commit') {
+    git.writeCommit({ dir: '/', commit: ArrayToString(contents) });
+  } else {
+    throw new Error('Not Implemented');
+  }
+};
+
+AppContext.on(
+  'transport:push',
+  async ({ objects, afterRefObject, beforeRefObject }) => {
+    await Promise.all(objects.map(writeObject));
+    await git.writeRef({
+      dir: '/',
+      ref: afterRefObject.ref,
+      value: afterRefObject.sha,
+      force: true,
+    });
+    await git.fastCheckout({ dir: '/', ref: 'master' });
+
+    AppContext.sendAll('transport:pushResponse', {
+      value: { beforeRefObject, afterRefObject },
+    });
+  },
+);
 
 export default ({ fs, onChange }) => {
   const [isReady, setIsReady] = useState(false);
