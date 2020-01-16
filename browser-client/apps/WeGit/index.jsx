@@ -12,9 +12,11 @@ const addScript = async (src, ch) =>
     $script.addEventListener('load', () => resolve());
   });
 
-addScript('https://unpkg.com/react@16/umd/react.development.js')
+addScript('https://unpkg.com/react@16.12.0/umd/react.production.min.js')
   .then(() =>
-    addScript('https://unpkg.com/react-dom@16/umd/react-dom.development.js'),
+    addScript(
+      'https://unpkg.com/react-dom@16.12.0/umd/react-dom.production.min.js',
+    ),
   )
   .then(
     Promise.all([
