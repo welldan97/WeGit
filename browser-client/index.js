@@ -2,7 +2,6 @@
 // =============================================================================
 
 import uuid from './lib/uuid';
-import WgAppStore from 'wegit-lib/WgAppStore';
 import addScript from 'wegit-lib/browser/utils/addScript';
 // NOTE: necessary for async/await
 import 'regenerator-runtime/runtime';

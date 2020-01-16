@@ -2,7 +2,7 @@
 // =============================================================================
 
 import { useEffect, useRef, useState } from '../lib/shims/React';
-import WgAppStore from 'wegit-lib/WgAppStore';
+import WgOs from 'wegit-lib/WgOs';
 import 'wegit-lib/browser/bootstrap.min.css';
 
 import uuid from '../lib/uuid';
@@ -26,7 +26,7 @@ export default function useWgOs() {
     if (wgOsRef.current !== null) return;
     const wrtc = { RTCPeerConnection, RTCSessionDescription };
 
-    wgOsRef.current = new (WgAppStore({ Event, EventTarget, uuid, wrtc }))({
+    wgOsRef.current = new (WgOs({ Event, EventTarget, uuid, wrtc }))({
       user,
     });
   });
