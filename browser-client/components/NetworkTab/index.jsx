@@ -1,28 +1,29 @@
 // Imports
 // =============================================================================
 
-import React, { useState } from '../../lib/shims/React';
+import React from '../../lib/shims/React';
 
-import Tabs from './Tabs';
-import CreateTab from './CreateTab';
-import JoinTab from './JoinTab';
+import Step1 from './Step1';
+import Step2Create from './Step2Create';
+import Step3Create from './Step3Create';
+import Step2Join from './Step2Join';
+import Step3Join from './Step3Join';
 
 // Main
 // =============================================================================
 
 export default function NetworkTab({
+  networkTabState,
   meshState,
 
-  currentConnectionId,
   wgOfferKeyForCreate,
   wgAnswerKeyForJoin,
 
   createConnection,
+  startJoiningConnection,
   joinConnection,
   establishConnection,
 }) {
-  const [active, setActive] = useState('create');
-
   return (
     <div className="container">
       <h2>Network</h2>
@@ -37,21 +38,26 @@ export default function NetworkTab({
           <span className="text-danger">❌disconnected</span>
         )}
       </p>
-      <Tabs active={active} onActivate={setActive} />
-      {active === 'create' && (
-        <CreateTab
-          currentConnectionId={currentConnectionId}
-          wgOfferKey={wgOfferKeyForCreate}
+      {networkTabState === 'step1' && (
+        <Step1
+          meshState={meshState}
           createConnection={createConnection}
-          establishConnection={establishConnection}
+          startJoiningConnection={startJoiningConnection}
         />
       )}
-      {active === 'join' && (
-        <JoinTab
-          currentConnectionId={currentConnectionId}
-          wgAnswerKey={wgAnswerKeyForJoin}
-          joinConnection={joinConnection}
-        />
+      {networkTabState === 'step2create' && (
+        <Step2Create wgOfferKey={wgOfferKeyForCreate} />
+      )}
+      {networkTabState === 'step3create' && (
+        <Step3Create establishConnection={establishConnection} />
+      )}
+
+      {networkTabState === 'step2join' && (
+        <Step2Join joinConnection={joinConnection} />
+      )}
+
+      {networkTabState === 'step3join' && (
+        <Step3Join wgAnswerKey={wgAnswerKeyForJoin} />
       )}
     </div>
   );

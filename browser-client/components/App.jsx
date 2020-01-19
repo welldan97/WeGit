@@ -14,16 +14,18 @@ import useWgOs from './useWgOs';
 
 export default function App() {
   const [active, setActive] = useState('network');
+
   const {
+    networkTabState,
     meshState,
 
-    currentConnectionId,
     wgOfferKeyForCreate,
-    wgAnswerKeyForJoin,
-
     createConnection,
-    joinConnection,
     establishConnection,
+
+    wgAnswerKeyForJoin,
+    startJoiningConnection,
+    joinConnection,
   } = useWgOs();
 
   return (
@@ -32,13 +34,14 @@ export default function App() {
       <main role="main">
         {active === 'network' && (
           <NetworkTab
+            networkTabState={networkTabState}
             meshState={meshState}
-            currentConnectionId={currentConnectionId}
+            wgOfferKeyForCreate={wgOfferKeyForCreate}
             createConnection={createConnection}
             establishConnection={establishConnection}
-            joinConnection={joinConnection}
-            wgOfferKeyForCreate={wgOfferKeyForCreate}
             wgAnswerKeyForJoin={wgAnswerKeyForJoin}
+            startJoiningConnection={startJoiningConnection}
+            joinConnection={joinConnection}
           />
         )}
       </main>

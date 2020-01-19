@@ -24,7 +24,8 @@ const userName = Math.random()
 const user = { userName };
 
 export default function useWgOs() {
-  const [currentConnectionId, setCurrentConnectionId] = useState(undefined);
+  //const [currentConnection, setCurrentConnection] = useState(undefined);
+  const [networkTabState, setNetworkTabState] = useState('step1');
   const [wgOfferKeyForCreate, setWgOfferKeyForCreate] = useState('');
   const [wgAnswerKeyForJoin, setWgAnswerKeyForJoin] = useState('');
 
@@ -34,26 +35,47 @@ export default function useWgOs() {
   });
 
   const wgOsRef = useRef(null);
-  // NOTE: for some reason onChange doesn't get currentConnectionId right, thus
-  //   using this
-  const currentConnectionIdRef = useRef(null);
+  // NOTE: for some reason onChange doesn't get networkTabState or other
+  // useState right, thus   using this
+  const networkTabStateRef = useRef(null);
+  useEffect(() => {
+    networkTabStateRef.current = networkTabState;
 
-  const onChange = useCallback(() => {
-    const nextMeshState = wgOsRef.current.getMeshState();
-
-    const currentConnection =
-      currentConnectionIdRef.current &&
-      nextMeshState.connections.find(
-        c => c.id === currentConnectionIdRef.current,
-      );
-
-    if (currentConnection && currentConnection.state === 'connected') {
-      setCurrentConnectionId(undefined);
+    if (networkTabState === 'step1') {
       setWgOfferKeyForCreate('');
       setWgAnswerKeyForJoin('');
     }
+  }, [networkTabState]);
+
+  const currentConnectionIdRef = useRef(null);
+
+  const getCurrentConnection = () => {
+    if (!currentConnectionIdRef.current) return;
+    if (!wgOsRef.current) return;
+    const meshState = wgOsRef.current.getMeshState();
+
+    return meshState.connections.find(
+      c => c.id === currentConnectionIdRef.current,
+    );
+  };
+
+  const onChange = useCallback(() => {
+    const currentConnection = getCurrentConnection();
+
+    if (
+      currentConnection &&
+      currentConnection.state === 'connecting' &&
+      networkTabStateRef.current === 'step2create'
+    ) {
+      setNetworkTabState('step3create');
+    }
+
+    if (currentConnection && currentConnection.state === 'connected') {
+      setNetworkTabState('step1');
+    }
+
     setMeshState(wgOsRef.current.getMeshState());
-  }, []);
+  });
 
   useEffect(() => {
     if (wgOsRef.current !== null) return;
@@ -77,20 +99,22 @@ export default function useWgOs() {
   const createConnection = async () => {
     const { wgConnection, wgOfferKey } = await wgOsRef.current.create();
 
-    setCurrentConnectionId(wgConnection.id);
     currentConnectionIdRef.current = wgConnection.id;
+    setNetworkTabState('step2create');
     setWgOfferKeyForCreate(wgOfferKey);
 
     await navigator.clipboard.writeText(wgOfferKey);
   };
+
+  const startJoiningConnection = () => setNetworkTabState('step2join');
 
   const joinConnection = async wgOfferKey => {
     const { wgConnection, wgAnswerKey } = await wgOsRef.current.join(
       wgOfferKey,
     );
 
-    setCurrentConnectionId(wgConnection.id);
     currentConnectionIdRef.current = wgConnection.id;
+    setNetworkTabState('step3join');
 
     setWgAnswerKeyForJoin(wgAnswerKey);
 
@@ -102,14 +126,15 @@ export default function useWgOs() {
   };
 
   return {
+    networkTabState,
     meshState,
 
-    currentConnectionId,
     wgOfferKeyForCreate,
-    wgAnswerKeyForJoin,
-
     createConnection,
-    joinConnection,
     establishConnection,
+
+    wgAnswerKeyForJoin,
+    startJoiningConnection,
+    joinConnection,
   };
 }
