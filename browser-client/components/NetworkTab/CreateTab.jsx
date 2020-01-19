@@ -1,17 +1,23 @@
 // Imports
 // =============================================================================
 
-import React, { useState } from '../../lib/shims/React';
+import React, { useEffect, useState } from '../../lib/shims/React';
 
 // Main
 // =============================================================================
 
 export default function CreateTab({
+  currentConnectionId,
   wgOfferKey,
+
   createConnection,
   establishConnection,
 }) {
   const [wgAnswerKey, setWgAnswerKey] = useState('');
+
+  useEffect(() => {
+    if (!currentConnectionId) setWgAnswerKey('');
+  }, [currentConnectionId]);
 
   return (
     <>

@@ -1,22 +1,3 @@
-// Imports
-// =============================================================================
-
-import { useEffect, useRef, useState } from '../lib/shims/React';
-import WgOs from 'wegit-lib/WgOs';
-import 'wegit-lib/browser/bootstrap.min.css';
-
-import uuid from '../lib/uuid';
-
-// Main
-// =============================================================================
-
-const userName = Math.random()
-  .toString(36)
-  .substring(7);
-
-const user = { userName };
-
-// For logging
 const serializeWgConnection = c => {
   const { id, sender, receiver, state } = c;
   return { id, sender, receiver, state, connectionState: c.state };
@@ -32,7 +13,8 @@ const serializeWgOs = c => {
   return { user };
 };
 
-const log = (source, method, payload) => {
+export default (source, method, payload) => {
+  return;
   if (source === 'WgConnection') {
     const { wgConnection, ...rest } = payload;
     const header = [
@@ -109,42 +91,3 @@ const log = (source, method, payload) => {
     console.groupEnd();
   }
 };
-export default function useWgOs() {
-  const [wgOfferKeyForCreate, setWgOfferKeyForCreate] = useState('');
-  const [wgAnswerKeyForJoin, setWgAnswerKeyForJoin] = useState('');
-  const wgOsRef = useRef(null);
-  useEffect(() => {
-    if (wgOsRef.current !== null) return;
-    const wrtc = { RTCPeerConnection, RTCSessionDescription };
-    wgOsRef.current = new (WgOs({
-      Event,
-      EventTarget,
-      uuid,
-      wrtc,
-      log,
-    }))({
-      user,
-    });
-    window.wgOs = wgOsRef.current;
-  });
-  const createConnection = async () => {
-    const { wgOfferKey } = await wgOsRef.current.create();
-    setWgOfferKeyForCreate(wgOfferKey);
-    await navigator.clipboard.writeText(wgOfferKey);
-  };
-  const joinConnection = async wgOfferKey => {
-    const { wgAnswerKey } = await wgOsRef.current.join(wgOfferKey);
-    setWgAnswerKeyForJoin(wgAnswerKey);
-    navigator.clipboard.writeText(wgAnswerKey);
-  };
-  const establishConnection = async wgAnswerKey => {
-    wgOsRef.current.establish(wgAnswerKey);
-  };
-  return {
-    wgOfferKeyForCreate,
-    wgAnswerKeyForJoin,
-    createConnection,
-    joinConnection,
-    establishConnection,
-  };
-}
