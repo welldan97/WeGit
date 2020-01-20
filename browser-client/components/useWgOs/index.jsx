@@ -23,6 +23,19 @@ const userName = Math.random()
 
 const user = { userName };
 
+// NOTE: public servers list:
+//   https://gist.github.com/sagivo/3a4b2f2c7ac6e1b5267c2f1f59ac6c6b
+const config = {
+  iceServers: [
+    { url: 'stun:stun3.l.google.com:19302' },
+    {
+      url: 'turn:numb.viagenie.ca',
+      credential: 'muazkh',
+      username: 'webrtc@live.com',
+    },
+  ],
+};
+
 export default function useWgOs() {
   const [networkTabState, setNetworkTabState] = useState('step1');
   const [wgOfferKeyForCreate, setWgOfferKeyForCreate] = useState('');
@@ -92,6 +105,7 @@ export default function useWgOs() {
       wrtc,
       log,
     }))({
+      config,
       user,
     });
 
