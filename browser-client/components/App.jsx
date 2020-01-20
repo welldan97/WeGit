@@ -26,6 +26,8 @@ export default function App() {
     wgAnswerKeyForJoin,
     startJoiningConnection,
     joinConnection,
+
+    cancelConnection,
   } = useWgOs();
 
   return (
@@ -42,6 +44,7 @@ export default function App() {
             wgAnswerKeyForJoin={wgAnswerKeyForJoin}
             startJoiningConnection={startJoiningConnection}
             joinConnection={joinConnection}
+            cancelConnection={cancelConnection}
           />
         )}
       </main>

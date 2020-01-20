@@ -6,7 +6,7 @@ import React, { useState } from '../../lib/shims/React';
 // Main
 // =============================================================================
 
-export default function Step3Create({ establishConnection }) {
+export default function Step3Create({ establishConnection, cancelConnection }) {
   const [wgAnswerKey, setWgAnswerKey] = useState('');
 
   return (
@@ -37,17 +37,26 @@ export default function Step3Create({ establishConnection }) {
             id="offer"
             className="form-control text-monospace"
             rows="6"
-            placeholder="Paste your offer here"
+            placeholder="Paste your answer here"
             value={wgAnswerKey}
             onChange={e => setWgAnswerKey(e.target.value)}
           />
 
-          <button
-            type="submit"
-            className="btn btn-success btn-lg mt-4 mx-auto d-block"
-          >
-            Establish Connection
-          </button>
+          <div className="d-flex justify-content-center">
+            <button
+              type="button"
+              className="btn btn-danger btn-lg mt-4 mr-4 d-block"
+              onClick={() => cancelConnection()}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-success btn-lg mt-4 d-block"
+            >
+              Establish Connection
+            </button>
+          </div>
         </div>
       </form>
     </>

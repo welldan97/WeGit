@@ -6,7 +6,7 @@ import React from '../../lib/shims/React';
 // Main
 // =============================================================================
 
-export default function Step2Create({ wgOfferKey }) {
+export default function Step2Create({ wgOfferKey, cancelConnection }) {
   return (
     <>
       <div className="row mt-4">
@@ -35,6 +35,13 @@ export default function Step2Create({ wgOfferKey }) {
             disabled
             value={wgOfferKey}
           />
+          <button
+            type="button"
+            className="btn btn-danger btn-lg mt-4 mx-auto d-block"
+            onClick={() => cancelConnection()}
+          >
+            Cancel
+          </button>
         </div>
       </form>
     </>

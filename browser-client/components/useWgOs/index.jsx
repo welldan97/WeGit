@@ -24,7 +24,6 @@ const userName = Math.random()
 const user = { userName };
 
 export default function useWgOs() {
-  //const [currentConnection, setCurrentConnection] = useState(undefined);
   const [networkTabState, setNetworkTabState] = useState('step1');
   const [wgOfferKeyForCreate, setWgOfferKeyForCreate] = useState('');
   const [wgAnswerKeyForJoin, setWgAnswerKeyForJoin] = useState('');
@@ -34,10 +33,10 @@ export default function useWgOs() {
     state: 'disconnected',
   });
 
-  const wgOsRef = useRef(null);
+  const wgOsRef = useRef(undefined);
   // NOTE: for some reason onChange doesn't get networkTabState or other
   // useState right, thus   using this
-  const networkTabStateRef = useRef(null);
+  const networkTabStateRef = useRef(undefined);
   useEffect(() => {
     networkTabStateRef.current = networkTabState;
 
@@ -47,7 +46,7 @@ export default function useWgOs() {
     }
   }, [networkTabState]);
 
-  const currentConnectionIdRef = useRef(null);
+  const currentConnectionIdRef = useRef(undefined);
 
   const getCurrentConnection = () => {
     if (!currentConnectionIdRef.current) return;
@@ -61,6 +60,11 @@ export default function useWgOs() {
 
   const onChange = useCallback(() => {
     const currentConnection = getCurrentConnection();
+
+    if (!currentConnection) {
+      setNetworkTabState('step1');
+      currentConnectionIdRef.current = undefined;
+    }
 
     if (
       currentConnection &&
@@ -78,7 +82,7 @@ export default function useWgOs() {
   });
 
   useEffect(() => {
-    if (wgOsRef.current !== null) return;
+    if (wgOsRef.current !== undefined) return;
 
     const wrtc = { RTCPeerConnection, RTCSessionDescription };
     wgOsRef.current = new (WgOs({
@@ -106,6 +110,10 @@ export default function useWgOs() {
     await navigator.clipboard.writeText(wgOfferKey);
   };
 
+  const establishConnection = async wgAnswerKey => {
+    wgOsRef.current.establish(wgAnswerKey);
+  };
+
   const startJoiningConnection = () => setNetworkTabState('step2join');
 
   const joinConnection = async wgOfferKey => {
@@ -121,8 +129,13 @@ export default function useWgOs() {
     navigator.clipboard.writeText(wgAnswerKey);
   };
 
-  const establishConnection = async wgAnswerKey => {
-    wgOsRef.current.establish(wgAnswerKey);
+  const cancelConnection = () => {
+    if (!currentConnectionIdRef.current) {
+      setNetworkTabState('step1');
+      return;
+    }
+
+    wgOsRef.current.closeConnection(currentConnectionIdRef.current);
   };
 
   return {
@@ -136,5 +149,7 @@ export default function useWgOs() {
     wgAnswerKeyForJoin,
     startJoiningConnection,
     joinConnection,
+
+    cancelConnection,
   };
 }

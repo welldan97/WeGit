@@ -17,12 +17,14 @@ export default function NetworkTab({
   meshState,
 
   wgOfferKeyForCreate,
-  wgAnswerKeyForJoin,
-
   createConnection,
+  establishConnection,
+
+  wgAnswerKeyForJoin,
   startJoiningConnection,
   joinConnection,
-  establishConnection,
+
+  cancelConnection,
 }) {
   return (
     <div className="container">
@@ -46,18 +48,30 @@ export default function NetworkTab({
         />
       )}
       {networkTabState === 'step2create' && (
-        <Step2Create wgOfferKey={wgOfferKeyForCreate} />
+        <Step2Create
+          wgOfferKey={wgOfferKeyForCreate}
+          cancelConnection={cancelConnection}
+        />
       )}
       {networkTabState === 'step3create' && (
-        <Step3Create establishConnection={establishConnection} />
+        <Step3Create
+          establishConnection={establishConnection}
+          cancelConnection={cancelConnection}
+        />
       )}
 
       {networkTabState === 'step2join' && (
-        <Step2Join joinConnection={joinConnection} />
+        <Step2Join
+          joinConnection={joinConnection}
+          cancelConnection={cancelConnection}
+        />
       )}
 
       {networkTabState === 'step3join' && (
-        <Step3Join wgAnswerKey={wgAnswerKeyForJoin} />
+        <Step3Join
+          wgAnswerKey={wgAnswerKeyForJoin}
+          cancelConnection={cancelConnection}
+        />
       )}
     </div>
   );

@@ -6,7 +6,7 @@ import React from '../../lib/shims/React';
 // Main
 // =============================================================================
 
-export default function Step3Join({ wgAnswerKey }) {
+export default function Step3Join({ wgAnswerKey, cancelConnection }) {
   return (
     <>
       <div className="row mt-4">
@@ -34,6 +34,13 @@ export default function Step3Join({ wgAnswerKey }) {
             disabled
             value={wgAnswerKey}
           />
+          <button
+            type="button"
+            className="btn btn-danger btn-lg mt-4 mx-auto d-block"
+            onClick={() => cancelConnection()}
+          >
+            Cancel
+          </button>
         </div>
       </form>
     </>

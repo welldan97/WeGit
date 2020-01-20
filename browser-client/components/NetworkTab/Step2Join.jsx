@@ -6,7 +6,7 @@ import React, { useState } from '../../lib/shims/React';
 // Main
 // =============================================================================
 
-export default function Step2Join({ joinConnection }) {
+export default function Step2Join({ joinConnection, cancelConnection }) {
   const [wgOfferKey, setWgOfferKey] = useState('');
 
   return (
@@ -37,13 +37,21 @@ export default function Step2Join({ joinConnection }) {
             value={wgOfferKey}
             onChange={e => setWgOfferKey(e.target.value)}
           />
-
-          <button
-            type="submit"
-            className="btn btn-success btn-lg mt-4 mx-auto d-block"
-          >
-            Submit
-          </button>
+          <div className="d-flex justify-content-center">
+            <button
+              type="button"
+              className="btn btn-danger btn-lg mt-4 mr-4 d-block"
+              onClick={() => cancelConnection()}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-success btn-lg mt-4 d-block"
+            >
+              Submit
+            </button>
+          </div>
         </div>
       </form>
     </>
