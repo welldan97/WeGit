@@ -13,27 +13,20 @@ export default function Step1({
 }) {
   return (
     <>
-      <div className="row mt-4">
-        <div className="col-12">
-          <div className="card">
-            <div className="card-body">
-              {meshState.state === 'disconnected' && (
+      {meshState.state === 'disconnected' && (
+        <div className="row mt-4">
+          <div className="col-12">
+            <div className="card">
+              <div className="card-body">
                 <p>
                   You are not connected to anyone yet. Start creating connection
                   or join one
                 </p>
-              )}
-              {meshState.state === 'connected' && (
-                <p>
-                  Yay, looks like you are already connected.
-                  <br />
-                  But you can connect to more peers. More people — more fun!
-                </p>
-              )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
       <form className="row mt-4">
         <div className="col-12 d-flex justify-content-center">
           <div>

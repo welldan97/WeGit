@@ -29,7 +29,7 @@ export default function useWgOs() {
   const [wgAnswerKeyForJoin, setWgAnswerKeyForJoin] = useState('');
 
   const [meshState, setMeshState] = useState({
-    peers: [],
+    connections: [],
     state: 'disconnected',
   });
 
