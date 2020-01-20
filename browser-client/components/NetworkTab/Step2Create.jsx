@@ -11,6 +11,20 @@ export default function Step2Create({ wgOfferKey, cancelConnection }) {
     <>
       <div className="row mt-4">
         <div className="col-12">
+          <div className="progress">
+            <div
+              className="progress-bar bg-success"
+              role="progressbar"
+              style={{ width: '33%' }}
+              aria-valuenow="33"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            />
+          </div>
+        </div>
+      </div>
+      <div className="row mt-4">
+        <div className="col-12">
           <div className="card">
             <div className="card-body">
               <p>

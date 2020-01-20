@@ -13,6 +13,20 @@ export default function Step3Create({ establishConnection, cancelConnection }) {
     <>
       <div className="row mt-4">
         <div className="col-12">
+          <div className="progress">
+            <div
+              className="progress-bar bg-success"
+              role="progressbar"
+              style={{ width: '67%' }}
+              aria-valuenow="67"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            />
+          </div>
+        </div>
+      </div>
+      <div className="row mt-4">
+        <div className="col-12">
           <div className="card">
             <div className="card-body">
               <p>

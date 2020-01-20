@@ -13,6 +13,20 @@ export default function Step1({
 }) {
   return (
     <>
+      <div className="row mt-4">
+        <div className="col-12">
+          <div className="progress">
+            <div
+              className="progress-bar bg-success"
+              role="progressbar"
+              style={{ width: '0' }}
+              aria-valuenow="0"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            />
+          </div>
+        </div>
+      </div>
       {meshState.state === 'disconnected' && (
         <div className="row mt-4">
           <div className="col-12">
