@@ -11,6 +11,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@babel/core": "^7.8.3",
+    "@babel/plugin-transform-classes": "^7.8.3",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react-app": "^9.1.0",
     "eslint": "^6.7.2",
     "eslint-plugin-react": "^7.17.0",
     "parcel-bundler": "^1.12.4"
@@ -18,6 +22,26 @@
   "dependencies": {
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
+    "webrtc-adapter": "^7.4.0",
     "wegit-lib": "file:../lib"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "useBuiltIns": "entry"
+        }
+      ],
+      [
+        "babel-preset-react-app",
+        {
+          "absoluteRuntime": false
+        }
+      ]
+    ],
+    "plugins": [
+      "@babel/proposal-class-properties"
+    ]
   }
 }

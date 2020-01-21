@@ -2,10 +2,13 @@
 // =============================================================================
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import adapter from 'webrtc-adapter';
+
 import WgOs from 'wegit-lib/WgOs';
 import 'wegit-lib/browser/bootstrap.min.css';
 
 import uuid from '../../lib/uuid';
+import copyToClipboard from '../../lib/copyToClipboard';
 
 import log from './log';
 
@@ -22,9 +25,9 @@ const user = { userName };
 //   https://gist.github.com/sagivo/3a4b2f2c7ac6e1b5267c2f1f59ac6c6b
 const config = {
   iceServers: [
-    { url: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
     {
-      url: 'turn:numb.viagenie.ca',
+      urls: 'turn:numb.viagenie.ca',
       credential: 'muazkh',
       username: 'webrtc@live.com',
     },
@@ -95,7 +98,9 @@ export default function useWgOs() {
     const wrtc = { RTCPeerConnection, RTCSessionDescription };
     wgOsRef.current = new (WgOs({
       Event,
-      EventTarget,
+      // NOTE: in long run EventTarget should be avoided. Here we have to use
+      // Element, because it's not supported on safari
+      EventTarget: () => document.createElement('div'),
       uuid,
       wrtc,
       log,
@@ -104,7 +109,7 @@ export default function useWgOs() {
       user,
     });
 
-    wgOsRef.current.addEventListener('change', () => onChange());
+    wgOsRef.current.eventTarget.addEventListener('change', () => onChange());
 
     window.wgOs = wgOsRef.current;
   });
@@ -116,7 +121,7 @@ export default function useWgOs() {
     setNetworkTabState('step2create');
     setWgOfferKeyForCreate(wgOfferKey);
 
-    await navigator.clipboard.writeText(wgOfferKey);
+    copyToClipboard(wgOfferKey);
   };
 
   const establishConnection = async wgAnswerKey => {
@@ -134,8 +139,7 @@ export default function useWgOs() {
     setNetworkTabState('step3join');
 
     setWgAnswerKeyForJoin(wgAnswerKey);
-
-    navigator.clipboard.writeText(wgAnswerKey);
+    copyToClipboard(wgAnswerKey);
   };
 
   const cancelConnection = () => {
