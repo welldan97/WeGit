@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "parcel index.html",
-    "dev:inner": "parcel inner.html -p 2345"
+    "dev:inner": "parcel inner.html -p 2345",
+    "build": "rm -rf ./dist && parcel build index.html && rm -rf ./dist/*.js.map && cp ./dist/*.js ./dist/w"
   },
   "author": "",
   "license": "ISC",
@@ -16,6 +17,7 @@
   },
   "dependencies": {
     "react": "^16.12.0",
+    "react-dom": "^16.12.0",
     "wegit-lib": "file:../lib"
   }
 }

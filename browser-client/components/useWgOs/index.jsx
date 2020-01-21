@@ -1,12 +1,7 @@
 // Imports
 // =============================================================================
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from '../../lib/shims/React';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import WgOs from 'wegit-lib/WgOs';
 import 'wegit-lib/browser/bootstrap.min.css';
 

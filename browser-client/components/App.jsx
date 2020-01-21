@@ -1,8 +1,7 @@
 // Imports
 // =============================================================================
 
-import React, { useState } from '../lib/shims/React';
-import 'wegit-lib/browser/bootstrap.min.css';
+import React, { useState } from 'react';
 
 import Navbar from './Navbar';
 import NetworkTab from './NetworkTab';
@@ -29,7 +28,6 @@ export default function App() {
 
     cancelConnection,
   } = useWgOs();
-
   return (
     <>
       <Navbar active={active} onActivate={setActive} />

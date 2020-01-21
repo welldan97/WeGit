@@ -1,7 +1,7 @@
 // Imports
 // =============================================================================
 
-import React from '../../lib/shims/React';
+import React from 'react';
 
 import MeshState from './MeshState';
 import Step1 from './Step1';
