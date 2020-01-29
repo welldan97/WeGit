@@ -5,12 +5,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import adapter from 'webrtc-adapter';
 
 import WgOs from 'wegit-lib/WgOs';
+import { toWgKey, fromWgKey } from 'wegit-lib/wgOs/wgKey';
 import 'wegit-lib/browser/bootstrap.min.css';
 
 import uuid from '../../lib/uuid';
 import copyToClipboard from '../../lib/copyToClipboard';
 
 import log from './log';
+import useJustWgOs from './useJustWgOs';
 
 // Main
 // =============================================================================
@@ -36,111 +38,96 @@ const config = {
 
 export default function useWgOs() {
   const [networkTabState, setNetworkTabState] = useState('step1');
-  const [wgOfferKeyForCreate, setWgOfferKeyForCreate] = useState('');
-  const [wgAnswerKeyForJoin, setWgAnswerKeyForJoin] = useState('');
-
   const [meshState, setMeshState] = useState({
     connections: [],
-    state: 'disconnected',
+    globalState: 'disconnected',
   });
+  const [clipboardIsWorking, setClipboardIsWorking] = useState(false);
 
-  const wgOsRef = useRef(undefined);
-  // NOTE: for some reason onChange doesn't get networkTabState or other
-  // useState right, thus   using this
-  const networkTabStateRef = useRef(undefined);
-  useEffect(() => {
-    networkTabStateRef.current = networkTabState;
-
-    if (networkTabState === 'step1') {
-      setWgOfferKeyForCreate('');
-      setWgAnswerKeyForJoin('');
-    }
-  }, [networkTabState]);
+  const [wgOfferKeyForInvite, setWgOfferKeyForInvite] = useState('');
+  const [wgAnswerKeyForJoin, setWgAnswerKeyForJoin] = useState('');
 
   const currentConnectionIdRef = useRef(undefined);
 
-  const getCurrentConnection = () => {
-    if (!currentConnectionIdRef.current) return;
-    if (!wgOsRef.current) return;
-    const meshState = wgOsRef.current.getMeshState();
-
-    return meshState.connections.find(
-      c => c.id === currentConnectionIdRef.current,
-    );
-  };
-
-  const onChange = useCallback(() => {
-    const currentConnection = getCurrentConnection();
-
-    if (!currentConnection) {
-      setNetworkTabState('step1');
+  useEffect(() => {
+    if (networkTabState === 'step1') {
+      setWgOfferKeyForInvite('');
+      setWgAnswerKeyForJoin('');
       currentConnectionIdRef.current = undefined;
     }
+  }, [networkTabState]);
 
-    if (
-      currentConnection &&
-      currentConnection.state === 'connecting' &&
-      networkTabStateRef.current === 'step2create'
-    ) {
-      setNetworkTabState('step3create');
-    }
+  const onChange = useCallback(
+    ({ wgOs }) => {
+      console.log(networkTabState);
+      if (!wgOs) return;
+      const meshState = wgOs.getMeshState();
 
-    if (currentConnection && currentConnection.state === 'connected') {
-      setNetworkTabState('step1');
-    }
+      const currentConnection = meshState.connections.find(
+        c => c.id === currentConnectionIdRef.current,
+      );
 
-    setMeshState(wgOsRef.current.getMeshState());
-  });
+      // Happens when connection got closed, i.e. when canceled
+      if (currentConnectionIdRef.current && !currentConnection) {
+        setNetworkTabState('step1');
+      }
 
-  useEffect(() => {
-    if (wgOsRef.current !== undefined) return;
+      // When initiator connections feels like another one is connecting -
+      //   go to step 3 automatically
+      else if (
+        currentConnection &&
+        currentConnection.state === 'connecting' &&
+        networkTabState === 'step2invite'
+      ) {
+        setNetworkTabState('step3invite');
+      }
 
-    const wrtc = { RTCPeerConnection, RTCSessionDescription };
-    wgOsRef.current = new (WgOs({
-      Event,
-      // NOTE: in long run EventTarget should be avoided. Here we have to use
-      // Element, because it's not supported on safari
-      EventTarget: () => document.createElement('div'),
-      uuid,
-      wrtc,
-      log,
-    }))({
-      config,
-      user,
-    });
+      // When connection established go to step 1
+      else if (currentConnection && currentConnection.state === 'connected') {
+        setNetworkTabState('step1');
+      }
 
-    wgOsRef.current.eventTarget.addEventListener('change', () => onChange());
+      setMeshState(wgOs.getMeshState());
+    },
+    [networkTabState],
+  );
 
-    window.wgOs = wgOsRef.current;
-  });
+  const { wgOs } = useJustWgOs({ config, user, onChange });
 
-  const createConnection = async () => {
-    const { wgConnection, wgOfferKey } = await wgOsRef.current.create();
+  const invite = async () => {
+    if (!wgOs) return;
 
+    setNetworkTabState('step2invite');
+
+    const { wgConnection, wgOffer } = await wgOs.invite();
     currentConnectionIdRef.current = wgConnection.id;
-    setNetworkTabState('step2create');
-    setWgOfferKeyForCreate(wgOfferKey);
+    const wgOfferKey = toWgKey('wgOffer')(wgOffer);
 
-    copyToClipboard(wgOfferKey);
+    setWgOfferKeyForInvite(wgOfferKey);
+    const clipboardIsWorking = copyToClipboard(wgOfferKey);
+    setClipboardIsWorking(clipboardIsWorking);
   };
 
+  const startEstablishingConnection = () => setNetworkTabState('step3invite');
   const establishConnection = async wgAnswerKey => {
-    wgOsRef.current.establish(wgAnswerKey);
+    wgOsRef.current.establish(fromWgKey(wgAnswerKey));
   };
 
   const startJoiningConnection = () => setNetworkTabState('step2join');
+  const joinConnection = useCallback(
+    async wgOfferKey => {
+      const { wgConnection, wgAnswer } = await wgOsRef.current.join(
+        fromWgKey(wgOfferKey),
+      );
+      const wgAnswerKey = toWgKey('wgAnswer')(wgAnswer);
+      currentConnectionIdRef.current = wgConnection.id;
+      setNetworkTabState('step3join');
 
-  const joinConnection = async wgOfferKey => {
-    const { wgConnection, wgAnswerKey } = await wgOsRef.current.join(
-      wgOfferKey,
-    );
-
-    currentConnectionIdRef.current = wgConnection.id;
-    setNetworkTabState('step3join');
-
-    setWgAnswerKeyForJoin(wgAnswerKey);
-    copyToClipboard(wgAnswerKey);
-  };
+      setWgAnswerKeyForJoin(wgAnswerKey);
+      copyToClipboard(wgAnswerKey);
+    },
+    [wgOs],
+  );
 
   const cancelConnection = () => {
     if (!currentConnectionIdRef.current) {
@@ -148,15 +135,21 @@ export default function useWgOs() {
       return;
     }
 
-    wgOsRef.current.closeConnection(currentConnectionIdRef.current);
+    wgOs.close(currentConnectionIdRef.current);
+  };
+
+  const closeConnection = id => {
+    wgOs.close(id);
   };
 
   return {
     networkTabState,
     meshState,
+    clipboardIsWorking,
 
-    wgOfferKeyForCreate,
-    createConnection,
+    wgOfferKeyForInvite,
+    invite,
+    startEstablishingConnection,
     establishConnection,
 
     wgAnswerKeyForJoin,
@@ -164,5 +157,6 @@ export default function useWgOs() {
     joinConnection,
 
     cancelConnection,
+    closeConnection,
   };
 }

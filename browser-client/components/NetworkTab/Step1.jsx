@@ -6,35 +6,17 @@ import React from 'react';
 // Main
 // =============================================================================
 
-export default function Step1({
-  meshState,
-  createConnection,
-  startJoiningConnection,
-}) {
+export default function Step1({ meshState, invite, startJoiningConnection }) {
   return (
     <>
-      <div className="row mt-4">
-        <div className="col-12">
-          <div className="progress">
-            <div
-              className="progress-bar bg-success"
-              role="progressbar"
-              style={{ width: '0' }}
-              aria-valuenow="0"
-              aria-valuemin="0"
-              aria-valuemax="100"
-            />
-          </div>
-        </div>
-      </div>
-      {meshState.state === 'disconnected' && (
+      {meshState.globalState === 'disconnected' && (
         <div className="row mt-4">
           <div className="col-12">
             <div className="card">
               <div className="card-body">
-                <p>
-                  You are not connected to anyone yet. Start creating connection
-                  or join one
+                <p className="mb-0">
+                  You are not connected to anyone yet. Invite someone to join
+                  you, or join them yourself!
                 </p>
               </div>
             </div>
@@ -47,9 +29,9 @@ export default function Step1({
             <button
               type="button"
               className="btn btn-success btn-lg"
-              onClick={() => createConnection()}
+              onClick={() => invite()}
             >
-              Create Connection
+              Invite
             </button>
             <span className="mx-4">Or</span>
             <button
@@ -57,7 +39,7 @@ export default function Step1({
               className="btn btn-info btn-lg"
               onClick={() => startJoiningConnection()}
             >
-              Join Connection
+              Join
             </button>
           </div>
         </div>

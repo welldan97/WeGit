@@ -47,11 +47,14 @@ export default text => {
 
   try {
     var successful = document.execCommand('copy');
+    if (!successful) throw new Error('Unable to copy');
     // var msg = successful ? 'successful' : 'unsuccessful';
-    console.log('Copying text command was ' + msg);
+    //console.log('Copying text command was ' + msg);
+    document.body.removeChild(textArea);
+    return true;
   } catch (err) {
-    console.log('Oops, unable to copy');
+    document.body.removeChild(textArea);
+    //console.log('Oops, unable to copy');
+    return false;
   }
-
-  document.body.removeChild(textArea);
 };

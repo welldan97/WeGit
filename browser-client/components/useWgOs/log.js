@@ -1,6 +1,12 @@
 const serializeWgConnection = c => {
   const { id, sender, receiver, state } = c;
-  return { id, sender, receiver, state, connectionState: c.state };
+  return {
+    id,
+    sender,
+    receiver,
+    state,
+    //  connectionState: c.connection.connectionState,
+  };
 };
 
 const serializeWgMesh = c => {
@@ -14,7 +20,9 @@ const serializeWgOs = c => {
 };
 
 export default (source, method, payload) => {
-  return;
+  console.log({ source, method, payload });
+  //  //  return;
+  /*
   if (source === 'WgConnection') {
     const { wgConnection, ...rest } = payload;
     const header = [
@@ -89,5 +97,5 @@ export default (source, method, payload) => {
     console.log({ wgOs: serializeWgOs(wgOs), ...rest });
     console.log(JSON.stringify({}, undefined, 2));
     console.groupEnd();
-  }
+  }*/
 };

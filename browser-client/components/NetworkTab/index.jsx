@@ -1,14 +1,12 @@
 // Imports
 // =============================================================================
 
-import React from 'react';
+import React, { useState } from 'react';
 
 import MeshState from './MeshState';
-import Step1 from './Step1';
-import Step2Create from './Step2Create';
-import Step3Create from './Step3Create';
-import Step2Join from './Step2Join';
-import Step3Join from './Step3Join';
+import Tabs from './Tabs';
+import ConnectTab from './ConnectTab';
+import PeersTab from './PeersTab';
 
 // Main
 // =============================================================================
@@ -16,9 +14,11 @@ import Step3Join from './Step3Join';
 export default function NetworkTab({
   networkTabState,
   meshState,
+  clipboardIsWorking,
 
-  wgOfferKeyForCreate,
-  createConnection,
+  wgOfferKeyForInvite,
+  invite,
+  startEstablishingConnection,
   establishConnection,
 
   wgAnswerKeyForJoin,
@@ -26,43 +26,47 @@ export default function NetworkTab({
   joinConnection,
 
   cancelConnection,
+  closeConnection,
 }) {
+  const [active, setActive] = useState('connect');
   return (
     <div className="container">
       <h2>Network</h2>
-      <MeshState meshState={meshState} />
-      {networkTabState === 'step1' && (
-        <Step1
-          meshState={meshState}
-          createConnection={createConnection}
-          startJoiningConnection={startJoiningConnection}
-        />
-      )}
-      {networkTabState === 'step2create' && (
-        <Step2Create
-          wgOfferKey={wgOfferKeyForCreate}
-          cancelConnection={cancelConnection}
-        />
-      )}
-      {networkTabState === 'step3create' && (
-        <Step3Create
-          establishConnection={establishConnection}
-          cancelConnection={cancelConnection}
-        />
-      )}
+      <MeshState state={meshState.globalState} />
+      <Tabs
+        active={active}
+        onActivate={setActive}
+        connectingPeersCount={
+          meshState.connections.filter(
+            c => c.state === 'connecting' || c.state === 'new',
+          ).length
+        }
+        connectedPeersCount={
+          meshState.connections.filter(c => c.state === 'connected').length
+        }
+      />
+      {active === 'connect' && (
+        <ConnectTab
+          {...{
+            networkTabState,
+            meshState,
+            clipboardIsWorking,
 
-      {networkTabState === 'step2join' && (
-        <Step2Join
-          joinConnection={joinConnection}
-          cancelConnection={cancelConnection}
+            wgOfferKeyForInvite,
+            invite,
+            startEstablishingConnection,
+            establishConnection,
+
+            wgAnswerKeyForJoin,
+            startJoiningConnection,
+            joinConnection,
+
+            cancelConnection,
+          }}
         />
       )}
-
-      {networkTabState === 'step3join' && (
-        <Step3Join
-          wgAnswerKey={wgAnswerKeyForJoin}
-          cancelConnection={cancelConnection}
-        />
+      {active === 'peers' && (
+        <PeersTab meshState={meshState} closeConnection={closeConnection} />
       )}
     </div>
   );

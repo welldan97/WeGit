@@ -1,6 +1,6 @@
 {
   "name": "wegit-lib",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "WgAppStore.js",
   "scripts": {
@@ -9,5 +9,9 @@
   "author": "",
   "license": "ISC",
   "type": "module",
-  "dependencies": {}
+  "dependencies": {
+    "eventemitter3": "^4.0.0",
+    "simple-peer": "^9.6.2",
+    "uuid": "^3.4.0"
+  }
 }

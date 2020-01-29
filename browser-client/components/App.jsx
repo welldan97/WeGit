@@ -17,9 +17,11 @@ export default function App() {
   const {
     networkTabState,
     meshState,
+    clipboardIsWorking,
 
-    wgOfferKeyForCreate,
-    createConnection,
+    wgOfferKeyForInvite,
+    invite,
+    startEstablishingConnection,
     establishConnection,
 
     wgAnswerKeyForJoin,
@@ -27,22 +29,32 @@ export default function App() {
     joinConnection,
 
     cancelConnection,
+    closeConnection,
   } = useWgOs();
+
   return (
     <>
       <Navbar active={active} onActivate={setActive} />
       <main role="main">
         {active === 'network' && (
           <NetworkTab
-            networkTabState={networkTabState}
-            meshState={meshState}
-            wgOfferKeyForCreate={wgOfferKeyForCreate}
-            createConnection={createConnection}
-            establishConnection={establishConnection}
-            wgAnswerKeyForJoin={wgAnswerKeyForJoin}
-            startJoiningConnection={startJoiningConnection}
-            joinConnection={joinConnection}
-            cancelConnection={cancelConnection}
+            {...{
+              networkTabState,
+              meshState,
+              clipboardIsWorking,
+
+              wgOfferKeyForInvite,
+              invite,
+              startEstablishingConnection,
+              establishConnection,
+
+              wgAnswerKeyForJoin,
+              startJoiningConnection,
+              joinConnection,
+
+              cancelConnection,
+              closeConnection,
+            }}
           />
         )}
       </main>

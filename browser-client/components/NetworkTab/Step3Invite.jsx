@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 // Main
 // =============================================================================
 
-export default function Step3Create({ establishConnection, cancelConnection }) {
+export default function Step3Invite({ establishConnection, cancelConnection }) {
   const [wgAnswerKey, setWgAnswerKey] = useState('');
 
   return (
