@@ -14,14 +14,9 @@ import useJustWgOs from './useJustWgOs';
 // Main
 // =============================================================================
 
-const userName = Math.random()
-  .toString(36)
-  .substring(7);
-
-const user = { userName };
-
 // NOTE: public servers list:
 //   https://gist.github.com/sagivo/3a4b2f2c7ac6e1b5267c2f1f59ac6c6b
+
 const config = {
   iceServers: [
     { urls: 'stun:stun3.l.google.com:19302' },
@@ -33,7 +28,9 @@ const config = {
   ],
 };
 
+const initialUser = { userName: undefined };
 export default function useWgOs() {
+  const [user, setUser] = useState(initialUser);
   const [networkTabState, setNetworkTabState] = useState('step1');
   const [meshState, setMeshState] = useState({
     connections: [],
@@ -107,11 +104,12 @@ export default function useWgOs() {
     },
     [networkTabState],
   );
+  // NOTE: Prettier goes crazy here, so a lot of // for spacing
   const { wgOs } = useJustWgOs({
     config,
-    user,
     onChange,
   });
+  //
   const onError = () => {
     setNetworkAlert({
       message: '💀 Oops! something went wrong. Try to reinitiate connection',
@@ -119,6 +117,7 @@ export default function useWgOs() {
     });
     setNetworkTabState('step1');
   };
+  //
   const invite = async () => {
     if (!wgOs) return;
     try {
@@ -133,7 +132,9 @@ export default function useWgOs() {
       onError();
     }
   };
+  //
   const startEstablishing = () => setNetworkTabState('step3invite');
+  //
   const establish = async wgAnswerKey => {
     try {
       await wgOs.establish(fromWgKey(wgAnswerKey));
@@ -141,7 +142,9 @@ export default function useWgOs() {
       onError();
     }
   };
+  //
   const startJoining = () => setNetworkTabState('step2join');
+  //
   const join = async wgOfferKey => {
     if (!wgOs) return;
     try {
@@ -157,6 +160,7 @@ export default function useWgOs() {
       onError();
     }
   };
+  //
   const cancelConnection = () => {
     if (!currentConnectionIdRef.current) {
       setNetworkTabState('step1');
@@ -164,23 +168,38 @@ export default function useWgOs() {
     }
     wgOs.close(currentConnectionIdRef.current);
   };
+  //
   const closeConnection = id => {
     wgOs.close(id);
   };
+  //
+  const onUpdateSettings = nextSettings => {
+    const { user } = nextSettings;
+    setUser(user);
+    wgOs.saveCurrentUser(user);
+  };
+  //
   return {
+    user,
+    //
     networkTabState,
     meshState,
     networkAlert,
     clipboardIsWorking,
     peerIsConnecting,
+    //
     wgOfferKeyForInvite,
     invite,
     startEstablishing,
     establish,
+    //
     wgAnswerKeyForJoin,
     startJoining,
     join,
+    //
     cancelConnection,
     closeConnection,
+    //
+    onUpdateSettings,
   };
 }

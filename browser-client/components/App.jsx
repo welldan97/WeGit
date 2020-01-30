@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 
 import Navbar from './Navbar';
 import NetworkTab from './NetworkTab';
+import SettingsTab from './SettingsTab';
 
 import useWgOs from './useWgOs';
 
@@ -12,9 +13,11 @@ import useWgOs from './useWgOs';
 // =============================================================================
 
 export default function App() {
-  const [active, setActive] = useState('network');
+  const [active, setActive] = useState('settings' || 'network');
 
   const {
+    user,
+
     networkTabState,
     meshState,
     networkAlert,
@@ -32,11 +35,18 @@ export default function App() {
 
     cancelConnection,
     closeConnection,
+
+    onUpdateSettings,
   } = useWgOs();
 
   return (
     <>
-      <Navbar active={active} onActivate={setActive} meshState={meshState} />
+      <Navbar
+        active={active}
+        onActivate={setActive}
+        meshState={meshState}
+        userName={user.userName}
+      />
       <main role="main">
         {active === 'network' && (
           <NetworkTab
@@ -60,6 +70,9 @@ export default function App() {
               closeConnection,
             }}
           />
+        )}
+        {active === 'settings' && (
+          <SettingsTab user={user} onUpdateSettings={onUpdateSettings} />
         )}
       </main>
     </>

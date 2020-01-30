@@ -30,12 +30,14 @@ export default function useJustWgOs({ config, user, onChange }) {
       log,
     });
 
-    wgOsRef.current.on('mesh:change', (...args) =>
-      onChangeRef.current(...args),
+    wgOsRef.current.on(
+      'mesh:change',
+      (...args) => console.log('mesh:change') || onChangeRef.current(...args),
     );
 
-    wgOsRef.current.on('users:change', (...args) =>
-      onChangeRef.current(...args),
+    wgOsRef.current.on(
+      'users:change',
+      (...args) => console.log('users:change') || onChangeRef.current(...args),
     );
 
     window.wgOs = wgOsRef.current;
