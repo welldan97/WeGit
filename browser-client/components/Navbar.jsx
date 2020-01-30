@@ -6,7 +6,7 @@ import React from 'react';
 // Main
 // =============================================================================
 
-export default function Navbar({ active, onActivate }) {
+export default function Navbar({ active, onActivate, meshState }) {
   return (
     <nav className="navbar navbar-expand navbar-dark bg-dark mb-4">
       <a className="navbar-brand" href="#">
@@ -33,6 +33,7 @@ export default function Navbar({ active, onActivate }) {
             href="#"
             onClick={() => onActivate('network')}
           >
+            {meshState.globalState === 'connected' && '✅'}
             Network
           </a>
         </li>

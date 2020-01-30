@@ -17,16 +17,18 @@ export default function App() {
   const {
     networkTabState,
     meshState,
+    networkAlert,
     clipboardIsWorking,
+    peerIsConnecting,
 
     wgOfferKeyForInvite,
     invite,
-    startEstablishingConnection,
-    establishConnection,
+    startEstablishing,
+    establish,
 
     wgAnswerKeyForJoin,
-    startJoiningConnection,
-    joinConnection,
+    startJoining,
+    join,
 
     cancelConnection,
     closeConnection,
@@ -34,23 +36,25 @@ export default function App() {
 
   return (
     <>
-      <Navbar active={active} onActivate={setActive} />
+      <Navbar active={active} onActivate={setActive} meshState={meshState} />
       <main role="main">
         {active === 'network' && (
           <NetworkTab
             {...{
               networkTabState,
               meshState,
+              networkAlert,
               clipboardIsWorking,
+              peerIsConnecting,
 
               wgOfferKeyForInvite,
               invite,
-              startEstablishingConnection,
-              establishConnection,
+              startEstablishing,
+              establish,
 
               wgAnswerKeyForJoin,
-              startJoiningConnection,
-              joinConnection,
+              startJoining,
+              join,
 
               cancelConnection,
               closeConnection,

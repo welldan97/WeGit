@@ -14,16 +14,18 @@ import PeersTab from './PeersTab';
 export default function NetworkTab({
   networkTabState,
   meshState,
+  networkAlert,
   clipboardIsWorking,
+  peerIsConnecting,
 
   wgOfferKeyForInvite,
   invite,
-  startEstablishingConnection,
-  establishConnection,
+  startEstablishing,
+  establish,
 
   wgAnswerKeyForJoin,
-  startJoiningConnection,
-  joinConnection,
+  startJoining,
+  join,
 
   cancelConnection,
   closeConnection,
@@ -50,16 +52,18 @@ export default function NetworkTab({
           {...{
             networkTabState,
             meshState,
+            networkAlert,
             clipboardIsWorking,
+            peerIsConnecting,
 
             wgOfferKeyForInvite,
             invite,
-            startEstablishingConnection,
-            establishConnection,
+            startEstablishing,
+            establish,
 
             wgAnswerKeyForJoin,
-            startJoiningConnection,
-            joinConnection,
+            startJoining,
+            join,
 
             cancelConnection,
           }}

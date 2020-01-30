@@ -15,6 +15,11 @@ import log from './log';
 export default function useJustWgOs({ config, user, onChange }) {
   const setIsReady = useState(false)[1];
   const wgOsRef = useRef(undefined);
+  const onChangeRef = useRef(onChange);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   useEffect(() => {
     if (wgOsRef.current !== undefined) return;
@@ -25,8 +30,13 @@ export default function useJustWgOs({ config, user, onChange }) {
       log,
     });
 
-    wgOsRef.current.on('mesh:change', onChange);
-    wgOsRef.current.on('users:change', onChange);
+    wgOsRef.current.on('mesh:change', (...args) =>
+      onChangeRef.current(...args),
+    );
+
+    wgOsRef.current.on('users:change', (...args) =>
+      onChangeRef.current(...args),
+    );
 
     window.wgOs = wgOsRef.current;
     setIsReady(true);

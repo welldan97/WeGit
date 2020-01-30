@@ -6,35 +6,26 @@ import React, { useState } from 'react';
 // Main
 // =============================================================================
 
-export default function Step3Invite({ establishConnection, cancelConnection }) {
+export default function Step3Invite({
+  establish,
+  cancelConnection,
+  peerIsConnecting,
+}) {
   const [wgAnswerKey, setWgAnswerKey] = useState('');
 
   return (
     <>
       <div className="row mt-4">
         <div className="col-12">
-          <div className="progress">
-            <div
-              className="progress-bar bg-success"
-              role="progressbar"
-              style={{ width: '67%' }}
-              aria-valuenow="67"
-              aria-valuemin="0"
-              aria-valuemax="100"
-            />
-          </div>
-        </div>
-      </div>
-      <div className="row mt-4">
-        <div className="col-12">
-          <div className="card">
-            <div className="card-body">
-              <p>
-                Your peer has started connecting to you.
-                <br />
-                Paste their answer here and click "Establish Connection"
-              </p>
+          {peerIsConnecting && (
+            <div className="alert alert-success" role="alert">
+              ✅ Yay! Your peer has started connecting to you, and we could
+              receive their signals (sometimes it happens, sometimes - not)
             </div>
+          )}
+          <div className="alert alert-secondary" role="alert">
+            📋 That's the last step. Paste the Answer from your peer here and
+            submit it.
           </div>
         </div>
       </div>
@@ -42,13 +33,13 @@ export default function Step3Invite({ establishConnection, cancelConnection }) {
         className="row mt-4"
         onSubmit={e => {
           e.preventDefault();
-          establishConnection(wgAnswerKey);
+          establish(wgAnswerKey);
         }}
       >
         <div className="col-12">
-          <label htmlFor="offer">Offer</label>
+          <label htmlFor="answer">Answer</label>
           <textarea
-            id="offer"
+            id="answer"
             className="form-control text-monospace"
             rows="6"
             placeholder="Paste your answer here"
@@ -67,8 +58,9 @@ export default function Step3Invite({ establishConnection, cancelConnection }) {
             <button
               type="submit"
               className="btn btn-success btn-lg mt-4 d-block"
+              disabled={!wgAnswerKey}
             >
-              Establish Connection
+              Establish Connection!
             </button>
           </div>
         </div>

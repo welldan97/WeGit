@@ -6,19 +6,15 @@ import React, { useState } from 'react';
 // Main
 // =============================================================================
 
-export default function Step2Join({ joinConnection, cancelConnection }) {
+export default function Step2Join({ join, cancelConnection }) {
   const [wgOfferKey, setWgOfferKey] = useState('');
 
   return (
     <>
       <div className="row mt-4">
         <div className="col-12">
-          <div className="card">
-            <div className="card-body">
-              <p className="mb-0">
-                Paste the offer from your peer here and click "Submit"
-              </p>
-            </div>
+          <div className="alert alert-secondary" role="alert">
+            📋 Paste the Offer from your peer here and go to the next step
           </div>
         </div>
       </div>
@@ -26,7 +22,7 @@ export default function Step2Join({ joinConnection, cancelConnection }) {
         className="row mt-4"
         onSubmit={e => {
           e.preventDefault();
-          joinConnection(wgOfferKey);
+          join(wgOfferKey);
         }}
       >
         <div className="col-12">
@@ -35,7 +31,7 @@ export default function Step2Join({ joinConnection, cancelConnection }) {
             id="offer"
             className="form-control text-monospace"
             rows="6"
-            placeholder="Paste your offer here"
+            placeholder="Paste your Offer here"
             value={wgOfferKey}
             onChange={e => setWgOfferKey(e.target.value)}
           />
@@ -50,8 +46,9 @@ export default function Step2Join({ joinConnection, cancelConnection }) {
             <button
               type="submit"
               className="btn btn-success btn-lg mt-4 d-block"
+              disabled={!wgOfferKey}
             >
-              Submit
+              Next
             </button>
           </div>
         </div>

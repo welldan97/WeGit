@@ -11,12 +11,8 @@ export default function PeersTab({ meshState, closeConnection }) {
     return (
       <div className="row mt-4">
         <div className="col-12">
-          <div className="card">
-            <div className="card-body">
-              <p className="mb-0">
-                You don't have any connected peers, so sad!
-              </p>
-            </div>
+          <div className="alert alert-secondary" role="alert">
+            You don't have any connected peers, so sad! 😭
           </div>
         </div>
       </div>
@@ -34,7 +30,8 @@ export default function PeersTab({ meshState, closeConnection }) {
             key={c.id}
           >
             <span>
-              🌎 {(c.user && c.user.userName) || 'Unknown user'} ({c.state})
+              🌎 {(c.user && c.user.userName) || 'Unknown user'} (
+              <em>{c.state}</em>)
             </span>
             <a
               className="text-danger"

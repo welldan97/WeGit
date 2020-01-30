@@ -13,7 +13,11 @@ import Step3Join from './Step3Join';
 // Helpers
 // =============================================================================
 
-const getProgress = ({ networkTabState, wgOfferKeyForInvite }) => {
+const getProgress = ({
+  networkTabState,
+  wgOfferKeyForInvite,
+  wgAnswerKeyForJoin,
+}) => {
   switch (networkTabState) {
     case 'step1':
       return 0;
@@ -21,9 +25,10 @@ const getProgress = ({ networkTabState, wgOfferKeyForInvite }) => {
       if (!wgOfferKeyForInvite) return 25;
       return 50;
     case 'step2join':
-      return 50;
+      return 25;
     case 'step3invite':
     case 'step3join':
+      if (!wgAnswerKeyForJoin) return 50;
       return 75;
     default:
   }
@@ -35,53 +40,59 @@ const getProgress = ({ networkTabState, wgOfferKeyForInvite }) => {
 export default function ConnectTab({
   networkTabState,
   meshState,
+  networkAlert,
   clipboardIsWorking,
+  peerIsConnecting,
 
   wgOfferKeyForInvite,
   invite,
-  startEstablishingConnection,
-  establishConnection,
+  startEstablishing,
+  establish,
 
   wgAnswerKeyForJoin,
-  startJoiningConnection,
-  joinConnection,
+  startJoining,
+  join,
 
   cancelConnection,
 }) {
   return (
     <>
       <Progressbar
-        progress={getProgress({ networkTabState, wgOfferKeyForInvite })}
+        progress={getProgress({
+          networkTabState,
+          wgOfferKeyForInvite,
+          wgAnswerKeyForJoin,
+        })}
       />
       {networkTabState === 'step1' && (
         <Step1
+          networkAlert={networkAlert}
           meshState={meshState}
           invite={invite}
-          startJoiningConnection={startJoiningConnection}
+          startJoining={startJoining}
         />
       )}
       {networkTabState === 'step2invite' && (
         <Step2Invite
-          wgOfferKey={wgOfferKeyForInvite}
           clipboardIsWorking={clipboardIsWorking}
+          wgOfferKey={wgOfferKeyForInvite}
           cancelConnection={cancelConnection}
-          startEstablishingConnection={startEstablishingConnection}
+          startEstablishing={startEstablishing}
         />
       )}
       {networkTabState === 'step3invite' && (
         <Step3Invite
-          establishConnection={establishConnection}
+          peerIsConnecting={peerIsConnecting}
+          establish={establish}
           cancelConnection={cancelConnection}
         />
       )}
       {networkTabState === 'step2join' && (
-        <Step2Join
-          joinConnection={joinConnection}
-          cancelConnection={cancelConnection}
-        />
+        <Step2Join join={join} cancelConnection={cancelConnection} />
       )}
       {networkTabState === 'step3join' && (
         <Step3Join
+          clipboardIsWorking={clipboardIsWorking}
           wgAnswerKey={wgAnswerKeyForJoin}
           cancelConnection={cancelConnection}
         />

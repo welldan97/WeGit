@@ -6,23 +6,37 @@ import React from 'react';
 // Main
 // =============================================================================
 
-export default function Step1({ meshState, invite, startJoiningConnection }) {
+export default function Step1({
+  meshState,
+  networkAlert,
+  invite,
+  startJoining,
+}) {
   return (
     <>
-      {meshState.globalState === 'disconnected' && (
-        <div className="row mt-4">
-          <div className="col-12">
-            <div className="card">
-              <div className="card-body">
-                <p className="mb-0">
-                  You are not connected to anyone yet. Invite someone to join
-                  you, or join them yourself!
-                </p>
-              </div>
+      <div className="row mt-4">
+        <div className="col-12">
+          {networkAlert && (
+            <div className={`alert alert-${networkAlert.type}`} role="alert">
+              {networkAlert.message}
             </div>
-          </div>
+          )}
+
+          {meshState.globalState === 'disconnected' && (
+            <div className="alert alert-secondary" role="alert">
+              😞 You are not connected to anyone yet. Invite someone to join
+              you, or join them yourself!
+            </div>
+          )}
+
+          {meshState.globalState !== 'disconnected' && (
+            <div className="alert alert-secondary" role="alert">
+              👯 You are already connected, but you can always connect to more
+              peers. More people - more fun!
+            </div>
+          )}
         </div>
-      )}
+      </div>
       <form className="row mt-4">
         <div className="col-12 d-flex justify-content-center">
           <div>
@@ -37,7 +51,7 @@ export default function Step1({ meshState, invite, startJoiningConnection }) {
             <button
               type="button"
               className="btn btn-info btn-lg"
-              onClick={() => startJoiningConnection()}
+              onClick={() => startJoining()}
             >
               Join
             </button>
