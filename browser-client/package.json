@@ -20,6 +20,8 @@
     "parcel-bundler": "^1.12.4"
   },
   "dependencies": {
+    "js-cookie": "^2.2.1",
+    "lodash": "^4.17.15",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "webrtc-adapter": "^7.4.0",

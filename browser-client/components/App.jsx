@@ -16,6 +16,7 @@ export default function App() {
   const [active, setActive] = useState('settings' || 'network');
 
   const {
+    config,
     user,
 
     networkTabState,
@@ -48,32 +49,38 @@ export default function App() {
         userName={user.userName}
       />
       <main role="main">
-        {active === 'network' && (
-          <NetworkTab
-            {...{
-              networkTabState,
-              meshState,
-              networkAlert,
-              clipboardIsWorking,
-              peerIsConnecting,
+        <div className="container" style={{ maxWidth: '720px' }}>
+          {active === 'network' && (
+            <NetworkTab
+              {...{
+                networkTabState,
+                meshState,
+                networkAlert,
+                clipboardIsWorking,
+                peerIsConnecting,
 
-              wgOfferKeyForInvite,
-              invite,
-              startEstablishing,
-              establish,
+                wgOfferKeyForInvite,
+                invite,
+                startEstablishing,
+                establish,
 
-              wgAnswerKeyForJoin,
-              startJoining,
-              join,
+                wgAnswerKeyForJoin,
+                startJoining,
+                join,
 
-              cancelConnection,
-              closeConnection,
-            }}
-          />
-        )}
-        {active === 'settings' && (
-          <SettingsTab user={user} onUpdateSettings={onUpdateSettings} />
-        )}
+                cancelConnection,
+                closeConnection,
+              }}
+            />
+          )}
+          {active === 'settings' && (
+            <SettingsTab
+              config={config}
+              user={user}
+              onUpdateSettings={onUpdateSettings}
+            />
+          )}
+        </div>
       </main>
     </>
   );

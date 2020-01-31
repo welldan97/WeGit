@@ -32,7 +32,7 @@ export default function NetworkTab({
 }) {
   const [active, setActive] = useState('connect');
   return (
-    <div className="container">
+    <>
       <h2>Network</h2>
       <MeshState state={meshState.globalState} />
       <Tabs
@@ -72,6 +72,6 @@ export default function NetworkTab({
       {active === 'peers' && (
         <PeersTab meshState={meshState} closeConnection={closeConnection} />
       )}
-    </div>
+    </>
   );
 }

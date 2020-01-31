@@ -11,7 +11,7 @@
   "type": "module",
   "dependencies": {
     "eventemitter3": "^4.0.0",
-    "simple-peer": "^9.6.2",
-    "uuid": "^3.4.0"
+    "nanoid": "^2.1.11",
+    "simple-peer": "^9.6.2"
   }
 }

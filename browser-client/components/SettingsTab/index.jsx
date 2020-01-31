@@ -6,20 +6,28 @@ import React, { useEffect, useState } from 'react';
 // Main
 // =============================================================================
 
-export default function SettingsTab({ user, onUpdateSettings }) {
+export default function SettingsTab({ user, config, onUpdateSettings }) {
   const [nextUserName, setNextUserName] = useState(user.userName || '');
+  const [nextConfigText, setNextConfigText] = useState(
+    JSON.stringify(config, undefined, 2) || '',
+  );
+
   useEffect(() => {
-    if (nextUserName === user.userName) return;
-    setNextUserName(user.userName || '');
-  }, [user.userName]);
+    if (nextUserName !== user.userName) setNextUserName(user.userName || '');
+    if (nextConfigText !== user.userName)
+      setNextConfigText(JSON.stringify(config, undefined, 2) || '');
+  }, [user.userName, config]);
 
   return (
     <form
-      className="container"
       onSubmit={e => {
         e.preventDefault();
+        const nextConfig = nextConfigText
+          ? JSON.parse(nextConfigText)
+          : undefined;
         onUpdateSettings({
           user: { ...user, userName: nextUserName || undefined },
+          config: nextConfig,
         });
       }}
     >
@@ -41,14 +49,28 @@ export default function SettingsTab({ user, onUpdateSettings }) {
           </div>
         </div>
         <div className="row mt-4">
-          <div className="col-12">
+          <div className="col-12 border border-danger pt-3 pb-3">
             <>
+              <div className="alert alert-danger" role="alert">
+                ⚠️ Danger zone: Changing these settings would make you
+                disconnect from the network.
+              </div>
               <div className="alert alert-secondary" role="alert">
                 ℹ️ Here come connection settings: ice, stun, turn so on. For now
-                it's just a text config. But later, we'll go crazy and build a
-                lot of beautifulest knobs, and weels, and scrollers and
+                it's just a JSON config. But later, we'll go crazy and build a
+                lot of beautifulest knobs, and wheels, and scrollers and
                 carousels… Yeah, stay tuned.
               </div>
+
+              <label htmlFor="config">Config</label>
+              <textarea
+                id="config"
+                className="form-control text-monospace"
+                rows="6"
+                placeholder="Fill in your Config in JSON here, or leave it blank to go with defaults"
+                value={nextConfigText}
+                onChange={e => setNextConfigText(e.target.value)}
+              />
             </>
           </div>
         </div>

@@ -63,14 +63,20 @@ export default function Navbar({ active, onActivate, meshState, userName }) {
             <a
               className="dropdown-item"
               href="#"
-              onClick={() => onActivate('settings')}
+              onClick={() => {
+                setDropdownIsOpen(false);
+                onActivate('settings');
+              }}
             >
               Settings
             </a>
             <a
               className="dropdown-item"
               href="#"
-              onClick={() => onActivate('about')}
+              onClick={() => {
+                setDropdownIsOpen(false);
+                onActivate('about');
+              }}
             >
               About
             </a>

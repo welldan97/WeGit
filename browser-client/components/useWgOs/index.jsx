@@ -1,8 +1,11 @@
 // Imports
 // =============================================================================
 
-import { useCallback, useEffect, useRef, useState } from 'react';
 import adapter from 'webrtc-adapter';
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import Cookies from 'js-cookie';
+import _isEqual from 'lodash/isEqual';
 
 import { toWgKey, fromWgKey } from 'wegit-lib/wgOs/wgKey';
 import 'wegit-lib/browser/bootstrap.min.css';
@@ -17,18 +20,21 @@ import useJustWgOs from './useJustWgOs';
 // NOTE: public servers list:
 //   https://gist.github.com/sagivo/3a4b2f2c7ac6e1b5267c2f1f59ac6c6b
 
-const config = {
-  iceServers: [
-    { urls: 'stun:stun3.l.google.com:19302' },
-    {
-      urls: 'turn:numb.viagenie.ca',
-      credential: 'muazkh',
-      username: 'webrtc@live.com',
-    },
-  ],
+const defaultSettings = {
+  config: {
+    iceServers: [{ urls: ['stun:stun.l.google.com:19302'] }],
+  },
+  user: { userName: undefined },
 };
 
-const initialUser = { userName: undefined };
+const weGitSettingsCookie = Cookies.get('weGit');
+const weGitSettings = {
+  ...defaultSettings,
+  ...(weGitSettingsCookie ? JSON.parse(weGitSettingsCookie) : {}),
+};
+
+const { config, user: initialUser } = weGitSettings;
+
 export default function useWgOs() {
   const [user, setUser] = useState(initialUser);
   const [networkTabState, setNetworkTabState] = useState('step1');
@@ -106,6 +112,7 @@ export default function useWgOs() {
   );
   // NOTE: Prettier goes crazy here, so a lot of // for spacing
   const { wgOs } = useJustWgOs({
+    user,
     config,
     onChange,
   });
@@ -174,12 +181,18 @@ export default function useWgOs() {
   };
   //
   const onUpdateSettings = nextSettings => {
-    const { user } = nextSettings;
+    const { user, config: nextConfig } = nextSettings;
     setUser(user);
     wgOs.saveCurrentUser(user);
+    //
+    Cookies.set('weGit', { config: nextConfig, user });
+    if (!_isEqual(config, nextConfig)) {
+      location.reload(true);
+    }
   };
   //
   return {
+    config,
     user,
     //
     networkTabState,
