@@ -33,8 +33,12 @@ export default function NetworkTab({
   const [active, setActive] = useState('connect');
   return (
     <>
-      <h2>Network</h2>
-      <MeshState state={meshState.globalState} />
+      <div className="row mt-4">
+        <div className="col-12">
+          <h2>Network</h2>
+          <MeshState state={meshState.globalState} />
+        </div>
+      </div>
       <Tabs
         active={active}
         onActivate={setActive}

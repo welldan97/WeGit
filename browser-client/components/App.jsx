@@ -13,7 +13,7 @@ import useWgOs from './useWgOs';
 // =============================================================================
 
 export default function App() {
-  const [active, setActive] = useState('settings' || 'network');
+  const [active, setActive] = useState('network');
 
   const {
     config,
