@@ -1,3 +1,10 @@
+// ==WgApp==
+// @name WeWeWeChat
+// @description Hello world application of WeGit
+// @icon \u1F919
+// @user { "userName": "welldan97" }
+// ==/WgApp==
+
 const renderPage = () => `
   <main>
 
@@ -11,15 +18,19 @@ const renderPage = () => `
   </main>
 `;
 
-const createPage = options => {
+const createPage = () => {
   const parser = new DOMParser();
-  const nextDocument = parser.parseFromString(renderPage(options), 'text/html');
+  const nextDocument = parser.parseFromString(renderPage(), 'text/html');
   const pageContents = nextDocument.body.children[0];
 
   document.body.appendChild(pageContents);
 };
 
-AppContext.on('message', ({ user, message }) => {
+AppContext.on('message', ({ type, payload }) => {
+  if (type !== 'message') return;
+
+  const { user, message } = payload;
+
   const $messages = document.getElementById('messages');
   $messages.innerText =
     $messages.innerText + '\n' + user.userName + ': ' + message;
@@ -36,9 +47,12 @@ const main = () => {
     const $messages = document.getElementById('messages');
     $messages.innerText =
       $messages.innerText + '\n' + user.userName + ': ' + message;
-    AppContext.sendAll('message', {
-      user,
-      message,
+    AppContext.sendAll({
+      type: 'message',
+      payload: {
+        user,
+        message,
+      },
     });
   });
 
