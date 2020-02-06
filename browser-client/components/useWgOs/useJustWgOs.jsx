@@ -13,13 +13,26 @@ import log from './log';
 // =============================================================================
 
 export default function useJustWgOs({ config, user, onChange }) {
-  const setIsReady = useState(false)[1];
+  const [isReady, setIsReady] = useState(false);
   const wgOsRef = useRef(undefined);
   const onChangeRef = useRef(onChange);
+  const onMessageRef = useRef(() => {});
 
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
+
+  const transport = {
+    send(...args) {
+      return wgOsRef.current.send(...args);
+    },
+    sendAll(...args) {
+      return wgOsRef.current.sendAll(...args);
+    },
+    setOnMessage: onMessage => {
+      onMessageRef.current = onMessage;
+    },
+  };
 
   useEffect(() => {
     if (wgOsRef.current !== undefined) return;
@@ -30,19 +43,23 @@ export default function useJustWgOs({ config, user, onChange }) {
       log,
     });
 
-    wgOsRef.current.on(
-      'mesh:change',
-      (...args) => console.log('mesh:change') || onChangeRef.current(...args),
+    wgOsRef.current.on('mesh:change', (...args) =>
+      onChangeRef.current(...args),
     );
 
-    wgOsRef.current.on(
-      'users:change',
-      (...args) => console.log('users:change') || onChangeRef.current(...args),
+    wgOsRef.current.on('users:change', (...args) =>
+      onChangeRef.current(...args),
     );
+
+    wgOsRef.current.on('apps:change', (...args) =>
+      onChangeRef.current(...args),
+    );
+
+    wgOsRef.current.on('message', (...args) => onMessageRef.current(...args));
 
     window.wgOs = wgOsRef.current;
     setIsReady(true);
   });
 
-  return { wgOs: wgOsRef.current };
+  return { isReady, wgOs: wgOsRef.current, transport };
 }

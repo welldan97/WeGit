@@ -4,6 +4,8 @@
 import React, { useState } from 'react';
 
 import Navbar from './Navbar';
+import RunningAppTab from './RunningAppTab';
+import AppsTab from './AppsTab';
 import NetworkTab from './NetworkTab';
 import SettingsTab from './SettingsTab';
 
@@ -13,12 +15,14 @@ import useWgOs from './useWgOs';
 // =============================================================================
 
 export default function App() {
-  const [active, setActive] = useState('network');
-
   const {
     config,
-    user,
+    currentUser,
+    users,
+    apps,
 
+    mainTabState,
+    setMainTabState,
     networkTabState,
     meshState,
     networkAlert,
@@ -38,19 +42,42 @@ export default function App() {
     closeConnection,
 
     onUpdateSettings,
+
+    runningApp,
+    transport,
+    onCreateApp,
+    onRunApp,
+    onDeleteApp,
   } = useWgOs();
 
   return (
     <>
       <Navbar
-        active={active}
-        onActivate={setActive}
+        active={mainTabState}
+        onActivate={setMainTabState}
+        runningApp={runningApp}
         meshState={meshState}
-        userName={user.userName}
+        userName={currentUser.userName}
       />
       <main role="main">
         <div className="container" style={{ maxWidth: '720px' }}>
-          {active === 'network' && (
+          {mainTabState === 'runningApp' && (
+            <RunningAppTab
+              runningApp={runningApp}
+              currentUser={currentUser}
+              users={users}
+              transport={transport}
+            />
+          )}
+          {mainTabState === 'apps' && (
+            <AppsTab
+              apps={apps}
+              onCreate={onCreateApp}
+              onRun={onRunApp}
+              onDelete={onDeleteApp}
+            />
+          )}
+          {mainTabState === 'network' && (
             <NetworkTab
               {...{
                 networkTabState,
@@ -73,10 +100,10 @@ export default function App() {
               }}
             />
           )}
-          {active === 'settings' && (
+          {mainTabState === 'settings' && (
             <SettingsTab
               config={config}
-              user={user}
+              user={currentUser}
               onUpdateSettings={onUpdateSettings}
             />
           )}

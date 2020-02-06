@@ -6,7 +6,13 @@ import React, { useState } from 'react';
 // Main
 // =============================================================================
 
-export default function Navbar({ active, onActivate, meshState, userName }) {
+export default function Navbar({
+  active,
+  onActivate,
+  runningApp,
+  meshState,
+  userName,
+}) {
   const [dropdownIsOpen, setDropdownIsOpen] = useState(false);
 
   return (
@@ -15,15 +21,18 @@ export default function Navbar({ active, onActivate, meshState, userName }) {
         WeGit
       </a>
       <ul className="navbar-nav mr-auto">
-        <li className={`nav-item ${active === 'currentApp' ? 'active' : ''}`}>
-          <a
-            className="nav-link"
-            href="#"
-            onClick={() => onActivate('currentApp')}
-          >
-            Current App
-          </a>
-        </li>
+        {runningApp && (
+          <li className={`nav-item ${active === 'runningApp' ? 'active' : ''}`}>
+            <a
+              className="nav-link"
+              href="#"
+              onClick={() => onActivate('currentApp')}
+            >
+              {runningApp.icon} {runningApp.name}{' '}
+              <span className="badge badge-success">Running</span>
+            </a>
+          </li>
+        )}
         <li className={`nav-item ${active === 'apps' ? 'active' : ''}`}>
           <a className="nav-link" href="#" onClick={() => onActivate('apps')}>
             Apps

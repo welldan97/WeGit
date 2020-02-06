@@ -24,7 +24,7 @@ const defaultSettings = {
   config: {
     iceServers: [{ urls: ['stun:stun.l.google.com:19302'] }],
   },
-  user: { userName: undefined },
+  currentUser: { userName: undefined },
 };
 
 const weGitSettingsCookie = Cookies.get('weGit');
@@ -33,15 +33,21 @@ const weGitSettings = {
   ...(weGitSettingsCookie ? JSON.parse(weGitSettingsCookie) : {}),
 };
 
-const { config, user: initialUser } = weGitSettings;
+const { config, currentUser: initialCurrentUser } = weGitSettings;
 
 export default function useWgOs() {
-  const [user, setUser] = useState(initialUser);
+  const [currentUser, setCurrentUser] = useState(initialCurrentUser);
+  const [users, setUsers] = useState([]);
+  const [apps, setApps] = useState([]);
+  const [runningApp, setRunningApp] = useState(undefined);
+
+  const [mainTabState, setMainTabState] = useState('apps');
   const [networkTabState, setNetworkTabState] = useState('step1');
   const [meshState, setMeshState] = useState({
     connections: [],
     globalState: 'disconnected',
   });
+
   const [clipboardIsWorking, setClipboardIsWorking] = useState(false);
   const [peerIsConnecting, setPeerIsConnecting] = useState(false);
   const [networkAlert, baseSetNetworkAlert] = useState(undefined);
@@ -70,6 +76,8 @@ export default function useWgOs() {
   const onChange = useCallback(
     ({ wgOs }) => {
       if (!wgOs) return;
+      setApps(wgOs.apps);
+      setUsers(wgOs.users);
       const baseMeshState = wgOs.getMeshState();
       const meshState = {
         connections: baseMeshState.connections.map(c => ({
@@ -110,13 +118,20 @@ export default function useWgOs() {
     },
     [networkTabState],
   );
+  // Initialization
+  //
   // NOTE: Prettier goes crazy here, so a lot of // for spacing
-  const { wgOs } = useJustWgOs({
-    user,
+  const { isReady, wgOs, transport } = useJustWgOs({
+    user: currentUser,
     config,
     onChange,
   });
   //
+  useEffect(() => {
+    if (!isReady) return;
+    setApps(wgOs.apps);
+  }, [wgOs]);
+
   const onError = () => {
     setNetworkAlert({
       message: '💀 Oops! something went wrong. Try to reinitiate connection',
@@ -182,19 +197,36 @@ export default function useWgOs() {
   //
   const onUpdateSettings = nextSettings => {
     const { user, config: nextConfig } = nextSettings;
-    setUser(user);
+    setCurrentUser(user);
     wgOs.saveCurrentUser(user);
     //
-    Cookies.set('weGit', { config: nextConfig, user });
+    Cookies.set('weGit', { config: nextConfig, currentUser: user });
     if (!_isEqual(config, nextConfig)) {
       location.reload(true);
     }
   };
   //
+  const onCreateApp = app => {
+    wgOs.createApp(app);
+  };
+  //
+  const onRunApp = appId => {
+    setRunningApp(wgOs.apps.find(a => a.id === appId));
+    setMainTabState('runningApp');
+  };
+  //
+  const onDeleteApp = appId => {
+    wgOs.deleteApp(appId);
+  };
+  //
   return {
     config,
-    user,
+    currentUser,
+    users,
+    apps,
     //
+    mainTabState,
+    setMainTabState,
     networkTabState,
     meshState,
     networkAlert,
@@ -214,5 +246,11 @@ export default function useWgOs() {
     closeConnection,
     //
     onUpdateSettings,
+    //
+    runningApp,
+    transport,
+    onCreateApp,
+    onRunApp,
+    onDeleteApp,
   };
 }
