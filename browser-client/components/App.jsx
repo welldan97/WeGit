@@ -14,7 +14,7 @@ import useWgOs from './useWgOs';
 // Main
 // =============================================================================
 
-export default function App() {
+export default function App({ utils }) {
   const {
     config,
     currentUser,
@@ -60,54 +60,57 @@ export default function App() {
         userName={currentUser.userName}
       />
       <main role="main">
-        <div className="container" style={{ maxWidth: '720px' }}>
-          {mainTabState === 'runningApp' && (
-            <RunningAppTab
-              runningApp={runningApp}
-              currentUser={currentUser}
-              users={users}
-              transport={transport}
-            />
-          )}
-          {mainTabState === 'apps' && (
-            <AppsTab
-              apps={apps}
-              onCreate={onCreateApp}
-              onRun={onRunApp}
-              onDelete={onDeleteApp}
-            />
-          )}
-          {mainTabState === 'network' && (
-            <NetworkTab
-              {...{
-                networkTabState,
-                meshState,
-                networkAlert,
-                clipboardIsWorking,
-                peerIsConnecting,
+        {mainTabState === 'runningApp' && (
+          <RunningAppTab
+            runningApp={runningApp}
+            currentUser={currentUser}
+            users={users}
+            transport={transport}
+            utils={utils}
+          />
+        )}
+        {mainTabState !== 'runningApp' && (
+          <div className="container" style={{ maxWidth: '720px' }}>
+            {mainTabState === 'apps' && (
+              <AppsTab
+                apps={apps}
+                onCreate={onCreateApp}
+                onRun={onRunApp}
+                onDelete={onDeleteApp}
+              />
+            )}
+            {mainTabState === 'network' && (
+              <NetworkTab
+                {...{
+                  networkTabState,
+                  meshState,
+                  networkAlert,
+                  clipboardIsWorking,
+                  peerIsConnecting,
 
-                wgOfferKeyForInvite,
-                invite,
-                startEstablishing,
-                establish,
+                  wgOfferKeyForInvite,
+                  invite,
+                  startEstablishing,
+                  establish,
 
-                wgAnswerKeyForJoin,
-                startJoining,
-                join,
+                  wgAnswerKeyForJoin,
+                  startJoining,
+                  join,
 
-                cancelConnection,
-                closeConnection,
-              }}
-            />
-          )}
-          {mainTabState === 'settings' && (
-            <SettingsTab
-              config={config}
-              user={currentUser}
-              onUpdateSettings={onUpdateSettings}
-            />
-          )}
-        </div>
+                  cancelConnection,
+                  closeConnection,
+                }}
+              />
+            )}
+            {mainTabState === 'settings' && (
+              <SettingsTab
+                config={config}
+                user={currentUser}
+                onUpdateSettings={onUpdateSettings}
+              />
+            )}
+          </div>
+        )}
       </main>
     </>
   );

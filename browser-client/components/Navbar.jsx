@@ -16,7 +16,11 @@ export default function Navbar({
   const [dropdownIsOpen, setDropdownIsOpen] = useState(false);
 
   return (
-    <nav className="navbar navbar-expand navbar-dark bg-dark mb-4">
+    <nav
+      className={`navbar navbar-expand navbar-dark bg-dark ${
+        active === 'runningApp' ? '' : 'mb-4'
+      }`}
+    >
       <a className="navbar-brand" href="#">
         WeGit
       </a>

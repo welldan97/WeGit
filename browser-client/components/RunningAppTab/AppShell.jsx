@@ -14,7 +14,22 @@ const appShellSource = readFileSync(
 // Utils
 // =============================================================================
 
-const mountAppShell = ({ transport, iframe, app, currentUser, users }) => {
+const mountAppShell = ({
+  transport,
+  iframe,
+  app,
+  currentUser,
+  users,
+  utils,
+}) => {
+  // add bootstrap styles
+  iframe.contentWindow.eval(
+    `(${utils.addStyles.toString()})("${JSON.stringify(utils.styles).slice(
+      1,
+      -1,
+    )}")`,
+  );
+  // eval app shell source code for transport
   iframe.contentWindow.eval(appShellSource);
 
   const listener = e => {
@@ -51,8 +66,8 @@ const mountAppShell = ({ transport, iframe, app, currentUser, users }) => {
     if (!message.type.startsWith('app:')) return;
     iframe.contentWindow.postMessage(
       {
+        ...message,
         type: message.type.replace(/^app:/, ''),
-        payload: message.payload,
       },
       '*',
     );
@@ -73,6 +88,7 @@ export default function RunningApp({
   currentUser,
   users,
   transport,
+  utils,
 }) {
   const ref = useRef(undefined);
 
@@ -89,6 +105,7 @@ export default function RunningApp({
       app: runningApp,
       currentUser,
       users,
+      utils,
     });
 
     return unmountAppShell;
@@ -97,12 +114,11 @@ export default function RunningApp({
   const src = ''; // window.location.href;
   const sandbox = undefined;
 
-  return (
-    <iframe
-      src={src}
-      style={{ width: '100%', height: '100%' /*border: 'none'*/ }}
-      sandbox={sandbox}
-      ref={ref}
-    ></iframe>
-  );
+  const style = {
+    width: '100%',
+    height: '100%',
+    border: 'none',
+  };
+
+  return <iframe src={src} style={style} sandbox={sandbox} ref={ref}></iframe>;
 }

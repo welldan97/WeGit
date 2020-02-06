@@ -15,17 +15,19 @@ const main = () => {
     window.top.postMessage({ method: 'sendAll', args: [message] }, '*');
   };
 
-  const on = (type, fn) =>
-    eventTarget.addEventListener(type, e => fn(e.data.payload));
+  const on = (type, fn) => {
+    if (type !== 'message') return;
+    eventTarget.addEventListener('message', e => fn(e.data /* message */));
+  };
 
   window.addEventListener('message', e => {
     if (!e.data) return;
     const { type, payload } = e.data;
 
     if (type === 'init') {
-      const evaluate = new Function('AppContext', payload.app.source);
+      const evaluate = new Function('AppShell', payload.app.source);
 
-      const AppContext = {
+      const AppShell = {
         send,
         sendAll,
         on,
@@ -33,12 +35,12 @@ const main = () => {
         users: payload.users,
       };
 
-      evaluate(AppContext);
+      evaluate(AppShell);
       return;
     }
 
-    const appEvent = new Event(type);
-    appEvent.data = { payload };
+    const appEvent = new Event('message');
+    appEvent.data = e.data;
     eventTarget.dispatchEvent(appEvent);
   });
 

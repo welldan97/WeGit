@@ -13,6 +13,7 @@ export default function RunningAppTab({
   currentUser,
   users,
   transport,
+  utils,
 }) {
   return (
     <AppShell
@@ -20,6 +21,7 @@ export default function RunningAppTab({
       currentUser={currentUser}
       users={users}
       transport={transport}
+      utils={utils}
     />
   );
 }

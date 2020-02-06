@@ -19,6 +19,11 @@ export default function useJustWgOs({ config, user, onChange }) {
   const onMessageRef = useRef(() => {});
 
   useEffect(() => {
+    if (!isReady) return;
+    onChangeRef.current({ wgOs: wgOsRef.current });
+  }, [isReady]);
+
+  useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
 

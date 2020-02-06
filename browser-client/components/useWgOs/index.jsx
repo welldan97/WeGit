@@ -78,6 +78,7 @@ export default function useWgOs() {
       if (!wgOs) return;
       setApps(wgOs.apps);
       setUsers(wgOs.users);
+      setCurrentUser(wgOs.currentUser);
       const baseMeshState = wgOs.getMeshState();
       const meshState = {
         connections: baseMeshState.connections.map(c => ({

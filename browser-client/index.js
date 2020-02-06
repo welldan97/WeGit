@@ -17,7 +17,10 @@ import App from './components/App';
 const main = async () => {
   document.documentElement.innerHTML = '<head></head><body><div></div></body>';
   addStyles(styles);
-  ReactDOM.render(<App />, document.getElementsByTagName('div')[0]);
+  ReactDOM.render(
+    <App utils={{ addStyles, styles }} />,
+    document.getElementsByTagName('div')[0],
+  );
 };
 
 main();
