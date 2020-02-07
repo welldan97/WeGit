@@ -60,15 +60,14 @@ export default function App({ utils }) {
         userName={currentUser.userName}
       />
       <main role="main">
-        {mainTabState === 'runningApp' && (
-          <RunningAppTab
-            runningApp={runningApp}
-            currentUser={currentUser}
-            users={users}
-            transport={transport}
-            utils={utils}
-          />
-        )}
+        <RunningAppTab
+          runningApp={runningApp}
+          currentUser={currentUser}
+          users={users}
+          transport={transport}
+          utils={utils}
+          isShown={mainTabState === 'runningApp'}
+        />
         {mainTabState !== 'runningApp' && (
           <div className="container" style={{ maxWidth: '720px' }}>
             {mainTabState === 'apps' && (

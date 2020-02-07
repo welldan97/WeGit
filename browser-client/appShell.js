@@ -20,23 +20,36 @@ const main = () => {
     eventTarget.addEventListener('message', e => fn(e.data /* message */));
   };
 
+  let AppShell;
   window.addEventListener('message', e => {
     if (!e.data) return;
     const { type, payload } = e.data;
 
-    if (type === 'init') {
-      const evaluate = new Function('AppShell', payload.app.source);
+    switch (type) {
+      case 'os:runAppShell': {
+        const evaluate = new Function('AppShell', payload.app.source);
 
-      const AppShell = {
-        send,
-        sendAll,
-        on,
-        currentUser: payload.currentUser,
-        users: payload.users,
-      };
+        AppShell = {
+          send,
+          sendAll,
+          on,
+          currentUser: payload.currentUser,
+          users: payload.users,
+        };
 
-      evaluate(AppShell);
-      return;
+        evaluate(AppShell);
+        return;
+      }
+      case 'os:saveCurrentUser': {
+        console.log(payload, '!!!', AppShell);
+        AppShell.currentUser = payload.currentUser;
+        return;
+      }
+      case 'os:saveUsers': {
+        AppShell.users = payload.users;
+        return;
+      }
+      default:
     }
 
     const appEvent = new Event('message');

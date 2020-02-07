@@ -17,16 +17,16 @@ const renderPage = () => `
         <div class="col-12">
           <ul
             id="messages"
-            class="list-group
-                   list-group-flush
-                   bg-secondary
-                   border-info
-                   border
-                   mb-4
-                   d-flex
-                   justify-content-end
-                   overflow-hidden
-                   "
+            class="
+              list-group
+              list-group-flush
+              border-info
+              border
+              mb-4
+              d-flex
+              justify-content-end
+              overflow-hidden
+            "
             style="height: 40vh;"
             >
           </ul>
@@ -34,19 +34,19 @@ const renderPage = () => `
       </div>
       <div className="row mt-4">
         <div className="col-12">
-          <form class="border border-info p-4">
+          <form id="form-message" class="border border-info p-4">
             <h3 class="mb-4">Write Message:</h3>
             <div class="form-group">
-              <textarea
+              <input
                 id="input-message"
                 class="form-control"
-                rows="2"
-              ></textarea>
+                autocomplete="off"
+                type="text"
+              >
             </div>
               <button
-                id="button-send"
-                type="button"
-                class="btn btn-success btn-lg mt-4 d-block"
+                type="submit"
+                class="btn btn-success btn-lg mt-4 d-block mx-auto"
               >
                 Send!
               </button>
@@ -73,11 +73,17 @@ const renderMessage = ({ userName, message, highlighted }) => {
   });
 
   return `
-  <li class="list-group-item
-      border border-info text-info
-      d-flex p-3">
+  <li class="
+        list-group-item
+        border
+        border-info
+        text-info
+        d-flex
+        p-3
+        bg-transparent
+      ">
       <span class="mr-2 font-weight-bold ${highlighted ? 'text-success' : ''}">
-        ${userName}(${time}):
+        ${userName || 'Anon'}(${time}):
       </span>
       <span>
         ${message}
@@ -103,13 +109,15 @@ AppShell.on('message', ({ type, payload }) => {
 });
 
 const main = () => {
-  const { currentUser: user } = AppShell;
   let message = '';
   createPage();
-  const $buttonSend = document.getElementById('button-send');
+  const $formMessage = document.getElementById('form-message');
   const $inputMessage = document.getElementById('input-message');
 
-  $buttonSend.addEventListener('click', () => {
+  $formMessage.addEventListener('submit', e => {
+    e.preventDefault();
+    const user = AppShell.currentUser;
+
     addMessage({ user, message, highlighted: true });
 
     AppShell.sendAll({
@@ -119,6 +127,8 @@ const main = () => {
         message,
       },
     });
+    message = '';
+    $inputMessage.value = '';
   });
 
   $inputMessage.addEventListener('change', e => {

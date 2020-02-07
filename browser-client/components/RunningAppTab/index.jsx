@@ -1,27 +1,35 @@
 // Imports
 // =============================================================================
 
-import React from 'react';
+import React, { memo } from 'react';
 
 import AppShell from './AppShell';
 
 // Main
 // =============================================================================
 
-export default function RunningAppTab({
+export default memo(function RunningAppTab({
   runningApp,
   currentUser,
   users,
   transport,
   utils,
+  isShown,
 }) {
+  const style = {
+    width: '100%',
+    height: '100%',
+  };
+
   return (
-    <AppShell
-      runningApp={runningApp}
-      currentUser={currentUser}
-      users={users}
-      transport={transport}
-      utils={utils}
-    />
+    <div hidden={!isShown} style={style}>
+      <AppShell
+        runningApp={runningApp}
+        currentUser={currentUser}
+        users={users}
+        transport={transport}
+        utils={utils}
+      />
+    </div>
   );
-}
+});

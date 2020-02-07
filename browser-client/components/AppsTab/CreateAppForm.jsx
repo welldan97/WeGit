@@ -2,6 +2,18 @@
 // =============================================================================
 
 import React, { useState } from 'react';
+// Utils
+// =============================================================================
+
+const getRandomIcon = () => {
+  // Shourt emoji range in unicode
+  //const emojiRange = [0x1f18e, 0x1f550];
+  const emojiRange = [0x1f300, 0x1f3fa];
+  const codePoint = Math.round(
+    Math.random() * (emojiRange[1] - emojiRange[0]) + emojiRange[0],
+  );
+  return String.fromCodePoint(codePoint);
+};
 
 // Main
 // =============================================================================
@@ -9,8 +21,10 @@ import React, { useState } from 'react';
 export default function CreateAppForm({ onCancel, onSubmit }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [source, setSource] = useState('');
-  const [icon, setIcon] = useState('⚔️');
+  const [icon, setIcon] = useState(getRandomIcon());
+  const [source, setSource] = useState(
+    `console.log('${icon} Hello from App!')`,
+  );
 
   return (
     <div className="row mt-4">

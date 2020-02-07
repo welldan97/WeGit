@@ -1,124 +1,123 @@
 // Imports
 // =============================================================================
 
-import React, { useEffect, useRef } from 'react';
-import { readFileSync } from 'fs';
+import React, { memo, useEffect, useState, useRef } from 'react';
 
-// NOTE: parcel builder loads it and replace it with contents automatically
-// https://github.com/parcel-bundler/parcel/issues/970#issuecomment-381403710
-const appShellSource = readFileSync(
-  __dirname + '../../../appshell.js',
-  'utf-8',
-);
+import Iframe from './Iframe';
 
-// Utils
+// Events
 // =============================================================================
 
-const mountAppShell = ({
-  transport,
-  iframe,
-  app,
-  currentUser,
-  users,
-  utils,
-}) => {
-  // add bootstrap styles
-  iframe.contentWindow.eval(
-    `(${utils.addStyles.toString()})("${JSON.stringify(utils.styles).slice(
-      1,
-      -1,
-    )}")`,
-  );
-  // eval app shell source code for transport
-  iframe.contentWindow.eval(appShellSource);
+const methods = ({ app, currentUser, users, transport }) => ({
+  send: (userId, message) => {
+    if (message.type.startsWith('os:')) return;
 
-  const listener = e => {
-    if (!e.data) return;
-    const { method, args } = e.data;
-    if (method === 'send') {
-      if (args[1].type === 'init') return;
-      transport.send(args[0], {
-        type: `app:${args[1].type}`,
-        payload: args[1].payload,
-      });
-    } else if (method === 'sendAll') {
-      if (args[0].type === 'init') return;
-      transport.sendAll({
-        type: `app:${args[0].type}`,
-        payload: args[0].payload,
-      });
-    } else if (method === 'init') {
-      iframe.contentWindow.postMessage(
-        {
-          type: 'init',
-          payload: {
-            app,
-            currentUser,
-            users,
-          },
-        },
-        '*',
-      );
-    }
-  };
+    transport.send(userId, {
+      type: `app:${message.type}`,
+      payload: message.payload,
+    });
+  },
 
-  transport.setOnMessage(message => {
-    if (!message.type.startsWith('app:')) return;
-    iframe.contentWindow.postMessage(
-      {
-        ...message,
-        type: message.type.replace(/^app:/, ''),
+  sendAll: message => {
+    if (message.type.startsWith('os:')) return;
+
+    transport.sendAll({
+      type: `app:${message.type}`,
+      payload: message.payload,
+    });
+  },
+
+  init: () => {
+    transport.sendBack({
+      type: 'app:os:runAppShell',
+      payload: {
+        app,
+        currentUser,
+        users,
       },
-      '*',
-    );
-  });
+    });
+  },
 
-  window.addEventListener('message', listener);
-  return () => {
-    window.removeEventListener('message', listener);
-    transport.setOnMessage(() => {});
-  };
-};
+  saveCurrentUser: currentUser => {
+    transport.sendBack({
+      type: 'app:os:saveCurrentUser',
+      payload: {
+        currentUser,
+      },
+    });
+  },
+
+  saveUsers: users => {
+    transport.sendBack({
+      type: 'app:os:saveUsers',
+      payload: {
+        users,
+      },
+    });
+  },
+});
 
 // Main
 // =============================================================================
 
-export default function RunningApp({
+export default memo(function AppShell({
   runningApp,
   currentUser,
   users,
   transport,
   utils,
 }) {
-  const ref = useRef(undefined);
+  const [iFrameKey, setIFrameKey] = useState(0);
+  const stateRef = useRef(undefined);
+
+  const listenerRef = useRef(undefined);
+  useEffect(() => {
+    listenerRef.current = e => {
+      if (!e.data || !e.data.method || !e.data.args) return;
+      const { method, args } = e.data;
+      methods({ app: runningApp, currentUser, users, transport })[method](
+        ...args,
+      );
+    };
+  }, [runningApp, currentUser, users, transport]);
 
   useEffect(() => {
-    if (!ref.current) return;
-    if (!transport) return;
-    if (!runningApp) return;
-    if (!currentUser) return;
-    if (!users) return;
-
-    const unmountAppShell = mountAppShell({
-      transport,
-      iframe: ref.current,
-      app: runningApp,
+    methods({ app: runningApp, currentUser, users, transport }).saveCurrentUser(
       currentUser,
+    );
+  }, [currentUser]);
+
+  useEffect(() => {
+    methods({ app: runningApp, currentUser, users, transport }).saveUsers(
       users,
-      utils,
-    });
+    );
+  }, [users]);
 
-    return unmountAppShell;
-  }, [runningApp, currentUser, users]);
+  useEffect(() => {
+    window.addEventListener('message', listenerRef.current);
 
-  const src = ''; // window.location.href;
-  const sandbox = undefined;
+    return () => {
+      window.removeEventListener('message', listenerRef.current);
+    };
+  });
 
-  const style = {
-    width: '100%',
-    height: '100%',
-    border: 'none',
-  };
+  useEffect(() => {
+    setIFrameKey(iFrameKey + 1);
+    stateRef.current = runningApp;
+  }, [runningApp]);
 
-  return <iframe src={src} style={style} sandbox={sandbox} ref={ref}></iframe>;
-}
+  console.log('AppShell rerender');
+
+  if (!runningApp) return null;
+
+  return (
+    <Iframe
+      runningApp={runningApp}
+      currentUser={currentUser}
+      users={users}
+      transport={transport}
+      utils={utils}
+      key={iFrameKey}
+    />
+  );
+});

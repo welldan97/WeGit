@@ -27,17 +27,20 @@ export default function useJustWgOs({ config, user, onChange }) {
     onChangeRef.current = onChange;
   }, [onChange]);
 
-  const transport = {
+  const transportRef = useRef({
     send(...args) {
       return wgOsRef.current.send(...args);
     },
     sendAll(...args) {
       return wgOsRef.current.sendAll(...args);
     },
+    sendBack(...args) {
+      onMessageRef.current(...args);
+    },
     setOnMessage: onMessage => {
       onMessageRef.current = onMessage;
     },
-  };
+  });
 
   useEffect(() => {
     if (wgOsRef.current !== undefined) return;
@@ -66,5 +69,5 @@ export default function useJustWgOs({ config, user, onChange }) {
     setIsReady(true);
   });
 
-  return { isReady, wgOs: wgOsRef.current, transport };
+  return { isReady, wgOs: wgOsRef.current, transport: transportRef.current };
 }

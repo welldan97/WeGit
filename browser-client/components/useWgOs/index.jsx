@@ -208,7 +208,7 @@ export default function useWgOs() {
   };
   //
   const onCreateApp = app => {
-    wgOs.createApp(app);
+    wgOs.saveApps([app]);
   };
   //
   const onRunApp = appId => {

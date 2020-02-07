@@ -30,7 +30,7 @@ export default function Navbar({
             <a
               className="nav-link"
               href="#"
-              onClick={() => onActivate('currentApp')}
+              onClick={() => onActivate('runningApp')}
             >
               {runningApp.icon} {runningApp.name}{' '}
               <span className="badge badge-success">Running</span>
