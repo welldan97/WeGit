@@ -41,7 +41,7 @@ export default function useWgOs() {
   const [apps, setApps] = useState([]);
   const [runningApp, setRunningApp] = useState(undefined);
 
-  const [mainTabState, setMainTabState] = useState('apps');
+  const [mainTabState, setMainTabState] = useState('network');
   const [networkTabState, setNetworkTabState] = useState('step1');
   const [meshState, setMeshState] = useState({
     connections: [],
@@ -215,6 +215,10 @@ export default function useWgOs() {
     setRunningApp(wgOs.apps.find(a => a.id === appId));
     setMainTabState('runningApp');
   };
+  const onStopApp = () => {
+    setRunningApp(undefined);
+    transport.setOnMessage(() => {});
+  };
   //
   const onDeleteApp = appId => {
     wgOs.deleteApp(appId);
@@ -252,6 +256,7 @@ export default function useWgOs() {
     transport,
     onCreateApp,
     onRunApp,
+    onStopApp,
     onDeleteApp,
   };
 }

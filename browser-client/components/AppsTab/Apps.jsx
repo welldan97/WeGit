@@ -6,13 +6,14 @@ import React from 'react';
 // Main
 // =============================================================================
 
-export default function Apps({ apps, onRun, onDelete }) {
+export default function Apps({ apps, runningApp, onRun, onStop, onDelete }) {
   return (
     <div className="row">
       <div className="col-12">
         <ul className="list-group list-group-flush mt-4">
           {apps.map(a => {
-            const type = 'info';
+            const isRunning = !!(runningApp && a.id === runningApp.id);
+            const type = isRunning ? 'success' : 'info';
 
             return (
               <li
@@ -35,6 +36,9 @@ export default function Apps({ apps, onRun, onDelete }) {
                 <div className="mx-3 flex-grow-1 w-25">
                   <h3 className="h4">
                     {a.name}{' '}
+                    {isRunning && (
+                      <span className="badge badge-success">Running</span>
+                    )}{' '}
                     <small>
                       by <strong>{a.user.userName || 'Unknown user'}</strong>
                     </small>
@@ -53,13 +57,25 @@ export default function Apps({ apps, onRun, onDelete }) {
                   </div>
                 </div>
                 <div>
-                  <button
-                    type="button"
-                    className="btn btn-success btn-block btn-sm"
-                    onClick={() => onRun(a.id)}
-                  >
-                    ▶️ Run
-                  </button>
+                  {!isRunning && (
+                    <button
+                      type="button"
+                      className="btn btn-success btn-block btn-sm"
+                      onClick={() => onRun(a.id)}
+                    >
+                      ▶️ Run
+                    </button>
+                  )}
+                  {isRunning && (
+                    <button
+                      type="button"
+                      className="btn btn-warning btn-block btn-sm"
+                      onClick={() => onStop()}
+                    >
+                      ⏹ Stop
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     className="btn btn-danger btn-block btn-sm"

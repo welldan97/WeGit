@@ -9,7 +9,14 @@ import CreateAppForm from './CreateAppForm';
 // Main
 // =============================================================================
 
-export default function AppsTab({ apps, onCreate, onRun, onDelete }) {
+export default function AppsTab({
+  apps,
+  runningApp,
+  onCreate,
+  onRun,
+  onStop,
+  onDelete,
+}) {
   const [isCreating, setIsCreating] = useState(false);
 
   return (
@@ -19,7 +26,13 @@ export default function AppsTab({ apps, onCreate, onRun, onDelete }) {
           <h2>Apps</h2>
         </div>
       </div>
-      <Apps apps={apps} onRun={onRun} onDelete={onDelete} />
+      <Apps
+        apps={apps}
+        runningApp={runningApp}
+        onRun={onRun}
+        onStop={onStop}
+        onDelete={onDelete}
+      />
       {isCreating && (
         <CreateAppForm
           onCancel={() => {

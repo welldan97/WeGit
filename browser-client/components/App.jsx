@@ -47,6 +47,7 @@ export default function App({ utils }) {
     transport,
     onCreateApp,
     onRunApp,
+    onStopApp,
     onDeleteApp,
   } = useWgOs();
 
@@ -73,8 +74,10 @@ export default function App({ utils }) {
             {mainTabState === 'apps' && (
               <AppsTab
                 apps={apps}
+                runningApp={runningApp}
                 onCreate={onCreateApp}
                 onRun={onRunApp}
+                onStop={onStopApp}
                 onDelete={onDeleteApp}
               />
             )}
