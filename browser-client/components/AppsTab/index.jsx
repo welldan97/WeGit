@@ -24,6 +24,7 @@ export default function AppsTab({
       <div className="row mt-4">
         <div className="col-12">
           <h2>Apps</h2>
+          <a href="data:text/html,<h1>hello</h1>">hel</a>
         </div>
       </div>
       <Apps

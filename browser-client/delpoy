@@ -1,0 +1,1 @@
+npm run build && cd dist && surge . gratis-yard.surge.sh && cd ..

@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "parcel index.html",
     "dev:inner": "parcel inner.html -p 2345",
-    "build": "rm -rf ./dist && parcel build index.html && rm -rf ./dist/*.js.map && cp ./dist/*.js ./dist/w"
+    "build:clean": "rm -rf .cache && rm -rf ./dist",
+    "build:moveafter": "rm -rf ./dist/*.js.map && cp ./dist/*.js ./dist/index.js",
+    "build:buildafter": "node ./build.js",
+    "build": "npm run build:clean && parcel build index.html && npm run build:moveafter && npm run build:buildafter"
   },
   "author": "",
   "license": "ISC",
