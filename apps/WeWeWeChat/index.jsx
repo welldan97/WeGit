@@ -66,12 +66,13 @@ const createPage = () => {
   document.body.appendChild(pageContents);
 };
 
-const renderMessage = ({ userName, message, highlighted }) => {
+const renderMessage = ({ userName, message, highlighted, godmode }) => {
   // Formatted current time
   const time = new Date().toLocaleDateString(navigator.language, {
     timeStyle: 'medium',
   });
-
+  const godmodeStyles =
+    "color: gold!important;font-family: Papyrus,'Comic Sans MS'";
   return `
   <li class="
         list-group-item
@@ -81,8 +82,10 @@ const renderMessage = ({ userName, message, highlighted }) => {
         d-flex
         p-3
         bg-transparent
-      ">
-      <span class="mr-2 font-weight-bold ${highlighted ? 'text-success' : ''}">
+      "
+      style="${godmode ? godmodeStyles : ''}"
+      >
+      <span class="mr-2 font-weight-bold ${highlighted ? 'text-success' : ''}" >
         ${userName || 'Anon'}(${time}):
       </span>
       <span>
@@ -92,11 +95,11 @@ const renderMessage = ({ userName, message, highlighted }) => {
 `;
 };
 
-const addMessage = ({ user, message, highlighted }) => {
+const addMessage = ({ user, message, highlighted, godmode }) => {
   const $messages = document.getElementById('messages');
   const parser = new DOMParser();
   const $messagesToAdd = parser.parseFromString(
-    renderMessage({ userName: user.userName, message, highlighted }),
+    renderMessage({ userName: user.userName, message, highlighted, godmode }),
     'text/html',
   ).body.children[0];
   $messages.appendChild($messagesToAdd);
@@ -110,6 +113,7 @@ AppShell.on('message', ({ type, payload }) => {
 
 const main = () => {
   let message = '';
+  let godmode = false;
   createPage();
   const $formMessage = document.getElementById('form-message');
   const $inputMessage = document.getElementById('input-message');
@@ -118,15 +122,21 @@ const main = () => {
     e.preventDefault();
     const user = AppShell.currentUser;
 
-    addMessage({ user, message, highlighted: true });
+    console.log('!', message.includes('iddqd'));
+    if (message.includes('iddqd')) {
+      godmode = true;
+    } else {
+      AppShell.sendAll({
+        type: 'message',
+        payload: {
+          user,
+          message,
+          godmode,
+        },
+      });
+    }
+    addMessage({ user, message, highlighted: true, godmode });
 
-    AppShell.sendAll({
-      type: 'message',
-      payload: {
-        user,
-        message,
-      },
-    });
     message = '';
     $inputMessage.value = '';
   });
