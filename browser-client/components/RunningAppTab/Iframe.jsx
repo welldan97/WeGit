@@ -8,7 +8,7 @@ import { readFileSync } from 'fs';
 // NOTE: parcel builder loads it and replace it with contents automatically
 // https://github.com/parcel-bundler/parcel/issues/970#issuecomment-381403710
 const appShellSource = readFileSync(
-  __dirname + '../../../appshell.js',
+  __dirname + '../../../entries/appShell.js',
   'utf-8',
 );
 

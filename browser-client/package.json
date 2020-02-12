@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "parcel index.html",
+    "dev": "parcel entries/index.html",
     "dev:start": "rm -rf .cache && npm run dev",
     "build:clean": "rm -rf .cache && rm -rf ./dist",
     "build:moveafter": "rm -rf ./dist/*.js.map && cp ./dist/*.js ./dist/index.js",

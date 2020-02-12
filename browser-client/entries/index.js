@@ -9,7 +9,7 @@ import 'regenerator-runtime/runtime';
 import addStyles from 'wegit-lib/browser/utils/addStyles';
 import styles from 'wegit-lib/browser/bootstrap.min.css';
 
-import App from './components/App';
+import App from '../components/App';
 
 // Main
 // =============================================================================
