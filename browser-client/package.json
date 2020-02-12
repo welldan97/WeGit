@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "parcel index.html",
-    "dev:inner": "parcel inner.html -p 2345",
+    "dev:start": "rm -rf .cache && npm run dev",
     "build:clean": "rm -rf .cache && rm -rf ./dist",
     "build:moveafter": "rm -rf ./dist/*.js.map && cp ./dist/*.js ./dist/index.js",
     "build:buildafter": "node ./build.js",
