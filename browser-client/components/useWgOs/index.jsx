@@ -201,7 +201,10 @@ export default function useWgOs() {
     setCurrentUser(user);
     wgOs.saveCurrentUser(user);
     //
-    Cookies.set('weGit', { config: nextConfig, currentUser: user });
+    Cookies.set('weGit', {
+      config: nextConfig,
+      currentUser: { userName: user.userName },
+    });
     if (!_isEqual(config, nextConfig)) {
       location.reload(true);
     }
