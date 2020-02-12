@@ -60,7 +60,6 @@ export default memo(
       });
     }, [ref.current]);
 
-    console.log('iframe rerender');
     const src = ''; // window.location.href;
     const sandbox = undefined;
 

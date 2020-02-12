@@ -41,7 +41,6 @@ const main = () => {
         return;
       }
       case 'os:saveCurrentUser': {
-        console.log(payload, '!!!', AppShell);
         AppShell.currentUser = payload.currentUser;
         return;
       }

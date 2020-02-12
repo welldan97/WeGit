@@ -106,8 +106,6 @@ export default memo(function AppShell({
     stateRef.current = runningApp;
   }, [runningApp]);
 
-  console.log('AppShell rerender');
-
   if (!runningApp) return null;
 
   return (

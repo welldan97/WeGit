@@ -122,7 +122,6 @@ const main = () => {
     e.preventDefault();
     const user = AppShell.currentUser;
 
-    console.log('!', message.includes('iddqd'));
     if (message.includes('iddqd')) {
       godmode = true;
     } else {
