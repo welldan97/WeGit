@@ -7,7 +7,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Cookies from 'js-cookie';
 import _isEqual from 'lodash/isEqual';
 
-import { toWgKey, fromWgKey } from 'wegit-lib/wgOs/wgKey';
+import { toWgKey, fromWgKey } from 'wegit-lib/utils/wgKey';
 import 'wegit-lib/browser/bootstrap.min.css';
 
 import copyToClipboard from '../../lib/copyToClipboard';
@@ -37,7 +37,6 @@ const { config, currentUser: initialCurrentUser } = weGitSettings;
 
 export default function useWgOs() {
   const [currentUser, setCurrentUser] = useState(initialCurrentUser);
-  const [users, setUsers] = useState([]);
   const [apps, setApps] = useState([]);
   const [runningApp, setRunningApp] = useState(undefined);
 
@@ -77,7 +76,6 @@ export default function useWgOs() {
     ({ wgOs }) => {
       if (!wgOs) return;
       setApps(wgOs.apps);
-      setUsers(wgOs.users);
       setCurrentUser(wgOs.currentUser);
       const baseMeshState = wgOs.getMeshState();
       const meshState = {
@@ -230,7 +228,6 @@ export default function useWgOs() {
   return {
     config,
     currentUser,
-    users,
     apps,
     //
     mainTabState,

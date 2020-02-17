@@ -1,12 +1,14 @@
 // Imports
 // =============================================================================
 const fs = require('fs');
+
 // Main
 // =============================================================================
 
+// TODO ?
+
 const file = fs.readFileSync('./dist/index.js').toString();
-const withoutMaps = file.replace(/\/\/# sourceMappingURL=\/.*/, '');
-const resultFile = `<h1>Loading...</h1><meta charset='utf-8'/><script>${withoutMaps}</script>`;
+const resultFile = `<h1>Loading...</h1><meta charset='utf-8'/><script>${file}</script>`;
 fs.writeFileSync('./dist/entry.html', resultFile);
 
 const resultFileInBase64 = Buffer.from(resultFile).toString('base64');

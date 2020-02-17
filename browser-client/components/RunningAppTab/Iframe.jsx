@@ -8,7 +8,7 @@ import { readFileSync } from 'fs';
 // NOTE: parcel builder loads it and replace it with contents automatically
 // https://github.com/parcel-bundler/parcel/issues/970#issuecomment-381403710
 const appShellSource = readFileSync(
-  __dirname + '../../../entries/appShell.js',
+  __dirname + '../../../dist/appShell.js',
   'utf-8',
 );
 
@@ -23,6 +23,7 @@ const mountAppShell = ({ transport, iframe, utils }) => {
       -1,
     )}")`,
   );
+
   // 2. Add shell base javascript
 
   iframe.contentWindow.eval(appShellSource);

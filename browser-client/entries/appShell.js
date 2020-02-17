@@ -1,18 +1,29 @@
 // Imports
 // =============================================================================
 
+import sendInChunksMiddleware from 'wegit-lib/utils/sendInChunksMiddleware';
+
 // Main
 // =============================================================================
 
 const main = () => {
+  let AppShell;
   const eventTarget = new EventTarget();
 
-  const send = (userId, message) => {
-    window.top.postMessage({ method: 'send', args: [userId, message] }, '*');
-  };
+  const { send, onMessage } = sendInChunksMiddleware({
+    send(userId, message) {
+      window.top.postMessage({ method: 'send', args: [userId, message] }, '*');
+    },
+
+    onMessage(message) {
+      const appEvent = new Event('message');
+      appEvent.data = message;
+      eventTarget.dispatchEvent(appEvent);
+    },
+  });
 
   const sendAll = message => {
-    window.top.postMessage({ method: 'sendAll', args: [message] }, '*');
+    AppShell.users.forEach(u => send(u.id, message));
   };
 
   const on = (type, fn) => {
@@ -20,10 +31,10 @@ const main = () => {
     eventTarget.addEventListener('message', e => fn(e.data /* message */));
   };
 
-  let AppShell;
   window.addEventListener('message', e => {
-    if (!e.data) return;
-    const { type, payload } = e.data;
+    const message = e.data;
+    if (!message) return;
+    const { type, payload } = message;
 
     switch (type) {
       case 'os:runAppShell': {
@@ -51,9 +62,7 @@ const main = () => {
       default:
     }
 
-    const appEvent = new Event('message');
-    appEvent.data = e.data;
-    eventTarget.dispatchEvent(appEvent);
+    onMessage(message);
   });
 
   window.top.postMessage({ method: 'init', args: [] }, '*');

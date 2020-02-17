@@ -1,9 +1,9 @@
 // Imports
 // =============================================================================
 
-const nanoid = require('nanoid');
 const { readFileSync } = require('fs');
 
+console.log(__dirname);
 // NOTE: The path is long because the __dirname is
 //   WeGit/browser-client/node_modules/wegit-lib/WgOs
 const weWeWeChatSource = readFileSync(

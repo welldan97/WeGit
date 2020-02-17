@@ -18,7 +18,6 @@ export default function App({ utils }) {
   const {
     config,
     currentUser,
-    users,
     apps,
 
     mainTabState,
@@ -51,6 +50,9 @@ export default function App({ utils }) {
     onDeleteApp,
   } = useWgOs();
 
+  const connectedUsers = meshState.connections
+    .filter(c => c.state === 'connected')
+    .map(c => c.user);
   return (
     <>
       <Navbar
@@ -64,7 +66,7 @@ export default function App({ utils }) {
         <RunningAppTab
           runningApp={runningApp}
           currentUser={currentUser}
-          users={users}
+          users={connectedUsers}
           transport={transport}
           utils={utils}
           isShown={mainTabState === 'runningApp'}

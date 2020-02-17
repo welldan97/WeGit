@@ -20,7 +20,6 @@ export default memo(function RunningAppTab({
     width: '100%',
     height: '100%',
   };
-
   return (
     <div hidden={!isShown} style={style}>
       <AppShell

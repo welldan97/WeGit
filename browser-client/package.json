@@ -7,9 +7,11 @@
     "dev": "parcel entries/index.html",
     "dev:start": "rm -rf .cache && npm run dev",
     "build:clean": "rm -rf .cache && rm -rf ./dist",
-    "build:moveafter": "rm -rf ./dist/*.js.map && cp ./dist/*.js ./dist/index.js",
+    "build:appShell": "parcel build --no-source-maps entries/appShell.js",
+    "build:index": "parcel build --no-source-maps entries/index.html",
+    "build:moveafter": "cp ./dist/*.js ./dist/index.js",
     "build:buildafter": "node ./build.js",
-    "build": "npm run build:clean && parcel build index.html && npm run build:moveafter && npm run build:buildafter"
+    "build": "npm run build:clean && npm run build:appShell && npm run build:index"
   },
   "author": "",
   "license": "ISC",
