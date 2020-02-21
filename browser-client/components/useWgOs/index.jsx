@@ -16,6 +16,16 @@ import useJustWgOs from './useJustWgOs';
 
 // Main
 // =============================================================================
+const WeBlankApp = {
+  id: 'WE-WE-WE-WE-WE--BLANK',
+  name: 'WeBlank',
+  description: '',
+  icon: '\u{1F932}',
+  user: { userName: 'welldan97' },
+  source: '',
+};
+
+const initialApps = [WeBlankApp];
 
 // NOTE: public servers list:
 //   https://gist.github.com/sagivo/3a4b2f2c7ac6e1b5267c2f1f59ac6c6b
@@ -121,8 +131,9 @@ export default function useWgOs() {
   //
   // NOTE: Prettier goes crazy here, so a lot of // for spacing
   const { isReady, wgOs, transport } = useJustWgOs({
-    user: currentUser,
     config,
+    user: currentUser,
+    apps: initialApps,
     onChange,
   });
   //

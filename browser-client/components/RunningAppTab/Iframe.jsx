@@ -1,7 +1,7 @@
 // Imports
 // =============================================================================
 
-import React, { memo, useEffect, useRef } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 
 import { readFileSync } from 'fs';
 
@@ -15,64 +15,60 @@ const appShellSource = readFileSync(
 // Utils
 // =============================================================================
 
-const mountAppShell = ({ transport, iframe, utils }) => {
-  // 1. Add bootstrap styles
-  iframe.contentWindow.eval(
-    `(${utils.addStyles.toString()})("${JSON.stringify(utils.styles).slice(
-      1,
-      -1,
-    )}")`,
-  );
+const getIframeOptions = iframeMode => {
+  //const sandbox = 'allow-same-origin allow-scripts';
 
-  // 2. Add shell base javascript
-
-  iframe.contentWindow.eval(appShellSource);
-
-  // 3. Pass messages to iframe
-
-  transport.setOnMessage(message => {
-    if (!message.type.startsWith('app:')) return;
-    if (!iframe || !iframe.contentWindow) return;
-    iframe.contentWindow.postMessage(
-      {
-        ...message,
-        type: message.type.replace(/^app:/, ''),
-      },
-      '*',
-    );
-  });
+  if (iframeMode.type === 'development')
+    return {
+      src: iframeMode.url,
+      sandbox: undefined,
+    };
+  else if (iframeMode.type === 'sameOrigin')
+    return {
+      src: '',
+      sandbox: undefined,
+    };
 };
 
 // Main
 // =============================================================================
 
 export default memo(
-  function Iframe({ transport, utils }) {
+  function Iframe({ iframeMode, transport, isReady }) {
     const ref = useRef(undefined);
+    const [isTransportInitialized, setIsTransportInitialized] = useState(false);
 
+    // Initialize transport
     useEffect(() => {
-      if (!ref.current) return;
-      if (!transport) return;
+      if (isTransportInitialized) return;
 
-      mountAppShell({
-        transport,
-        iframe: ref.current,
-        utils,
+      transport.setOnMessage(message => {
+        if (!message.type.startsWith('app:')) return;
+        if (!ref.current || !ref.current.contentWindow) return;
+        ref.current.contentWindow.postMessage(
+          {
+            ...message,
+            type: message.type.replace(/^app:/, ''),
+          },
+          '*',
+        );
       });
-    }, [ref.current]);
+      setIsTransportInitialized(true);
+    }, []);
 
-    const src = ''; // window.location.href;
-    const sandbox = undefined;
+    const { src, sandbox } = getIframeOptions(iframeMode);
 
     const style = {
       width: '100%',
       minHeight: '100%',
       border: 'none',
+      display: isReady ? 'block' : 'none',
     };
 
     return (
       <iframe src={src} style={style} sandbox={sandbox} ref={ref}></iframe>
     );
   },
-  /* are equal */ (/*prevProps, nextProps*/) => true,
+  // Only update when isReady changed
+  (prevProps, nextProps) => prevProps.isReady === nextProps.isReady,
 );

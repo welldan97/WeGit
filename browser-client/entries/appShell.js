@@ -3,8 +3,24 @@
 
 import sendInChunksMiddleware from 'wegit-lib/utils/sendInChunksMiddleware';
 
+// Utils
+// =============================================================================
+
+const callMethod = (method, [...args] = []) => {
+  window.top.postMessage({ method, args }, '*');
+};
+
 // Main
 // =============================================================================
+
+// Initialization goes like this:
+// 1. This code runs
+// 2. appShell sends to parent "init"
+// 3. parent responds with "prepareAppShell" where runs arbitary code needed
+//   for app
+// 4. appShell responds with "prepareAppShellSuccess"
+// 5. parent sends "runApp"
+// 6. appShell responds with "ready"
 
 const main = () => {
   let AppShell;
@@ -12,7 +28,7 @@ const main = () => {
 
   const { send, onMessage } = sendInChunksMiddleware({
     send(userId, message) {
-      window.top.postMessage({ method: 'send', args: [userId, message] }, '*');
+      callMethod('send', [userId, message]);
     },
 
     onMessage(message) {
@@ -35,9 +51,16 @@ const main = () => {
     const message = e.data;
     if (!message) return;
     const { type, payload } = message;
-
     switch (type) {
-      case 'os:runAppShell': {
+      case 'os:prepareAppShell': {
+        const evaluate = new Function('AppShell', payload.source);
+        evaluate(AppShell); // NOTE: AppShell could be undefined
+
+        callMethod('prepareAppShellSuccess');
+        return;
+      }
+
+      case 'os:runApp': {
         const evaluate = new Function('AppShell', payload.app.source);
 
         AppShell = {
@@ -48,13 +71,20 @@ const main = () => {
           users: payload.users,
         };
 
-        evaluate(AppShell);
+        //evaluate(AppShell);
+        /* Development Mode */
+        window.AppShell = AppShell;
+        import('../../apps/WeWeWeChat').then(App => App());
+
+        callMethod('ready');
         return;
       }
+
       case 'os:saveCurrentUser': {
         AppShell.currentUser = payload.currentUser;
         return;
       }
+
       case 'os:saveUsers': {
         AppShell.users = payload.users;
         return;
@@ -65,7 +95,7 @@ const main = () => {
     onMessage(message);
   });
 
-  window.top.postMessage({ method: 'init', args: [] }, '*');
+  callMethod('init');
 };
 
 main();

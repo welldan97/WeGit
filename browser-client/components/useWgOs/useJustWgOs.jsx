@@ -12,7 +12,7 @@ import log from './log';
 // Main
 // =============================================================================
 
-export default function useJustWgOs({ config, user, onChange }) {
+export default function useJustWgOs({ config, user, apps, onChange }) {
   const [isReady, setIsReady] = useState(false);
   const wgOsRef = useRef(undefined);
   const onChangeRef = useRef(onChange);
@@ -48,6 +48,7 @@ export default function useJustWgOs({ config, user, onChange }) {
     wgOsRef.current = new WgOs({
       config,
       user,
+      apps,
       log,
     });
 

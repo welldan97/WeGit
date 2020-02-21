@@ -1,7 +1,7 @@
 // Imports
 // =============================================================================
 
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 
 import Navbar from './Navbar';
 import RunningAppTab from './RunningAppTab';
@@ -50,9 +50,13 @@ export default function App({ utils }) {
     onDeleteApp,
   } = useWgOs();
 
-  const connectedUsers = meshState.connections
-    .filter(c => c.state === 'connected')
-    .map(c => c.user);
+  const connectedUsers = useMemo(
+    () =>
+      meshState.connections
+        .filter(c => c.state === 'connected')
+        .map(c => c.user),
+    [meshState && meshState.connections],
+  );
   return (
     <>
       <Navbar

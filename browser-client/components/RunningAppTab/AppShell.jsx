@@ -8,8 +8,8 @@ import Iframe from './Iframe';
 // Events
 // =============================================================================
 
-const methods = ({ app, currentUser, users, transport }) => ({
-  send: (userId, message) => {
+const methods = ({ app, currentUser, users, transport, utils, onReady }) => ({
+  send(userId, message) {
     if (message.type.startsWith('os:')) return;
 
     transport.send(userId, {
@@ -18,6 +18,9 @@ const methods = ({ app, currentUser, users, transport }) => ({
     });
   },
 
+  // TODO: this is probably not needed since sendAll now implemented in appShell
+  //   to support sending in chunks
+  /*
   sendAll: message => {
     if (message.type.startsWith('os:')) return;
 
@@ -26,10 +29,22 @@ const methods = ({ app, currentUser, users, transport }) => ({
       payload: message.payload,
     });
   },
+  */
 
-  init: () => {
+  init() {
     transport.sendBack({
-      type: 'app:os:runAppShell',
+      type: 'app:os:prepareAppShell',
+      payload: {
+        source: `(${utils.addStyles.toString()})("${JSON.stringify(
+          utils.styles,
+        ).slice(1, -1)}")`,
+      },
+    });
+  },
+
+  prepareAppShellSuccess() {
+    transport.sendBack({
+      type: 'app:os:runApp',
       payload: {
         app,
         currentUser,
@@ -38,7 +53,11 @@ const methods = ({ app, currentUser, users, transport }) => ({
     });
   },
 
-  saveCurrentUser: currentUser => {
+  ready() {
+    onReady();
+  },
+
+  saveCurrentUser(currentUser) {
     transport.sendBack({
       type: 'app:os:saveCurrentUser',
       payload: {
@@ -47,7 +66,7 @@ const methods = ({ app, currentUser, users, transport }) => ({
     });
   },
 
-  saveUsers: users => {
+  saveUsers(users) {
     transport.sendBack({
       type: 'app:os:saveUsers',
       payload: {
@@ -60,6 +79,11 @@ const methods = ({ app, currentUser, users, transport }) => ({
 // Main
 // =============================================================================
 
+const iframeMode = {
+  type: 'development',
+  url: 'http://localhost:1235',
+};
+
 export default memo(function AppShell({
   runningApp,
   currentUser,
@@ -67,55 +91,81 @@ export default memo(function AppShell({
   transport,
   utils,
 }) {
-  const [iFrameKey, setIFrameKey] = useState(0);
-  const stateRef = useRef(undefined);
+  // Set up methods
+  // ---------------------------------------------------------------------------
+
+  const methodsRef = useRef(undefined);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    methodsRef.current = methods({
+      app: runningApp,
+      currentUser,
+      users,
+      transport,
+      utils,
+      onReady: () => setIsReady(true),
+    });
+  }, [runningApp, currentUser, users, transport]);
+
+  // Reinitiate iframe when app changes by updating key
+  // ---------------------------------------------------------------------------
+
+  const [iframeKey, setIframeKey] = useState(0);
+  const appRef = useRef(undefined);
+  useEffect(() => {
+    setIsReady(false);
+    // FIXME: looks buggy here
+    // Update key only when app was run straight after another app
+    if (appRef.current && runningApp && appRef.current !== runningApp)
+      setIframeKey(iframeKey + 1);
+
+    appRef.current = runningApp;
+  }, [runningApp]);
+
+  // Set up messaging
+  // ---------------------------------------------------------------------------
 
   const listenerRef = useRef(undefined);
+
   useEffect(() => {
+    const listener = e => listenerRef.current(e);
+    window.addEventListener('message', listener);
+
+    return () => {
+      window.removeEventListener('message', listener);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!runningApp) return;
+
     listenerRef.current = e => {
       if (!e.data || !e.data.method || !e.data.args) return;
       const { method, args } = e.data;
-      methods({ app: runningApp, currentUser, users, transport })[method](
-        ...args,
-      );
+      methodsRef.current[method](...args);
     };
   }, [runningApp, currentUser, users, transport]);
 
-  useEffect(() => {
-    methods({ app: runningApp, currentUser, users, transport }).saveCurrentUser(
-      currentUser,
-    );
-  }, [currentUser]);
+  // Send updates
+  // ---------------------------------------------------------------------------
 
-  useEffect(() => {
-    methods({ app: runningApp, currentUser, users, transport }).saveUsers(
-      users,
-    );
-  }, [users]);
+  useEffect(() => methodsRef.current.saveCurrentUser(currentUser), [
+    currentUser,
+  ]);
 
-  useEffect(() => {
-    window.addEventListener('message', listenerRef.current);
+  useEffect(() => methodsRef.current.saveUsers(users), [users]);
 
-    return () => {
-      window.removeEventListener('message', listenerRef.current);
-    };
-  });
-
-  useEffect(() => {
-    setIFrameKey(iFrameKey + 1);
-    stateRef.current = runningApp;
-  }, [runningApp]);
+  // Render
+  // ---------------------------------------------------------------------------
 
   if (!runningApp) return null;
-
   return (
     <Iframe
-      runningApp={runningApp}
-      currentUser={currentUser}
-      users={users}
+      iframeMode={iframeMode}
       transport={transport}
-      utils={utils}
-      key={iFrameKey}
+      isReady={isReady}
+      key={iframeKey}
     />
   );
 });

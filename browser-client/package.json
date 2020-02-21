@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "parcel entries/index.html",
+    "dev:appShell": "parcel -p 1235 entries/appShellDev.html",
     "dev:start": "rm -rf .cache && npm run dev",
     "build:clean": "rm -rf .cache && rm -rf ./dist",
     "build:appShell": "parcel build --no-source-maps entries/appShell.js",

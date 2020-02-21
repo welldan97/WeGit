@@ -1,4 +1,5 @@
 // ==WgApp==
+// @id WE-WE-WE-WE-WE-WECHAT
 // @name WeWeWeChat
 // @description Hello world application of WeGit
 // @icon '\u{1F919}'
@@ -106,17 +107,17 @@ const addMessage = ({ user, message, highlighted, godmode }) => {
   if ($messages.children.length > 7) $messages.children[0].remove();
 };
 
-AppShell.on('message', ({ type, payload }) => {
-  if (type !== 'message') return;
-  addMessage({ ...payload, highlighted: false });
-});
-
 const main = () => {
   let message = '';
   let godmode = false;
   createPage();
   const $formMessage = document.getElementById('form-message');
   const $inputMessage = document.getElementById('input-message');
+
+  AppShell.on('message', ({ type, payload }) => {
+    if (type !== 'message') return;
+    addMessage({ ...payload, highlighted: false });
+  });
 
   $formMessage.addEventListener('submit', e => {
     e.preventDefault();
@@ -145,4 +146,5 @@ const main = () => {
   });
 };
 
-main();
+if (typeof module !== 'undefined') module.exports = main;
+else main();
