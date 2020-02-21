@@ -60,7 +60,7 @@ export default function Step3Invite({
               className="btn btn-success btn-lg mt-4 d-block"
               disabled={!wgAnswerKey}
             >
-              Establish Connection!
+              Connect!
             </button>
           </div>
         </div>
