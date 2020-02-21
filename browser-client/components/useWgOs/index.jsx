@@ -50,7 +50,7 @@ export default function useWgOs() {
   const [apps, setApps] = useState([]);
   const [runningApp, setRunningApp] = useState(undefined);
 
-  const [mainTabState, setMainTabState] = useState('network');
+  const [mainTabState, setMainTabState] = useState('apps' || 'network');
   const [networkTabState, setNetworkTabState] = useState('step1');
   const [meshState, setMeshState] = useState({
     connections: [],
@@ -235,6 +235,13 @@ export default function useWgOs() {
   const onDeleteApp = appId => {
     wgOs.deleteApp(appId);
   };
+  const [isInitialized, setIsInitialized] = useState(false);
+  useEffect(() => {
+    if (!apps.length) return;
+    if (isInitialized) return;
+    setTimeout(() => onRunApp(apps[0].id));
+    setIsInitialized(true);
+  }, [apps]);
   //
   return {
     config,

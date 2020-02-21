@@ -74,7 +74,7 @@ const main = () => {
         //evaluate(AppShell);
         /* Development Mode */
         window.AppShell = AppShell;
-        import('../../apps/WeWeWeChat').then(App => App());
+        import('../../apps/WeGit').then(App => App());
 
         callMethod('ready');
         return;

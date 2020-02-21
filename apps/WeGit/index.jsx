@@ -1,40 +1,27 @@
+// ==WgApp==
+// @name WeGit
+// @description P2P hub for git users
+// @icon '\u{1F46F}'
+// @user { "userName": "welldan97" }
+// ==/WgApp==
+
 // Imports
 // =============================================================================
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+// NOTE: necessary for async/await
+import 'regenerator-runtime/runtime';
+
+import App from './components/App';
 
 // Main
 // =============================================================================
 
-const addScript = async (src, ch) =>
-  new Promise(resolve => {
-    const $script = document.createElement('script');
-    $script.setAttribute('src', src);
-    document.body.appendChild($script);
-    $script.addEventListener('load', () => resolve());
-  });
+const main = async () => {
+  document.body.innerHTML = '<div></div>';
+  ReactDOM.render(<App />, document.getElementsByTagName('div')[0]);
+};
 
-addScript('https://unpkg.com/react@16.12.0/umd/react.production.min.js')
-  .then(() =>
-    addScript(
-      'https://unpkg.com/react-dom@16.12.0/umd/react-dom.production.min.js',
-    ),
-  )
-  .then(
-    Promise.all([
-      addScript('https://unpkg.com/browserfs'),
-      addScript(
-        'https://unpkg.com/isomorphic-git@0.72.0/dist/internal.umd.min.js',
-      ),
-    ]),
-  )
-  .then(resolve => setTimeout(resolve, 300)) // TODO
-  .then(() => {
-    window.gitInternals = window.git;
-    delete window.git;
-    return addScript('https://unpkg.com/isomorphic-git');
-  })
-  .then(resolve => setTimeout(resolve, 100)) //TODO
-  .then(() => import('./components/App'))
-  .then(({ default: App }) => {
-    document.body.appendChild(document.createElement('main'));
-    ReactDOM.render(<App />, document.getElementsByTagName('main')[0]);
-  });
+if (typeof module !== 'undefined') module.exports = main;
+else main();
