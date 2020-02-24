@@ -2,15 +2,18 @@
   "name": "wegit",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "index.jsx",
+  "dependencies": {
+    "browserfs": "^1.4.3",
+    "isomorphic-git": "^0.78.5",
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0",
+    "regenerator-runtime": "^0.13.3"
+  },
+  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "MIT",
-  "dependencies": {
-    "react": "^16.12.0",
-    "react-dom": "^16.12.0",
-    "regenerator-runtime": "^0.13.3"
-  }
+  "license": "ISC"
 }

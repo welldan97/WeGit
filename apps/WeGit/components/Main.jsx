@@ -1,7 +1,7 @@
 // Imports
 // =============================================================================
 
-import React from '../shims/React';
+import React from 'react';
 
 import Files from './Files';
 import Preview from './Preview';

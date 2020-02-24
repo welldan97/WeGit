@@ -1,7 +1,7 @@
 // Imports
 // =============================================================================
 
-import React, { useCallback, useState } from '../shims/React';
+import React, { useCallback, useState } from 'react';
 
 // Main
 // =============================================================================

@@ -1,16 +1,15 @@
 // Imports
 // =============================================================================
 
-import { useEffect, useState } from '../shims/React';
-import git from '../shims/git';
-import AppContext from '../shims/AppContext';
+import { useEffect, useState } from 'react';
+import * as git from 'isomorphic-git';
 
 // Main
 // =============================================================================
 
 //  TODO: remove window. usage
-AppContext.on('transport:capabilities', async () => {
-  AppContext.sendAll('transport:capabilitiesResponse', {
+AppShell.on('transport:capabilities', async () => {
+  AppShell.sendAll('transport:capabilitiesResponse', {
     value: ['fetch', 'push'],
   });
 });
@@ -31,19 +30,19 @@ const onList = async ({ forPush = false } = {}) => {
     }),
   );
   if (forPush)
-    AppContext.sendAll('transport:listForPushResponse', {
+    AppShell.sendAll('transport:listForPushResponse', {
       value,
     });
   else
-    AppContext.sendAll('transport:listResponse', {
+    AppShell.sendAll('transport:listResponse', {
       value,
     });
 };
 
-AppContext.on('transport:list', () => onList());
-AppContext.on('transport:listForPush', () => onList({ forPush: true }));
+AppShell.on('transport:list', () => onList());
+AppShell.on('transport:listForPush', () => onList({ forPush: true }));
 
-AppContext.on('transport:fetch', async ({ value: [{ sha /*, ref */ }] }) => {
+AppShell.on('transport:fetch', async ({ value: [{ sha /*, ref */ }] }) => {
   const { /*object, type: objectType,*/ source } = await git.readObject({
     dir: '/',
     oid: sha,
@@ -52,7 +51,7 @@ AppContext.on('transport:fetch', async ({ value: [{ sha /*, ref */ }] }) => {
 
   if (source.startsWith('objects/pack')) {
     const packContents = await window.fs.readFile('.git/' + source);
-    AppContext.sendAll('transport:fetchResponse', {
+    AppShell.sendAll('transport:fetchResponse', {
       value: Array.from(packContents),
       type: 'pack',
     });
@@ -83,7 +82,7 @@ const writeObject = async object => {
   }
 };
 
-AppContext.on(
+AppShell.on(
   'transport:push',
   async ({ objects, afterRefObject, beforeRefObject }) => {
     await Promise.all(objects.map(writeObject));
@@ -95,7 +94,7 @@ AppContext.on(
     });
     await git.fastCheckout({ dir: '/', ref: 'master' });
 
-    AppContext.sendAll('transport:pushResponse', {
+    AppShell.sendAll('transport:pushResponse', {
       value: { beforeRefObject, afterRefObject },
     });
   },

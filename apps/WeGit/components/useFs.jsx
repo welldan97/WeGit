@@ -1,8 +1,8 @@
 // Imports
 // =============================================================================
 
-import { useCallback, useEffect, useState } from '../shims/React';
-import BrowserFS from '../shims/BrowserFs';
+import { useCallback, useEffect, useState } from 'react';
+import * as BrowserFS from 'browserfs';
 
 import promisifyFs from './lib/promisifyFs';
 

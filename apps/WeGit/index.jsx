@@ -7,7 +7,6 @@
 
 // Imports
 // =============================================================================
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 // NOTE: necessary for async/await
@@ -18,10 +17,13 @@ import App from './components/App';
 // Main
 // =============================================================================
 
-const main = async () => {
+const main = () => {
   document.body.innerHTML = '<div></div>';
   ReactDOM.render(<App />, document.getElementsByTagName('div')[0]);
 };
 
+export default main;
+/*
 if (typeof module !== 'undefined') module.exports = main;
 else main();
+*/
