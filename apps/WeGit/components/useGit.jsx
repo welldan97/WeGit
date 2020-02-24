@@ -1,13 +1,15 @@
 // Imports
 // =============================================================================
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as git from 'isomorphic-git';
+import EventEmitter from 'eventemitter3';
 
 // Main
 // =============================================================================
 
 //  TODO: remove window. usage
+/*
 AppShell.on('transport:capabilities', async () => {
   AppShell.sendAll('transport:capabilitiesResponse', {
     value: ['fetch', 'push'],
@@ -42,8 +44,8 @@ const onList = async ({ forPush = false } = {}) => {
 AppShell.on('transport:list', () => onList());
 AppShell.on('transport:listForPush', () => onList({ forPush: true }));
 
-AppShell.on('transport:fetch', async ({ value: [{ sha /*, ref */ }] }) => {
-  const { /*object, type: objectType,*/ source } = await git.readObject({
+AppShell.on('transport:fetch', async ({ value: [{ sha / *, ref * / }] }) => {
+  const { / *object, type: objectType,* / source } = await git.readObject({
     dir: '/',
     oid: sha,
     format: 'deflated',
@@ -99,24 +101,44 @@ AppShell.on(
     });
   },
 );
+*/
 
-export default ({ fs, onChange }) => {
+export default ({ fs, onFsUpdate }) => {
   const [isReady, setIsReady] = useState(false);
+  const [progress, setProgress] = useState();
+  const emitterRef = useRef();
 
   useEffect(() => {
+    emitterRef.current = new EventEmitter();
+    emitterRef.current.on('progress', nextProgress =>
+      setProgress(nextProgress),
+    );
+
     if (!fs) return;
     git.plugins.set('fs', fs);
+    git.plugins.set('emitter', emitterRef.current);
+    window.git = git;
     setIsReady(true);
   }, [fs]);
 
   const onClone = async url => {
+    setProgress({
+      phase: 'Preparing for cloning',
+      loaded: 0,
+      lengthComputable: false,
+    });
     await git.clone({
       dir: '/',
       corsProxy: 'https://cors.isomorphic-git.org',
       url,
     });
-    onChange();
+    setProgress(undefined);
+    onFsUpdate();
   };
 
-  return { isReady, onClone };
+  return {
+    isReady,
+    onClone,
+    progress,
+  };
 };

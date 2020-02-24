@@ -1,49 +1,68 @@
-// Imports.}
+// Imports
 // =============================================================================
 
 import React, { memo, useCallback, useState } from 'react';
 
 import useGit from './useGit';
-
 import useFs from './useFs';
 
 import Main from './Main';
-
-import NoRepo from './NoRepo';
+import Tabs from './Tabs';
 
 // Main
 // =============================================================================
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState('main');
   const [path, setPath] = useState('.');
   const onPathChange = useCallback(path => setPath(path), [setPath]);
 
-  const { fs, triggerFsUpdated, hasRepo, files, preview } = useFs({
+  const repoName = '';
+  const ciState = 'disabled';
+
+  const { fs, onFsUpdate, hasRepo, files, preview } = useFs({
     path,
   });
 
-  const { isReady, onClone } = useGit({ fs, onChange: triggerFsUpdated });
-  useGit({ fs, onChange: triggerFsUpdated });
+  const { isReady, onClone, progress } = useGit({
+    fs,
+    onFsUpdate,
+  });
+
   if (!isReady) return null;
-
-  if (!hasRepo)
-    return (
-      <NoRepo
-        {...{
-          onClone,
-        }}
-      />
-    );
-
   return (
-    <Main
-      {...{
-        hasRepo,
-        path,
-        onPathChange,
-        files,
-        preview,
-      }}
-    />
+    <div className="container" style={{ maxWidth: '720px' }}>
+      <div className="row mt-4">
+        <div className="col-12">
+          <h2>
+            {'\u{1F5C4} '}
+            {repoName || 'noname'}
+          </h2>
+          <p>
+            {ciState === 'success' && (
+              <span className="text-success">
+                {'\u{2705}'} tests are passing
+              </span>
+            )}
+            {ciState === 'fail' && (
+              <span className="text-danger">
+                {'\u{274C}'} tests are failing
+              </span>
+            )}
+            {ciState === 'disabled' && '\u{00a0}'}
+          </p>
+        </div>
+      </div>
+      <Tabs active={activeTab} onActivate={setActiveTab} />
+      {activeTab === 'main' && (
+        <Main
+          {...{
+            hasRepo,
+            progress,
+            onClone,
+          }}
+        />
+      )}
+    </div>
   );
 }

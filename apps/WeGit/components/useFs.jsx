@@ -1,7 +1,7 @@
 // Imports
 // =============================================================================
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as BrowserFS from 'browserfs';
 
 import promisifyFs from './lib/promisifyFs';
@@ -9,34 +9,34 @@ import promisifyFs from './lib/promisifyFs';
 // Main
 // =============================================================================
 
-let basefs;
-let fs;
-
 export default ({ path }) => {
-  // NOTE: use version to update once files change
   const [isReady, setIsReady] = useState(false);
+  const baseFsRef = useRef();
+  const fsRef = useRef();
 
   useEffect(() => {
+    if (isReady) return;
+
     BrowserFS.configure({ fs: 'IndexedDB', options: {} }, err => {
       if (err) return console.log(err);
-      basefs = BrowserFS.BFSRequire('fs');
-      fs = promisifyFs(basefs);
-      window.fs = fs;
+      baseFsRef.current = BrowserFS.BFSRequire('fs');
+      fsRef.current = promisifyFs(baseFsRef.current);
+      window.fs = fsRef.current;
       setIsReady(true);
     });
   }, []);
 
   const [version, setVersion] = useState(0);
-  const triggerFsUpdated = useCallback(() => setVersion(version + 1), [
-    version,
-  ]);
+  const onFsUpdate = () => setVersion(version + 1);
 
   const [files, setFiles] = useState([]);
   const [preview, setPreview] = useState();
 
   useEffect(() => {
     if (!isReady) return;
+
     (async () => {
+      //
       const pathIsDirectory = (await fs.lstat(path)).isDirectory();
 
       if (pathIsDirectory) {
@@ -61,6 +61,7 @@ export default ({ path }) => {
         setFiles([]);
         setPreview(nextPreview);
       }
+      //
     })();
   }, [path, isReady, version]);
 
@@ -79,10 +80,9 @@ export default ({ path }) => {
   }, [isReady, version]);
 
   return {
-    fs: basefs,
+    fs: baseFsRef.current,
     isReady,
-    version,
-    triggerFsUpdated,
+    onFsUpdate,
     hasRepo,
     files,
     preview,
