@@ -12,6 +12,7 @@
   "dependencies": {
     "eventemitter3": "^4.0.0",
     "nanoid": "^2.1.11",
-    "simple-peer": "welldan97/simple-peer"
+    "simple-peer": "welldan97/simple-peer",
+    "wrtc": "^0.4.4"
   }
 }

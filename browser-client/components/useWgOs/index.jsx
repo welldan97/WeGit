@@ -132,7 +132,7 @@ export default function useWgOs() {
   // NOTE: Prettier goes crazy here, so a lot of // for spacing
   const { isReady, wgOs, transport } = useJustWgOs({
     config,
-    user: currentUser,
+    currentUser,
     apps: initialApps,
     onChange,
   });
@@ -239,7 +239,21 @@ export default function useWgOs() {
   useEffect(() => {
     if (!apps.length) return;
     if (isInitialized) return;
-    setTimeout(() => onRunApp(apps[0].id));
+    setTimeout(async () => {
+      // TODO: DEV
+      onRunApp(apps[0].id);
+      const { wgOffer } = await wgOs.invite();
+      const wgOfferKey = toWgKey('wgOffer')(wgOffer);
+      const response = await fetch('http://localhost:1236', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ wgOfferKey }),
+      });
+      const { wgAnswerKey } = await response.json();
+      await wgOs.establish(fromWgKey(wgAnswerKey));
+    });
     setIsInitialized(true);
   }, [apps]);
   //
