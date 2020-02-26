@@ -18,6 +18,8 @@ export default memo(function RunningAppTab({
 }) {
   const style = {
     width: '100%',
+
+    maxHeight: 'calc(100% - 48px)',
     height: '100%',
   };
   return (
