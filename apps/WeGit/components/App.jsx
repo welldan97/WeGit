@@ -32,7 +32,7 @@ export default function App() {
     path,
   });
 
-  const { isReady, onClone, progress } = useGit({
+  const { isReady, onClone, progress, currentBranch } = useGit({
     fs,
     onFsUpdate,
   });
@@ -66,6 +66,8 @@ export default function App() {
         <Main
           {...{
             repoName,
+            currentBranch,
+
             path: passedPath,
             onPathChange,
             files,

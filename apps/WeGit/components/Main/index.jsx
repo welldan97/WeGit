@@ -11,6 +11,8 @@ import Repo from './Repo';
 
 export default function Main({
   repoName,
+  currentBranch,
+
   path,
   onPathChange,
   files,
@@ -28,6 +30,7 @@ export default function Main({
         <Repo
           {...{
             repoName,
+            currentBranch,
             path,
             onPathChange,
             files,

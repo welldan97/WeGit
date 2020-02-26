@@ -11,6 +11,8 @@ import Preview from './Preview';
 
 export default function Repo({
   repoName,
+  currentBranch,
+
   path,
   onPathChange,
   files,
@@ -31,6 +33,17 @@ export default function Repo({
           >
             {'\u{1F5C4} '}
             {repoName || 'noname'}
+            {'\u{00A0}\u{00A0} /'}
+          </button>
+          {' \u{00A0}\u{00A0}'}
+          <button
+            className="btn btn-link btn-lg p-0 text-info"
+            onClick={() => onPathChange('/')}
+            type="button"
+            key="branch"
+          >
+            {'\u{1F500} '}
+            {currentBranch}
             {!!pathParts.length && '\u{00A0}\u{00A0} /'}
           </button>
           {pathParts.map((p, i) => (

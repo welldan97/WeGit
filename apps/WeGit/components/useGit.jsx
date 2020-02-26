@@ -108,17 +108,23 @@ export default ({ fs, onFsUpdate }) => {
   const [progress, setProgress] = useState();
   const emitterRef = useRef();
 
-  useEffect(() => {
-    emitterRef.current = new EventEmitter();
-    emitterRef.current.on('progress', nextProgress =>
-      setProgress(nextProgress),
-    );
+  const [currentBranch, setCurrentBranch] = useState();
 
-    if (!fs) return;
-    git.plugins.set('fs', fs);
-    git.plugins.set('emitter', emitterRef.current);
-    window.git = git;
-    setIsReady(true);
+  useEffect(() => {
+    (async () => {
+      emitterRef.current = new EventEmitter();
+      emitterRef.current.on('progress', nextProgress =>
+        setProgress(nextProgress),
+      );
+
+      if (!fs) return;
+      git.plugins.set('fs', fs);
+      git.plugins.set('emitter', emitterRef.current);
+      window.git = git;
+      const nextCurrentBranch = await git.currentBranch({ dir: '/' });
+      setCurrentBranch(nextCurrentBranch);
+      setIsReady(true);
+    })();
   }, [fs]);
 
   const onClone = async url => {
@@ -140,5 +146,6 @@ export default ({ fs, onFsUpdate }) => {
     isReady,
     onClone,
     progress,
+    currentBranch,
   };
 };
