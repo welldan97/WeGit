@@ -12,7 +12,7 @@ export default function Progressbar({ progress: progressObject }) {
 
   let progress = 100;
   if (lengthComputable) progress = Math.round((loaded / total) * 100);
-  console.log(progress, progressObject);
+
   return (
     <div
       className={`row ${isPresent ? 'mt-4' : ''}`}

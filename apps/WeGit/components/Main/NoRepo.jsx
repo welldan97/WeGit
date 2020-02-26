@@ -15,7 +15,10 @@ export default function NoRepo({ progress, onClone }) {
 
   return (
     <>
-      <Progressbar progress={progress} />
+      <Progressbar
+        progress={progress}
+        key={progress ? progress.phase : 'Preparing for cloning'}
+      />
       {progress && (
         <div className="row mt-4">
           <div className="col-12">

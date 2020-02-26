@@ -14,13 +14,21 @@ import Tabs from './Tabs';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('main');
-  const [path, setPath] = useState('.');
+  const [path, setPath] = useState('/');
   const onPathChange = useCallback(path => setPath(path), [setPath]);
 
   const repoName = '';
   const ciState = 'disabled';
 
-  const { fs, onFsUpdate, hasRepo, files, preview } = useFs({
+  const {
+    fs,
+    onFsUpdate,
+    hasRepo,
+    files,
+    previewFile,
+    currentFile,
+    passedPath,
+  } = useFs({
     path,
   });
 
@@ -31,7 +39,7 @@ export default function App() {
 
   if (!isReady) return null;
   return (
-    <div className="container" style={{ maxWidth: '720px' }}>
+    <div className="container mb-4" style={{ maxWidth: '720px' }}>
       <div className="row mt-4">
         <div className="col-12">
           <h2>
@@ -57,6 +65,13 @@ export default function App() {
       {activeTab === 'main' && (
         <Main
           {...{
+            repoName,
+            path: passedPath,
+            onPathChange,
+            files,
+            previewFile,
+            currentFile,
+            //
             hasRepo,
             progress,
             onClone,

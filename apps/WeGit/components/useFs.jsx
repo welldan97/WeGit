@@ -11,6 +11,7 @@ import promisifyFs from './lib/promisifyFs';
 
 export default ({ path }) => {
   const [isReady, setIsReady] = useState(false);
+  const [passedPath, setPassedPath] = useState(path);
   const baseFsRef = useRef();
   const fsRef = useRef();
 
@@ -30,7 +31,8 @@ export default ({ path }) => {
   const onFsUpdate = () => setVersion(version + 1);
 
   const [files, setFiles] = useState([]);
-  const [preview, setPreview] = useState();
+  const [previewFile, setPreviewFile] = useState();
+  const [currentFile, setCurrentFile] = useState({ isDirectory: true });
 
   useEffect(() => {
     if (!isReady) return;
@@ -45,7 +47,7 @@ export default ({ path }) => {
         const files = await Promise.all(
           fileNames.map(async name => {
             const isDirectory = (await fs.lstat(
-              `${path}/${name}`,
+              `${path === '/' ? '' : path}/${name}`,
             )).isDirectory();
 
             return {
@@ -55,12 +57,33 @@ export default ({ path }) => {
           }),
         );
         setFiles(files);
-        setPreview(undefined);
+        const readmeFile = files.find(f =>
+          f.name.toLowerCase().includes('readme'),
+        );
+        if (readmeFile) {
+          const nextPreviewContents = await fs.readFile(
+            `${path}/${readmeFile.name}`,
+            'utf8',
+          );
+          setPreviewFile({
+            name: readmeFile.name,
+            contents: nextPreviewContents,
+          });
+        } else setPreviewFile(undefined);
       } else {
-        const nextPreview = await fs.readFile(path, 'utf8');
+        const nextPreviewContents = await fs.readFile(path, 'utf8');
         setFiles([]);
-        setPreview(nextPreview);
+        setPreviewFile({
+          name: path.replace(/^.*\//, ''),
+          contents: nextPreviewContents,
+        });
       }
+      setPassedPath(path);
+      setCurrentFile({
+        isDirectory: pathIsDirectory,
+        name: path.replace(/^.*\//, ''),
+      });
+
       //
     })();
   }, [path, isReady, version]);
@@ -81,10 +104,12 @@ export default ({ path }) => {
 
   return {
     fs: baseFsRef.current,
+    passedPath,
     isReady,
     onFsUpdate,
     hasRepo,
     files,
-    preview,
+    previewFile,
+    currentFile,
   };
 };
