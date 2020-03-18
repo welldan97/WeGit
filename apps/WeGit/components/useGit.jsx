@@ -32,8 +32,8 @@ export default ({ fs, hasRepo, onFsUpdate }) => {
       window.git = git;
       window.gitInternals = gitInternals;
 
-      const { findFilesLastCommits } = gitHelpers({ git, gitInternals, fs });
-      setHelpers({ findFilesLastCommits });
+      const nextHelpers = gitHelpers({ git, gitInternals, fs });
+      setHelpers(nextHelpers);
 
       setIsReady(true);
     })();

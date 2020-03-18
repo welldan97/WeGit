@@ -37,19 +37,29 @@ export default function App() {
     progress,
     currentBranch,
     findFilesLastCommits,
+    getLastCommitHolder,
   } = useGit({
     fs,
     hasRepo,
     onFsUpdate,
   });
 
-  const [filesWithCommits, setFilesWithCommits] = useState([]);
+  const [filesWithCommits, setFilesWithCommits] = useState(files);
   useEffect(() => {
     setFilesWithCommits(files);
-    if (currentFile.isDirectory && findFilesLastCommits)
-      (async () =>
-        setFilesWithCommits(await findFilesLastCommits(path, files)))();
+    if (!currentFile.isDirectory) return;
+    if (!findFilesLastCommits) return;
+
+    (async () =>
+      setFilesWithCommits(await findFilesLastCommits(path, files)))();
   }, [files, findFilesLastCommits]);
+
+  const [lastCommitHolder, setLastCommitHolder] = useState(files);
+  useEffect(() => {
+    if (!getLastCommitHolder) return;
+
+    (async () => setLastCommitHolder(await getLastCommitHolder()))();
+  }, [files, getLastCommitHolder]);
 
   if (!isReady) return null;
   return (
@@ -81,6 +91,7 @@ export default function App() {
           {...{
             repoName,
             currentBranch,
+            lastCommitHolder,
 
             path,
             onPathChange,

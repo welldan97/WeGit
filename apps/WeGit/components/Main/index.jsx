@@ -12,6 +12,7 @@ import Repo from './Repo';
 export default function Main({
   repoName,
   currentBranch,
+  lastCommitHolder,
 
   path,
   onPathChange,
@@ -31,6 +32,8 @@ export default function Main({
           {...{
             repoName,
             currentBranch,
+            lastCommitHolder,
+
             path,
             onPathChange,
             files,

@@ -12,6 +12,7 @@ import Preview from './Preview';
 export default function Repo({
   repoName,
   currentBranch,
+  lastCommitHolder,
 
   path,
   onPathChange,
@@ -66,12 +67,22 @@ export default function Repo({
           ))}
         </div>
       </div>
+      {currentFile.isDirectory && (
+        <div className="row mt-4">
+          <div className="col-12">
+            <Files
+              lastCommitHolder={lastCommitHolder}
+              files={files}
+              path={path}
+              onPathChange={onPathChange}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="row mt-4">
         <div className="col-12">
-          {currentFile.isDirectory && (
-            <Files files={files} path={path} onPathChange={onPathChange} />
-          )}
-          {previewFile && <Preview previewFile={previewFile} />}
+          {previewFile && <Preview previewFile={previewFile} />}{' '}
         </div>
       </div>
     </>

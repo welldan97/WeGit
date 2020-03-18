@@ -104,5 +104,13 @@ export default ({ git, gitInternals, fs }) => {
         files,
       });
     },
+
+    async getLastCommitHolder() {
+      const commitOid = await git.resolveRef({ dir: '/', ref: 'HEAD' });
+      return await git.readCommit({
+        dir: '/',
+        oid: commitOid,
+      });
+    },
   };
 };
