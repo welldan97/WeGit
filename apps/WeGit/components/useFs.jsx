@@ -6,12 +6,100 @@ import * as BrowserFS from 'browserfs';
 
 import promisifyFs from './lib/promisifyFs';
 
+// Utils
+// =============================================================================
+
+const getCurrentFile = ({ fs }) => async path => {
+  const isDirectory = (await fs.lstat(path)).isDirectory();
+
+  return {
+    isDirectory,
+    name: path.replace(/^.*\//, ''),
+  };
+};
+
+const getFilesAndPreviewFile = ({ fs }) => async (path, isDirectory) => {
+  if (isDirectory) {
+    const fileNames = (await fs.readdir(path)).filter(f => f !== '.git');
+
+    const files = await Promise.all(
+      fileNames.map(async name => {
+        const isDirectory = (await fs.lstat(
+          `${path === '/' ? '' : path}/${name}`,
+        )).isDirectory();
+
+        return {
+          name,
+          isDirectory,
+        };
+      }),
+    );
+
+    const readmeFile = files.find(f => f.name.toLowerCase().includes('readme'));
+
+    if (readmeFile) {
+      const nextPreviewContents = await fs.readFile(
+        `${path}/${readmeFile.name}`,
+        'utf8',
+      );
+      return {
+        files,
+        previewFile: {
+          name: readmeFile.name,
+          contents: nextPreviewContents,
+        },
+      };
+    } else
+      return {
+        files,
+        previewFile: undefined,
+      };
+  } else {
+    const nextPreviewContents = await fs.readFile(path, 'utf8');
+
+    return {
+      files: [],
+      previewFile: {
+        name: path.replace(/^.*\//, ''),
+        contents: nextPreviewContents,
+      },
+    };
+  }
+};
+
+const getHasRepo = ({ fs }) => async () => {
+  try {
+    await fs.lstat('.git');
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
 // Main
 // =============================================================================
 
-export default ({ path }) => {
-  const [isReady, setIsReady] = useState(false);
-  const [passedPath, setPassedPath] = useState(path);
+export default ({ path: basePath }) => {
+  const [state, setState] = useState({
+    isReady: false,
+    version: 0,
+    path: basePath,
+    files: [],
+    previewFile: undefined,
+    currentFile: { isDirectory: true, name: '' },
+    hasRepo: false,
+  });
+
+  const {
+    isReady,
+    version,
+    path,
+    files,
+    previewFile,
+    currentFile,
+    hasRepo,
+  } = state;
+
   const baseFsRef = useRef();
   const fsRef = useRef();
 
@@ -23,93 +111,48 @@ export default ({ path }) => {
       baseFsRef.current = BrowserFS.BFSRequire('fs');
       fsRef.current = promisifyFs(baseFsRef.current);
       window.fs = fsRef.current;
-      setIsReady(true);
+      window.basefs = baseFsRef.current;
+      setState({ ...state, isReady: true });
     });
   }, []);
 
-  const [version, setVersion] = useState(0);
-  const onFsUpdate = () => setVersion(version + 1);
-
-  const [files, setFiles] = useState([]);
-  const [previewFile, setPreviewFile] = useState();
-  const [currentFile, setCurrentFile] = useState({ isDirectory: true });
+  const onFsUpdate = () =>
+    setState({
+      ...state,
+      version: state.version + 1,
+    });
 
   useEffect(() => {
     if (!isReady) return;
 
     (async () => {
-      //
-      const pathIsDirectory = (await fs.lstat(path)).isDirectory();
+      const currentFile = await getCurrentFile({ fs })(basePath);
+      const { files, previewFile } = await getFilesAndPreviewFile({ fs })(
+        basePath,
+        currentFile.isDirectory,
+      );
+      const hasRepo = await getHasRepo({ fs })();
 
-      if (pathIsDirectory) {
-        const fileNames = (await fs.readdir(path)).filter(f => f !== '.git');
-
-        const files = await Promise.all(
-          fileNames.map(async name => {
-            const isDirectory = (await fs.lstat(
-              `${path === '/' ? '' : path}/${name}`,
-            )).isDirectory();
-
-            return {
-              name,
-              isDirectory,
-            };
-          }),
-        );
-        setFiles(files);
-        const readmeFile = files.find(f =>
-          f.name.toLowerCase().includes('readme'),
-        );
-        if (readmeFile) {
-          const nextPreviewContents = await fs.readFile(
-            `${path}/${readmeFile.name}`,
-            'utf8',
-          );
-          setPreviewFile({
-            name: readmeFile.name,
-            contents: nextPreviewContents,
-          });
-        } else setPreviewFile(undefined);
-      } else {
-        const nextPreviewContents = await fs.readFile(path, 'utf8');
-        setFiles([]);
-        setPreviewFile({
-          name: path.replace(/^.*\//, ''),
-          contents: nextPreviewContents,
-        });
-      }
-      setPassedPath(path);
-      setCurrentFile({
-        isDirectory: pathIsDirectory,
-        name: path.replace(/^.*\//, ''),
+      setState({
+        ...state,
+        path: basePath,
+        files,
+        previewFile,
+        currentFile,
+        hasRepo,
       });
-
-      //
     })();
-  }, [path, isReady, version]);
-
-  const [hasRepo, setHasRepo] = useState(false);
-
-  useEffect(() => {
-    if (!isReady) return;
-    (async () => {
-      try {
-        await fs.lstat('.git');
-        setHasRepo(true);
-      } catch (e) {
-        setHasRepo(false);
-      }
-    })();
-  }, [isReady, version]);
+  }, [basePath, isReady, version]);
 
   return {
     fs: baseFsRef.current,
-    passedPath,
-    isReady,
     onFsUpdate,
-    hasRepo,
+
+    isReady,
+    path,
     files,
     previewFile,
     currentFile,
+    hasRepo,
   };
 };

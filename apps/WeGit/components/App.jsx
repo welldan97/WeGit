@@ -1,7 +1,7 @@
 // Imports
 // =============================================================================
 
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo, useEffect, useCallback, useState } from 'react';
 
 import useGit from './useGit';
 import useFs from './useFs';
@@ -14,12 +14,11 @@ import Tabs from './Tabs';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('main');
-  const [path, setPath] = useState('/');
-  const onPathChange = useCallback(path => setPath(path), [setPath]);
+  const [basePath, setBasePath] = useState('/');
+  const onPathChange = useCallback(path => setBasePath(path), [setBasePath]);
 
   const repoName = '';
   const ciState = 'disabled';
-
   const {
     fs,
     onFsUpdate,
@@ -27,15 +26,30 @@ export default function App() {
     files,
     previewFile,
     currentFile,
-    passedPath,
-  } = useFs({
     path,
+  } = useFs({
+    path: basePath,
   });
 
-  const { isReady, onClone, progress, currentBranch } = useGit({
+  const {
+    isReady,
+    onClone,
+    progress,
+    currentBranch,
+    findFilesLastCommits,
+  } = useGit({
     fs,
+    hasRepo,
     onFsUpdate,
   });
+
+  const [filesWithCommits, setFilesWithCommits] = useState([]);
+  useEffect(() => {
+    setFilesWithCommits(files);
+    if (currentFile.isDirectory && findFilesLastCommits)
+      (async () =>
+        setFilesWithCommits(await findFilesLastCommits(path, files)))();
+  }, [files, findFilesLastCommits]);
 
   if (!isReady) return null;
   return (
@@ -68,9 +82,9 @@ export default function App() {
             repoName,
             currentBranch,
 
-            path: passedPath,
+            path,
             onPathChange,
-            files,
+            files: filesWithCommits,
             previewFile,
             currentFile,
             //
