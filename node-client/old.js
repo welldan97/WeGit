@@ -62,10 +62,11 @@ const main = async () => {
   wgAppStore.establish(wgAnswerKey);
 
   const server = net.createServer(async connection => {
-    connection.on('data', message => {
-      const parsedMessage = JSON.parse(message.toString());
-      //const { type, payload } = parsedMessage;
-      wgAppStore.sendAll(parsedMessage);
+    connection.on('data', data => {
+      const { method, args } = data;
+      if (method !== 'send') throw new Error('Unsupported method');
+      const [userId, message] = args;
+      wgAppStore.send(userId, message);
     });
 
     const onMessage = e => {

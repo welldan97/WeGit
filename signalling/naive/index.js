@@ -12,7 +12,10 @@ const { toWgKey, fromWgKey } = require('wegit-lib/utils/wgKey');
 // =============================================================================
 
 const config = {};
-const currentUser = { userName: undefined };
+const currentUser = {
+  userName: 'Naive Signalling Server',
+  type: 'signalling',
+};
 const apps = [];
 
 const wgOs = new WgOs({

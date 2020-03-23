@@ -34,13 +34,20 @@ const defaultSettings = {
   config: {
     iceServers: [{ urls: ['stun:stun.l.google.com:19302'] }],
   },
-  currentUser: { userName: undefined },
+  currentUser: { userName: undefined, type: 'browser' },
 };
 
 const weGitSettingsCookie = Cookies.get('weGit');
+const weGitSettingsCookieObject = weGitSettingsCookie
+  ? JSON.parse(weGitSettingsCookie)
+  : {};
 const weGitSettings = {
   ...defaultSettings,
-  ...(weGitSettingsCookie ? JSON.parse(weGitSettingsCookie) : {}),
+  ...weGitSettingsCookieObject,
+  currentUser: {
+    ...weGitSettingsCookieObject.currentUser,
+    type: 'browser',
+  },
 };
 
 const { config, currentUser: initialCurrentUser } = weGitSettings;

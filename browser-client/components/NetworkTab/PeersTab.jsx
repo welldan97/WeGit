@@ -3,6 +3,20 @@
 
 import React from 'react';
 
+// Utils
+// =============================================================================
+
+const getUserType = user => {
+  console.log(user);
+  switch (user.type) {
+    case 'browser':
+      return '\u{1F30D}';
+    case 'signalling':
+      return '\u{1F4E1}';
+    default:
+      return '\u{1F464}';
+  }
+};
 // Main
 // =============================================================================
 
@@ -30,7 +44,8 @@ export default function PeersTab({ meshState, closeConnection }) {
             key={c.id}
           >
             <span>
-              🌎 {(c.user && c.user.userName) || 'Unknown user'} (
+              {getUserType(c.user || {})}{' '}
+              {(c.user && c.user.userName) || 'Unknown user'} (
               <em>{c.state}</em>)
             </span>
             <a
