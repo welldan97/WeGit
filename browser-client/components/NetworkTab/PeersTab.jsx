@@ -11,6 +11,8 @@ const getUserType = user => {
   switch (user.type) {
     case 'browser':
       return '\u{1F30D}';
+    case 'server':
+      return '\u{1F4BB}';
     case 'signalling':
       return '\u{1F4E1}';
     default:

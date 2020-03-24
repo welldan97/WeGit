@@ -12,7 +12,7 @@ import Tabs from './Tabs';
 // Main
 // =============================================================================
 
-export default function App() {
+export default function App({ AppShell }) {
   const [activeTab, setActiveTab] = useState('main');
   const [basePath, setBasePath] = useState('/');
   const onPathChange = useCallback(path => setBasePath(path), [setBasePath]);
@@ -42,6 +42,7 @@ export default function App() {
     fs,
     hasRepo,
     onFsUpdate,
+    AppShell,
   });
 
   const [filesWithCommits, setFilesWithCommits] = useState(files);

@@ -4,40 +4,71 @@
 // =============================================================================
 
 const net = require('net');
-const cp = require('child_process');
-const uuid = require('uuid/v4');
+//const transport = require('./lib/transport');
+const parser = require('./lib/parser');
+const sendInChunksMiddleware = require('wegit-lib/utils/sendInChunksMiddleware');
+
+// Utils
+// =============================================================================
+
+const findAgent = meshState => {
+  const wgOsConnection = meshState.connections
+    .filter(c => c.state === 'connected')
+    .filter(c => c.user && c.user.type === 'browser')[0];
+  if (!wgOsConnection) return;
+
+  return wgOsConnection.user.id;
+};
 
 // Main
 // =============================================================================
 
 const main = async () => {
+  let meshState = {
+    connections: [],
+    globalState: 'disconnected',
+  };
+
+  const onChange = nextMeshState => (meshState = nextMeshState);
+
   const connection = net.connect({ port: 9001 }, () => {
-    connection.on('data', message => {
-      const parsedMessage = JSON.parse(message.toString());
-      console.warn('IN', JSON.stringify(parsedMessage).slice(0, 200), '\n');
-    });
-    /*
-    process.stdin.setEncoding('utf8');
-
-    process.stdin.on('readable', async () => {
-
-    });*/
-    setTimeout(() => {
-      connection.write(
-        JSON.stringify({
-          method: 'send',
-          args: JSON.stringify({
-            type: `app:ping`,
-            payload: {},
+    const { send, onMessage } = sendInChunksMiddleware({
+      send(userId, message) {
+        if (!userId) return;
+        const { type, payload } = message;
+        connection.write(
+          JSON.stringify({
+            method: 'send',
+            args: [userId, { type: `app:${type}`, payload }],
           }),
-        }),
-      );
-    }, 1000);
+        );
+      },
+
+      onMessage(message) {
+        process.stdout.write(parser.messageToStdout(message));
+      },
+    });
+
+    connection.on('data', data => {
+      const { method, args } = JSON.parse(data.toString());
+      switch (method) {
+        case 'change':
+          return onChange(...args);
+        case 'onMessage':
+          return onMessage(...args);
+        default:
+          throw new Error('unknown method');
+      }
+    });
+
+    process.stdin.setEncoding('utf8');
+    process.stdin.on('readable', async () => {
+      const message = parser.stdinToMessage(process.stdin.read());
+      send(findAgent(meshState), message);
+    });
   });
 
-  connection.on('end', () => {
-    console.warn('disconnected from server');
-  });
+  connection.on('end', () => console.warn('disconnected from server'));
 };
 
 main();

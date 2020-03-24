@@ -24,6 +24,17 @@ const connectToWgOS = async wgOs => {
   await wgOs.establish(fromWgKey(wgAnswerKey));
 };
 
+const getMeshState = wgOs => {
+  const baseMeshState = wgOs.getMeshState();
+  return {
+    connections: baseMeshState.connections.map(c => ({
+      ...c,
+      user: wgOs.users.find(u => u.id === c.peer),
+    })),
+    globalState: baseMeshState.globalState,
+  };
+};
+
 // Main
 // =============================================================================
 
@@ -31,39 +42,62 @@ const defaultSettings = {
   config: {
     iceServers: [{ urls: ['stun:stun.l.google.com:19302'] }],
   },
-  currentUser: { userName: undefined },
+  currentUser: {
+    userName: undefined,
+    type: 'server',
+  },
   apps: [],
 };
+
+let meshState = {
+  connections: [],
+  globalState: 'disconnected',
+};
+let connection = undefined;
 
 const main = async () => {
   const wgOs = new WgOs(defaultSettings);
   await connectToWgOS(wgOs);
 
-  const server = net.createServer(async connection => {
-    connection.on('data', data => {
-      const { method, args } = JSON.parse(data);
-      if (method !== 'send') throw new Error('Unsupported method');
-      const [userId, message] = args;
-      wgOs.send(userId, message);
-    });
+  const onChange = ({ wgOs }) => {
+    meshState = getMeshState(wgOs);
+  };
 
-    const onMessage = e => {
-      const { type, payload } = e.data;
-      if (!type.startsWith('app:')) return;
-      connection.write(JSON.stringify({ type, payload }));
-    };
+  const onMessage = message => {
+    const { type } = message;
+    if (!type.startsWith('app:')) return;
+    if (!connection) return;
+    connection.write(
+      JSON.stringify({
+        method: 'onMessage',
+        args: [{ ...message, type: type.replace(/^app:/, '') }],
+      }),
+    );
+  };
 
-    wgOs.on('message', onMessage);
-    wgOs.on('mesh:change', (...args) => console.log('mesh:change', args));
+  const onData = data => {
+    const { method, args } = JSON.parse(data);
+    if (method !== 'send') throw new Error('Unsupported method');
+    const [userId, message] = args;
+    wgOs.send(userId, message);
+  };
 
-    wgOs.on('users:change', (...args) => console.log('users:change', args));
+  wgOs.on('mesh:change', onChange);
+  wgOs.on('users:change', onChange);
+  wgOs.on('apps:change', onChange);
 
-    wgOs.on('apps:change', (...args) => console.log('apps:change', args));
+  wgOs.on('message', onMessage);
 
-    connection.on('end', () => {
-      // ??????
-      // PROFIT!!!
-    });
+  const server = net.createServer(async nextConnection => {
+    connection = nextConnection;
+    connection.write(
+      JSON.stringify({
+        method: 'change',
+        args: [meshState],
+      }),
+    );
+    connection.on('data', onData);
+    connection.on('end', () => connection.removeListener('data', onData));
   });
 
   server.listen(9001, () => {

@@ -16,10 +16,12 @@ import App from './components/App';
 
 // Main
 // =============================================================================
-
 const main = () => {
   document.body.innerHTML = '<div></div>';
-  ReactDOM.render(<App />, document.getElementsByTagName('div')[0]);
+  ReactDOM.render(
+    <App AppShell={AppShell} />,
+    document.getElementsByTagName('div')[0],
+  );
 };
 
 export default main;

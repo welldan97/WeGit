@@ -146,5 +146,9 @@ const main = () => {
   });
 };
 
+export default main;
+
+/*
 if (typeof module !== 'undefined') module.exports = main;
 else main();
+*/

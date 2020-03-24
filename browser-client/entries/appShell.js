@@ -74,7 +74,7 @@ const main = () => {
         //evaluate(AppShell);
         /* Development Mode */
         window.AppShell = AppShell;
-        import('../dev/wegit').then(({ default: App }) => App());
+        import('../dev').then(({ default: App }) => App());
 
         callMethod('ready');
         return;

@@ -7,11 +7,12 @@ import * as gitInternals from 'isomorphic-git/dist/internal.umd.min.js';
 import EventEmitter from 'eventemitter3';
 
 import gitHelpers from './lib/gitHelpers';
+import transportMiddleware from './lib/transportMiddleware';
 
 // Main
 // =============================================================================
 
-export default ({ fs, hasRepo, onFsUpdate }) => {
+export default ({ fs, hasRepo, onFsUpdate, AppShell }) => {
   const [isReady, setIsReady] = useState(false);
   const [progress, setProgress] = useState();
   const emitterRef = useRef();
@@ -19,14 +20,24 @@ export default ({ fs, hasRepo, onFsUpdate }) => {
   const [currentBranch, setCurrentBranch] = useState();
   const [helpers, setHelpers] = useState({});
 
+  const { onMessage } = transportMiddleware({
+    onMessage: message => {
+      console.log(message, '!!!!!!!');
+    },
+    send: (userId, message) => {
+      AppShell.send(userId, message);
+    },
+  });
+
   useEffect(() => {
     (async () => {
+      if (!fs) return;
+      if (isReady) return;
       emitterRef.current = new EventEmitter();
       emitterRef.current.on('progress', nextProgress =>
         setProgress(nextProgress),
       );
 
-      if (!fs) return;
       git.plugins.set('fs', fs);
       git.plugins.set('emitter', emitterRef.current);
       window.git = git;
@@ -35,9 +46,10 @@ export default ({ fs, hasRepo, onFsUpdate }) => {
       const nextHelpers = gitHelpers({ git, gitInternals, fs });
       setHelpers(nextHelpers);
 
+      AppShell.on('message', onMessage);
       setIsReady(true);
     })();
-  }, [fs]);
+  }, [fs, isReady]);
 
   useEffect(() => {
     (async () => {
