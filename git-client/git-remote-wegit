@@ -6,6 +6,8 @@
 const net = require('net');
 //const transport = require('./lib/transport');
 const parser = require('./lib/parser');
+const transportMiddleware = require('./lib/transportMiddleware');
+const receiveInChunksMiddleware = require('wegit-lib/utils/receiveInChunksMiddleware');
 const sendInChunksMiddleware = require('wegit-lib/utils/sendInChunksMiddleware');
 
 // Utils
@@ -32,23 +34,26 @@ const main = async () => {
   const onChange = nextMeshState => (meshState = nextMeshState);
 
   const connection = net.connect({ port: 9001 }, () => {
-    const { send, onMessage } = sendInChunksMiddleware({
-      send(userId, message) {
-        if (!userId) return;
-        const { type, payload } = message;
-        connection.write(
-          JSON.stringify({
-            method: 'send',
-            args: [userId, { type: `app:${type}`, payload }],
-          }),
-        );
-      },
+    const { send, onMessage } = receiveInChunksMiddleware(
+      transportMiddleware(
+        sendInChunksMiddleware({
+          send(userId, message) {
+            if (!userId) return;
+            const { type, payload } = message;
+            connection.write(
+              JSON.stringify({
+                method: 'send',
+                args: [userId, { type: `app:${type}`, payload }],
+              }),
+            );
+          },
 
-      onMessage(message) {
-        process.stdout.write(parser.messageToStdout(message));
-      },
-    });
-
+          onMessage(message) {
+            process.stdout.write(parser.messageToStdout(message));
+          },
+        }),
+      ),
+    );
     connection.on('data', data => {
       const { method, args } = JSON.parse(data.toString());
       switch (method) {
@@ -65,7 +70,7 @@ const main = async () => {
     process.stdin.on('readable', async () => {
       const value = process.stdin.read();
 
-      if (value === null) {
+      if (value === null || value === '\n') {
         process.exit();
         return;
       }

@@ -65,6 +65,7 @@ const main = async () => {
 
   const onMessage = message => {
     const { type } = message;
+    console.log('<-', JSON.stringify(message, undefined, 2));
     if (!type.startsWith('app:')) return;
     if (!connection) return;
     connection.write(
@@ -79,6 +80,8 @@ const main = async () => {
     const { method, args } = JSON.parse(data);
     if (method !== 'send') throw new Error('Unsupported method');
     const [userId, message] = args;
+    console.log('->', JSON.stringify(message, undefined, 2));
+
     wgOs.send(userId, message);
   };
 

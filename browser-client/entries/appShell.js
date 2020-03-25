@@ -1,6 +1,7 @@
 // Imports
 // =============================================================================
 
+import receiveInChunksMiddleware from 'wegit-lib/utils/receiveInChunksMiddleware';
 import sendInChunksMiddleware from 'wegit-lib/utils/sendInChunksMiddleware';
 
 // Utils
@@ -26,17 +27,19 @@ const main = () => {
   let AppShell;
   const eventTarget = new EventTarget();
 
-  const { send, onMessage } = sendInChunksMiddleware({
-    send(userId, message) {
-      callMethod('send', [userId, message]);
-    },
+  const { send, onMessage } = receiveInChunksMiddleware(
+    sendInChunksMiddleware({
+      send(userId, message) {
+        callMethod('send', [userId, message]);
+      },
 
-    onMessage(message) {
-      const appEvent = new Event('message');
-      appEvent.data = message;
-      eventTarget.dispatchEvent(appEvent);
-    },
-  });
+      onMessage(message) {
+        const appEvent = new Event('message');
+        appEvent.data = message;
+        eventTarget.dispatchEvent(appEvent);
+      },
+    }),
+  );
 
   const sendAll = message => {
     AppShell.users.forEach(u => send(u.id, message));

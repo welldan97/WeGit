@@ -19,8 +19,6 @@ const parseFetch = value => {
       return { sha, ref };
     });
 
-  //await Promise.all(refs.map(({ sha, ref }) => createRef({ sha, ref })));
-
   return {
     type: 'transport:fetch',
     payload: { refs },
@@ -32,6 +30,7 @@ const parseFetch = value => {
 
 module.exports = {
   stdinToMessage(value) {
+    console.warn('[->]', value);
     switch (value) {
       case 'capabilities\n':
         return parseCapabilities(value);
@@ -50,6 +49,7 @@ module.exports = {
 
   messageToStdout(message) {
     const { type, payload } = message;
+    console.warn('[<-]', type);
     switch (type) {
       case 'transport:capabilitiesResponse':
         return payload.capabilities.join('\n') + '\n\n';
