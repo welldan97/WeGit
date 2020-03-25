@@ -1,6 +1,32 @@
 // Imports
 // =============================================================================
 
+const parseCapabilities = () => ({
+  type: 'transport:capabilities',
+});
+
+const parseList = () => ({
+  type: 'transport:list',
+});
+
+const parseFetch = value => {
+  const refs = value
+    .trim()
+    .replace(/fetch /g, '')
+    .split('\n')
+    .map(line => {
+      const [sha, ref] = line.split(' ');
+      return { sha, ref };
+    });
+
+  //await Promise.all(refs.map(({ sha, ref }) => createRef({ sha, ref })));
+
+  return {
+    type: 'transport:fetch',
+    payload: { refs },
+  };
+};
+
 // Main
 // =============================================================================
 
@@ -8,18 +34,17 @@ module.exports = {
   stdinToMessage(value) {
     switch (value) {
       case 'capabilities\n':
-        return {
-          type: 'transport:capabilities',
-        };
+        return parseCapabilities(value);
       case 'list\n':
-        return {
-          type: 'transport:list',
-        };
+        return parseList(value);
 
-      default:
+      default: {
+        if (value.startsWith('fetch')) return parseFetch(value);
+
         throw new Error(
           `Unknown git command\n ${JSON.stringify(value, undefined, 2)}`,
         );
+      }
     }
   },
 
@@ -33,6 +58,8 @@ module.exports = {
           payload.refs.map(({ sha, ref }) => `${sha} ${ref}`).join('\n') +
           '\n\n'
         );
+      case 'transport:fetchResponse':
+        return '\n';
       default:
         throw new Error(`Unknown message\n ${JSON.stringify(message)}`);
     }

@@ -12,26 +12,17 @@ import transportMiddleware from './lib/transportMiddleware';
 // Main
 // =============================================================================
 
-export default ({ fs, hasRepo, onFsUpdate, AppShell }) => {
+export default ({ fs, pfs, hasRepo, onFsUpdate, AppShell }) => {
   const [isReady, setIsReady] = useState(false);
   const [progress, setProgress] = useState();
   const emitterRef = useRef();
 
   const [currentBranch, setCurrentBranch] = useState();
   const [helpers, setHelpers] = useState({});
-
-  const { onMessage } = transportMiddleware({
-    onMessage: message => {
-      console.log(message, '!!!!!!!');
-    },
-    send: (userId, message) => {
-      AppShell.send(userId, message);
-    },
-  });
-
   useEffect(() => {
     (async () => {
       if (!fs) return;
+      if (!pfs) return;
       if (isReady) return;
       emitterRef.current = new EventEmitter();
       emitterRef.current.on('progress', nextProgress =>
@@ -46,10 +37,21 @@ export default ({ fs, hasRepo, onFsUpdate, AppShell }) => {
       const nextHelpers = gitHelpers({ git, gitInternals, fs });
       setHelpers(nextHelpers);
 
+      const { onMessage } = transportMiddleware({ fs, pfs, git, gitInternals })(
+        {
+          onMessage: message => {
+            console.log(message, '!!!!!!!');
+          },
+          send: (userId, message) => {
+            AppShell.send(userId, message);
+          },
+        },
+      );
+
       AppShell.on('message', onMessage);
       setIsReady(true);
     })();
-  }, [fs, isReady]);
+  }, [fs, pfs, isReady]);
 
   useEffect(() => {
     (async () => {

@@ -1,11 +1,14 @@
 // Imports
 // =============================================================================
 
-const listRefs = ({ git, gitInternals }) => async () => {
+// Utils
+// =============================================================================
+
+const listRefs = ({ fs, git, gitInternals }) => async () => {
   const refs = [
     'HEAD',
     ...(await gitInternals.GitRefManager.listRefs({
-      fs: window.fs, //TODO
+      fs,
       gitdir: '.git',
       filepath: `refs`,
     })).map(r => `refs/${r}`),
@@ -20,10 +23,53 @@ const listRefs = ({ git, gitInternals }) => async () => {
   return value;
 };
 
+// Handlers
+// =============================================================================
+
+const getHandler = ({ fs, pfs, git, gitInternals, send }) => ({
+  async capabilites(message) {
+    send(message.path[0], {
+      type: 'transport:capabilitiesResponse',
+      payload: { capabilities: ['fetch', 'push'] },
+    });
+  },
+
+  async list(message) {
+    const refs = await listRefs({ fs, git, gitInternals })();
+    send(message.path[0], {
+      type: 'transport:listResponse',
+      payload: { refs },
+    });
+  },
+
+  async fetch(message) {
+    // TODO: redo
+    const sha = message.payload.refs[0].sha;
+    const { source } = await git.readObject({
+      dir: '/',
+      oid: sha,
+      format: 'deflated',
+    });
+
+    if (source.startsWith('objects/pack')) {
+      const packContents = await pfs.readFile('.git/' + source);
+      send(message.path[0], {
+        type: 'transport:fetchResponse',
+        payload: {
+          contents: Array.from(packContents),
+          type: 'pack',
+        },
+      });
+    } else throw new Error('Not Implemented: it is not an pack');
+  },
+});
+
 // Main
 // =============================================================================
 
-module.exports = ({ send, onMessage }) => {
+module.exports = ({ pfs, fs, git, gitInternals }) => ({ send, onMessage }) => {
+  const handler = getHandler({ fs, pfs, git, gitInternals, send });
+
   const nextSend = (userId, message) => {
     return send(userId, message);
   };
@@ -35,19 +81,12 @@ module.exports = ({ send, onMessage }) => {
 
     switch (type) {
       case 'capabilities':
-        send(message.path[0], {
-          type: 'transport:capabilitiesResponse',
-          payload: { capabilities: ['fetch', 'push'] },
-        });
-        return;
-      case 'list': {
-        const refs = await listRefs({ git, gitInternals })();
-        send(message.path[0], {
-          type: 'transport:listResponse',
-          payload: { refs },
-        });
-        return;
-      }
+        return await handler.capabilites(message);
+      case 'list':
+        return await handler.list(message);
+      case 'fetch':
+        return await handler.fetch(message);
+
       default:
         return onMessage(message);
     }

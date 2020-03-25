@@ -63,7 +63,14 @@ const main = async () => {
 
     process.stdin.setEncoding('utf8');
     process.stdin.on('readable', async () => {
-      const message = parser.stdinToMessage(process.stdin.read());
+      const value = process.stdin.read();
+
+      if (value === null) {
+        process.exit();
+        return;
+      }
+
+      const message = parser.stdinToMessage(value);
       send(findAgent(meshState), message);
     });
   });

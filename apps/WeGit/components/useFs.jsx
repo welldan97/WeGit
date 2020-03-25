@@ -146,6 +146,7 @@ export default ({ path: basePath }) => {
 
   return {
     fs: baseFsRef.current,
+    pfs: fsRef.current,
     onFsUpdate,
 
     isReady,
