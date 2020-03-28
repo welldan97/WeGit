@@ -3,12 +3,18 @@
 // Imports
 // =============================================================================
 
+const fs = require('fs');
 const net = require('net');
-//const transport = require('./lib/transport');
-const parser = require('./lib/parser');
-const transportMiddleware = require('./lib/transportMiddleware');
+const git = require('isomorphic-git');
+const gitInternals = require('isomorphic-git/dist/for-node/isomorphic-git/internal-apis');
+
 const receiveInChunksMiddleware = require('wegit-lib/utils/receiveInChunksMiddleware');
 const sendInChunksMiddleware = require('wegit-lib/utils/sendInChunksMiddleware');
+
+const parser = require('./lib/parser');
+const transportMiddleware = require('./lib/transportMiddleware');
+
+git.plugins.set('fs', fs);
 
 // Utils
 // =============================================================================
@@ -35,7 +41,7 @@ const main = async () => {
 
   const connection = net.connect({ port: 9001 }, () => {
     const { send, onMessage } = receiveInChunksMiddleware(
-      transportMiddleware(
+      transportMiddleware({ git, gitInternals, pfs: undefined, fs })(
         sendInChunksMiddleware({
           send(userId, message) {
             if (!userId) return;
@@ -49,7 +55,10 @@ const main = async () => {
           },
 
           onMessage(message) {
-            process.stdout.write(parser.messageToStdout(message));
+            const value = parser.messageToStdout(message);
+            console.warn('[<-]', value);
+
+            process.stdout.write(value);
           },
         }),
       ),
@@ -75,6 +84,7 @@ const main = async () => {
         return;
       }
 
+      console.warn('[->]', value);
       const message = parser.stdinToMessage(value);
       send(findAgent(meshState), message);
     });

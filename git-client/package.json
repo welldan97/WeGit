@@ -13,6 +13,7 @@
     "@ungap/event-target": "^0.1.0",
     "clipboardy": "^2.1.0",
     "inquirer": "^7.0.1",
+    "isomorphic-git": "^0.78.5",
     "uuid": "^3.3.3",
     "wegit-lib": "file:../lib",
     "wrtc": "^0.4.2"

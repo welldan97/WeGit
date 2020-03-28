@@ -35,10 +35,12 @@ const getHandler = ({ fs, pfs, git, gitInternals, send }) => ({
   },
 
   async list(message) {
+    const forPush = message.payload.forPush;
+
     const refs = await listRefs({ fs, git, gitInternals })();
     send(message.path[0], {
       type: 'transport:listResponse',
-      payload: { refs },
+      payload: { refs, forPush },
     });
   },
 
@@ -61,6 +63,52 @@ const getHandler = ({ fs, pfs, git, gitInternals, send }) => ({
         },
       });
     } else throw new Error('Not Implemented: it is not an pack');
+  },
+
+  async push(message) {
+    const ArrayToString = array =>
+      new TextDecoder().decode(Uint8Array.from(array));
+
+    const writeObjectHolder = async objectHolder => {
+      const { type, object } = objectHolder;
+      if (type === 'blob') {
+        await git.writeBlob({ dir: '/', blob: Uint8Array.from(object) });
+      } else if (type === 'tree') {
+        /*
+        const parsedTree = ArrayToString(object)
+          .toString()
+          .trim()
+          .split('\n')
+          .map(row => {
+            const [mode, type, sha, path] = row.split(/\t| /);
+            return { mode, type, sha, path };
+          });*/
+
+        await git.writeTree({ dir: '/', tree: objectHolder.parsed.entries });
+      } else if (type === 'commit') {
+        git.writeCommit({ dir: '/', commit: ArrayToString(object) });
+      } else {
+        throw new Error('Not Implemented');
+      }
+    };
+
+    const { from, to, objectHolders } = message.payload;
+    await Promise.all(objectHolders.map(writeObjectHolder));
+    await git.writeRef({
+      dir: '/',
+      ref: from.ref,
+      value: from.oid,
+      force: true,
+    });
+    await git.fastCheckout({ dir: '/', ref: 'master' });
+
+    send(message.path[0], {
+      type: 'transport:pushResponse',
+      payload: {
+        from,
+        to,
+      },
+    });
   },
 });
 
@@ -86,6 +134,8 @@ module.exports = ({ pfs, fs, git, gitInternals }) => ({ send, onMessage }) => {
         return await handler.list(message);
       case 'fetch':
         return await handler.fetch(message);
+      case 'push':
+        return await handler.push(message);
 
       default:
         return onMessage(message);
