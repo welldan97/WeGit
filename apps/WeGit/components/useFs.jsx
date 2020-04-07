@@ -22,7 +22,7 @@ const getFilesAndPreviewFile = ({ fs }) => async (path, isDirectory) => {
   if (isDirectory) {
     const fileNames = (await fs.readdir(path)).filter(f => f !== '.git');
 
-    const files = await Promise.all(
+    const rawFiles = await Promise.all(
       fileNames.map(async name => {
         const isDirectory = (await fs.lstat(
           `${path === '/' ? '' : path}/${name}`,
@@ -34,6 +34,15 @@ const getFilesAndPreviewFile = ({ fs }) => async (path, isDirectory) => {
         };
       }),
     );
+
+    const files = [
+      ...rawFiles
+        .filter(f => f.isDirectory)
+        .sort((a, b) => a.name.localeCompare(b.name)),
+      ...rawFiles
+        .filter(f => !f.isDirectory)
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    ];
 
     const readmeFile = files.find(f => f.name.toLowerCase().includes('readme'));
 
