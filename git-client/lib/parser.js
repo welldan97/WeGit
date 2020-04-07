@@ -13,18 +13,18 @@ const parseList = value => ({
 });
 
 const parseFetch = value => {
-  const refs = value
+  const refHolders = value
     .trim()
     .replace(/fetch /g, '')
     .split('\n')
     .map(line => {
-      const [sha, ref] = line.split(' ');
-      return { sha, ref };
+      const [oid, ref] = line.split(' ');
+      return { oid, ref };
     });
 
   return {
     type: 'transport:fetch',
-    payload: { refs },
+    payload: { refHolders },
   };
 };
 
@@ -69,13 +69,13 @@ module.exports = {
       case 'transport:capabilitiesResponse':
         return payload.capabilities.join('\n') + '\n\n';
       case 'transport:listResponse':
-        return (
-          payload.refs.map(({ sha, ref }) => `${sha} ${ref}`).join('\n') +
-          '\n\n'
-        );
+        return payload.refs.length
+          ? payload.refs.map(({ sha, ref }) => `${sha} ${ref}`).join('\n') +
+              '\n\n'
+          : '\n';
 
       case 'transport:pushResponse':
-        return `ok ${payload.to.ref}\n\n`;
+        return `ok ${payload.refDiff[0].ref}\n\n`;
       case 'transport:fetchResponse':
         return '\n';
 

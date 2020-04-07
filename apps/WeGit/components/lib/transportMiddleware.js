@@ -1,10 +1,14 @@
 // Imports
 // =============================================================================
 
+import gitHelpers from 'wegit-lib/utils/gitHelpers';
+
 // Utils
 // =============================================================================
 
-const listRefs = ({ fs, git, gitInternals }) => async () => {
+const listRefs = ({ fs, git, gitInternals, helpers }) => async () => {
+  const x = await helpers.hasRepo();
+  if (!(await helpers.hasRepo())) return [];
   const refs = [
     'HEAD',
     ...(await gitInternals.GitRefManager.listRefs({
@@ -26,91 +30,56 @@ const listRefs = ({ fs, git, gitInternals }) => async () => {
 // Handlers
 // =============================================================================
 
-const getHandler = ({ fs, pfs, git, gitInternals, send }) => ({
-  async capabilites(message) {
-    send(message.path[0], {
-      type: 'transport:capabilitiesResponse',
-      payload: { capabilities: ['fetch', 'push'] },
-    });
-  },
+const getHandler = ({ fs, pfs, git, gitInternals, dir = '.', send }) => {
+  const helpers = gitHelpers({
+    fs,
+    pfs,
+    git,
+    gitInternals,
+    dir,
+  });
 
-  async list(message) {
-    const forPush = message.payload.forPush;
+  return {
+    async capabilites(message) {
+      send(message.path[0], {
+        type: 'transport:capabilitiesResponse',
+        payload: { capabilities: ['fetch', 'push'] },
+      });
+    },
 
-    const refs = await listRefs({ fs, git, gitInternals })();
-    send(message.path[0], {
-      type: 'transport:listResponse',
-      payload: { refs, forPush },
-    });
-  },
+    async list(message) {
+      const forPush = message.payload.forPush;
 
-  async fetch(message) {
-    // TODO: redo
-    const sha = message.payload.refs[0].sha;
-    const { source } = await git.readObject({
-      dir: '/',
-      oid: sha,
-      format: 'deflated',
-    });
+      const refs = await listRefs({ fs, git, gitInternals, helpers })();
+      send(message.path[0], {
+        type: 'transport:listResponse',
+        payload: { refs, forPush },
+      });
+    },
 
-    if (source.startsWith('objects/pack')) {
-      const packContents = await pfs.readFile('.git/' + source);
+    async fetch(message) {
+      const objectBundle = await helpers.createObjectBundle(
+        message.payload.oidRanges,
+      );
       send(message.path[0], {
         type: 'transport:fetchResponse',
+        payload: { objectBundle },
+      });
+    },
+
+    async push(message) {
+      const { diffBundle } = message.payload;
+      await helpers.applyDiffBundle(diffBundle);
+
+      send(message.path[0], {
+        type: 'transport:pushResponse',
         payload: {
-          contents: Array.from(packContents),
-          type: 'pack',
+          refDiff: diffBundle.refDiff,
         },
       });
-    } else throw new Error('Not Implemented: it is not an pack');
-  },
-
-  async push(message) {
-    const ArrayToString = array =>
-      new TextDecoder().decode(Uint8Array.from(array));
-
-    const writeObjectHolder = async objectHolder => {
-      const { type, object } = objectHolder;
-      if (type === 'blob') {
-        await git.writeBlob({ dir: '/', blob: Uint8Array.from(object) });
-      } else if (type === 'tree') {
-        /*
-        const parsedTree = ArrayToString(object)
-          .toString()
-          .trim()
-          .split('\n')
-          .map(row => {
-            const [mode, type, sha, path] = row.split(/\t| /);
-            return { mode, type, sha, path };
-          });*/
-
-        await git.writeTree({ dir: '/', tree: objectHolder.parsed.entries });
-      } else if (type === 'commit') {
-        git.writeCommit({ dir: '/', commit: ArrayToString(object) });
-      } else {
-        throw new Error('Not Implemented');
-      }
-    };
-
-    const { from, to, objectHolders } = message.payload;
-    await Promise.all(objectHolders.map(writeObjectHolder));
-    await git.writeRef({
-      dir: '/',
-      ref: from.ref,
-      value: from.oid,
-      force: true,
-    });
-    await git.fastCheckout({ dir: '/', ref: 'master' });
-
-    send(message.path[0], {
-      type: 'transport:pushResponse',
-      payload: {
-        from,
-        to,
-      },
-    });
-  },
-});
+    },
+  };
+};
 
 // Main
 // =============================================================================

@@ -40,8 +40,17 @@ const main = async () => {
   const onChange = nextMeshState => (meshState = nextMeshState);
 
   const connection = net.connect({ port: 9001 }, () => {
+    const remote = process.argv[2];
+    const url = process.argv[3];
     const { send, onMessage } = receiveInChunksMiddleware(
-      transportMiddleware({ git, gitInternals, pfs: undefined, fs })(
+      transportMiddleware({
+        git,
+        gitInternals,
+        pfs: undefined,
+        fs,
+        remote,
+        url,
+      })(
         sendInChunksMiddleware({
           send(userId, message) {
             if (!userId) return;
