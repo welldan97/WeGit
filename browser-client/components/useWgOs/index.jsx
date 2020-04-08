@@ -125,7 +125,7 @@ export default function useWgOs() {
       // When connection established go to step 1
       else if (currentConnection && currentConnection.state === 'connected') {
         setNetworkAlert({
-          message: '🎉 Woop woop! Your connection has been created',
+          message: '\u{1f389} Woop woop! Your connection has been created',
           type: 'success',
         });
         setNetworkTabState('step1');
@@ -135,15 +135,14 @@ export default function useWgOs() {
     [networkTabState],
   );
   // Initialization
-  //
-  // NOTE: Prettier goes crazy here, so a lot of // for spacing
+
   const { isReady, wgOs, transport } = useJustWgOs({
     config,
     currentUser,
     apps: initialApps,
     onChange,
   });
-  //
+
   useEffect(() => {
     if (!isReady) return;
     setApps(wgOs.apps);
@@ -151,12 +150,13 @@ export default function useWgOs() {
 
   const onError = () => {
     setNetworkAlert({
-      message: '💀 Oops! something went wrong. Try to reinitiate connection',
+      message:
+        '\u{1f480} Oops! something went wrong. Try to reinitiate connection',
       type: 'danger',
     });
     setNetworkTabState('step1');
   };
-  //
+
   const invite = async () => {
     if (!wgOs) return;
     try {
@@ -171,9 +171,9 @@ export default function useWgOs() {
       onError();
     }
   };
-  //
+
   const startEstablishing = () => setNetworkTabState('step3invite');
-  //
+
   const establish = async wgAnswerKey => {
     try {
       await wgOs.establish(fromWgKey(wgAnswerKey));
@@ -181,9 +181,9 @@ export default function useWgOs() {
       onError();
     }
   };
-  //
+
   const startJoining = () => setNetworkTabState('step2join');
-  //
+
   const join = async wgOfferKey => {
     if (!wgOs) return;
     try {
@@ -199,7 +199,7 @@ export default function useWgOs() {
       onError();
     }
   };
-  //
+
   const cancelConnection = () => {
     if (!currentConnectionIdRef.current) {
       setNetworkTabState('step1');
@@ -207,16 +207,16 @@ export default function useWgOs() {
     }
     wgOs.close(currentConnectionIdRef.current);
   };
-  //
+
   const closeConnection = id => {
     wgOs.close(id);
   };
-  //
+
   const onUpdateSettings = nextSettings => {
     const { user, config: nextConfig } = nextSettings;
     setCurrentUser(user);
     wgOs.saveCurrentUser(user);
-    //
+
     Cookies.set('weGit', {
       config: nextConfig,
       currentUser: { userName: user.userName },
@@ -225,23 +225,25 @@ export default function useWgOs() {
       location.reload(true);
     }
   };
-  //
+
   const onCreateApp = app => {
     wgOs.saveApps([app]);
   };
-  //
+
   const onRunApp = appId => {
     setRunningApp(wgOs.apps.find(a => a.id === appId));
     setMainTabState('runningApp');
   };
+
   const onStopApp = () => {
     setRunningApp(undefined);
     transport.setOnMessage(() => {});
   };
-  //
+
   const onDeleteApp = appId => {
     wgOs.deleteApp(appId);
   };
+
   const [isInitialized, setIsInitialized] = useState(false);
   useEffect(() => {
     if (!apps.length) return;
@@ -263,12 +265,12 @@ export default function useWgOs() {
     });
     setIsInitialized(true);
   }, [apps]);
-  //
+
   return {
     config,
     currentUser,
     apps,
-    //
+
     mainTabState,
     setMainTabState,
     networkTabState,
@@ -276,21 +278,21 @@ export default function useWgOs() {
     networkAlert,
     clipboardIsWorking,
     peerIsConnecting,
-    //
+
     wgOfferKeyForInvite,
     invite,
     startEstablishing,
     establish,
-    //
+
     wgAnswerKeyForJoin,
     startJoining,
     join,
-    //
+
     cancelConnection,
     closeConnection,
-    //
+
     onUpdateSettings,
-    //
+
     runningApp,
     transport,
     onCreateApp,
