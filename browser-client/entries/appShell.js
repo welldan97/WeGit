@@ -4,6 +4,8 @@
 import receiveInChunksMiddleware from 'wegit-lib/utils/receiveInChunksMiddleware';
 import sendInChunksMiddleware from 'wegit-lib/utils/sendInChunksMiddleware';
 
+import config from '../config';
+
 // Utils
 // =============================================================================
 
@@ -74,10 +76,9 @@ const main = () => {
           users: payload.users,
         };
 
-        //evaluate(AppShell);
-        /* Development Mode */
         window.AppShell = AppShell;
-        import('../dev').then(({ default: App }) => App());
+        if (config().dev.appShellLocalApp) import('../dev').then(App => App());
+        else evaluate(AppShell);
 
         callMethod('ready');
         return;

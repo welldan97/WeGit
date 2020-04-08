@@ -10,33 +10,18 @@ import _isEqual from 'lodash/isEqual';
 import { toWgKey, fromWgKey } from 'wegit-lib/utils/wgKey';
 import 'wegit-lib/browser/bootstrap.min.css';
 
+import mainConfig from '../../config';
 import copyToClipboard from '../../lib/copyToClipboard';
 
 import useJustWgOs from './useJustWgOs';
 
 // Main
 // =============================================================================
-const WeBlankApp = {
-  id: 'WE-WE-WE-WE-WE--BLANK',
-  name: 'WeBlank',
-  description: '',
-  icon: '\u{1F932}',
-  user: { userName: 'welldan97' },
-  source: '',
-};
-
-const initialApps = [WeBlankApp];
 
 // NOTE: public servers list:
 //   https://gist.github.com/sagivo/3a4b2f2c7ac6e1b5267c2f1f59ac6c6b
 
-const defaultSettings = {
-  config: {
-    iceServers: [{ urls: ['stun:stun.l.google.com:19302'] }],
-  },
-  currentUser: { userName: undefined, type: 'browser' },
-};
-
+const { defaultSettings } = mainConfig();
 const weGitSettingsCookie = Cookies.get('weGit');
 const weGitSettingsCookieObject = weGitSettingsCookie
   ? JSON.parse(weGitSettingsCookie)
@@ -46,15 +31,18 @@ const weGitSettings = {
   ...weGitSettingsCookieObject,
   currentUser: {
     ...weGitSettingsCookieObject.currentUser,
-    type: 'browser',
   },
 };
 
-const { config, currentUser: initialCurrentUser } = weGitSettings;
+const {
+  config,
+  currentUser: initialCurrentUser,
+  apps: initialApps,
+} = weGitSettings;
 
 export default function useWgOs() {
-  const [currentUser, setCurrentUser] = useState(initialCurrentUser);
-  const [apps, setApps] = useState([]);
+  const [currentUser, setCurrentUser] = useState(mainConfig().tab);
+  const [apps, setApps] = useState(initialApps);
   const [runningApp, setRunningApp] = useState(undefined);
 
   const [mainTabState, setMainTabState] = useState('apps' || 'network');
@@ -139,7 +127,7 @@ export default function useWgOs() {
   const { isReady, wgOs, transport } = useJustWgOs({
     config,
     currentUser,
-    apps: initialApps,
+    apps,
     onChange,
   });
 
@@ -246,25 +234,18 @@ export default function useWgOs() {
 
   const [isInitialized, setIsInitialized] = useState(false);
   useEffect(() => {
+    if (!wgOs) return;
+
     if (!apps.length) return;
     if (isInitialized) return;
-    setTimeout(async () => {
-      // TODO: DEV
-      onRunApp(apps[0].id);
-      const { wgOffer } = await wgOs.invite();
-      const wgOfferKey = toWgKey('wgOffer')(wgOffer);
-      const response = await fetch('http://localhost:1236', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ wgOfferKey }),
+
+    if (mainConfig().dev.runApp)
+      setTimeout(() => {
+        console.log(apps);
+        onRunApp(apps[0].id);
       });
-      const { wgAnswerKey } = await response.json();
-      await wgOs.establish(fromWgKey(wgAnswerKey));
-    });
     setIsInitialized(true);
-  }, [apps]);
+  }, [apps, wgOs]);
 
   return {
     config,

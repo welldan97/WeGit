@@ -4,6 +4,7 @@
 import React, { memo, useEffect, useState, useRef } from 'react';
 
 import Iframe from './Iframe';
+import config from '../../config';
 
 // Events
 // =============================================================================
@@ -78,11 +79,6 @@ const methods = ({ app, currentUser, users, transport, utils, onReady }) => ({
 
 // Main
 // =============================================================================
-
-const iframeMode = {
-  type: 'development',
-  url: 'http://localhost:1235',
-};
 
 export default memo(function AppShell({
   runningApp,
@@ -162,7 +158,7 @@ export default memo(function AppShell({
   if (!runningApp) return null;
   return (
     <Iframe
-      iframeMode={iframeMode}
+      iframeMode={config().iframeMode}
       transport={transport}
       isReady={isReady}
       key={iframeKey}

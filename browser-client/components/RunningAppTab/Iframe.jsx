@@ -25,7 +25,7 @@ const getIframeOptions = iframeMode => {
     };
   else if (iframeMode.type === 'sameOrigin')
     return {
-      src: '',
+      src: undefined,
       sandbox: undefined,
     };
 };
