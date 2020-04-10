@@ -6,13 +6,9 @@
   "scripts": {
     "dev": "parcel entries/index.html",
     "dev:appShell": "parcel -p 1235 entries/appShellDev.html",
-    "dev:start": "rm -rf .cache && npm run dev",
-    "build:clean": "rm -rf .cache && rm -rf ./dist",
-    "build:appShell": "parcel build --no-source-maps entries/appShell.js",
-    "build:index": "parcel build --no-source-maps entries/index.html",
-    "build:moveafter": "cp ./dist/*.js ./dist/index.js",
-    "build:buildafter": "node ./build.js",
-    "build": "npm run build:clean && npm run build:appShell && npm run build:index"
+
+    "build": "./scripts/build",
+    "build:appShell": "parcel build --no-source-maps --no-content-hash entries/appShell.js"
   },
   "author": "",
   "license": "ISC",

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+
+#rm -rf .cache
+rm -rf ./dist
+# NOTE: build:appShell is needed for development
+npm run build:appShell
+# NOTE: build:appShell creates some dev file, remove it
+rm ./dist/dev.*.js
+
+parcel build --no-source-maps --no-content-hash entries/index.js
+
+{
+  head -n 1 < ./entries/index.html
+  echo '<script>'
+  cat ./dist/index.js
+  echo '</script>'
+} > ./dist/index.html

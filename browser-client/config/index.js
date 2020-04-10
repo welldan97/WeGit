@@ -28,7 +28,7 @@ export default () => ({
     ],
   },
   iframeMode: {
-    type: 'development',
+    type: 'sameOrigin',
     url: 'http://localhost:1235',
   },
   dev: {
