@@ -5,6 +5,7 @@ import React, { memo, useEffect, useRef, useState } from 'react';
 
 import { readFileSync } from 'fs';
 
+// NOTE: Build it before using it, even in dev! npm run build:appShell
 // NOTE: parcel builder loads it and replace it with contents automatically
 // https://github.com/parcel-bundler/parcel/issues/970#issuecomment-381403710
 const appShellSource = readFileSync(
@@ -30,6 +31,27 @@ const getIframeOptions = iframeMode => {
     };
 };
 
+const Loading = () => (
+  <span
+    style={{
+      position: 'absolute',
+      margin: 0,
+      fontFamily:
+        "'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'",
+      backgroundColor: '#2B3E50',
+      color: 'white',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      textAlign: 'center',
+      paddingTop: '48vh',
+    }}
+  >
+    Loading…
+  </span>
+);
+
 // Main
 // =============================================================================
 
@@ -40,6 +62,7 @@ export default memo(
 
     // Initialize transport
     useEffect(() => {
+      if (!ref) return;
       if (isTransportInitialized) return;
 
       transport.setOnMessage(message => {
@@ -54,7 +77,8 @@ export default memo(
         );
       });
       setIsTransportInitialized(true);
-    }, []);
+      setTimeout(() => ref.current.contentWindow.eval(appShellSource));
+    }, [ref]);
 
     const { src, sandbox } = getIframeOptions(iframeMode);
 
@@ -64,9 +88,11 @@ export default memo(
       border: 'none',
       display: isReady ? 'block' : 'none',
     };
-
     return (
-      <iframe src={src} style={style} sandbox={sandbox} ref={ref}></iframe>
+      <div style={{ position: 'relative' }}>
+        {!isReady && <Loading />}
+        <iframe src={src} style={style} sandbox={sandbox} ref={ref}></iframe>
+      </div>
     );
   },
   // Only update when isReady changed
