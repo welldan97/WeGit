@@ -90,6 +90,8 @@ export default function App({ utils }) {
             {mainTabState === 'network' && (
               <NetworkTab
                 {...{
+                  currentUser,
+
                   networkTabState,
                   meshState,
                   networkAlert,

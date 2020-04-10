@@ -48,8 +48,13 @@ export default function Navbar({
             href="#"
             onClick={() => onActivate('network')}
           >
-            {meshState.globalState === 'connected' && '✅'}
             Network
+            {meshState.globalState === 'connected' && (
+              <span className="badge badge-success badge-pill ml-2">
+                {meshState.connections.filter(c => c.state === 'connected')
+                  .length + 1}
+              </span>
+            )}
           </a>
         </li>
       </ul>

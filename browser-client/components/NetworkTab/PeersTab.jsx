@@ -22,20 +22,19 @@ const getUserType = user => {
 // Main
 // =============================================================================
 
-export default function PeersTab({ meshState, closeConnection }) {
-  if (!meshState.connections.length)
-    return (
-      <div className="row mt-4">
-        <div className="col-12">
-          <div className="alert alert-secondary" role="alert">
-            You don't have any connected peers, so sad! 😭
-          </div>
-        </div>
-      </div>
-    );
-
+export default function PeersTab({ currentUser, meshState, closeConnection }) {
   return (
     <ul className="list-group list-group-flush mt-4">
+      <li
+        className={`list-group-item
+                border border-success text-success
+                d-flex justify-content-between align-items-center`}
+      >
+        <span>
+          {getUserType(currentUser)} {currentUser.userName || 'Unknown user'} (
+          <em>That's you</em>)
+        </span>
+      </li>
       {meshState.connections.map(c => {
         const type = c.state === 'connected' ? 'success' : 'info';
         return (

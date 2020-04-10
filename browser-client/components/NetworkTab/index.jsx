@@ -12,6 +12,7 @@ import PeersTab from './PeersTab';
 // =============================================================================
 
 export default function NetworkTab({
+  currentUser,
   networkTabState,
   meshState,
   networkAlert,
@@ -48,7 +49,7 @@ export default function NetworkTab({
           ).length
         }
         connectedPeersCount={
-          meshState.connections.filter(c => c.state === 'connected').length
+          meshState.connections.filter(c => c.state === 'connected').length + 1
         }
       />
       {active === 'connect' && (
@@ -74,7 +75,11 @@ export default function NetworkTab({
         />
       )}
       {active === 'peers' && (
-        <PeersTab meshState={meshState} closeConnection={closeConnection} />
+        <PeersTab
+          currentUser={currentUser}
+          meshState={meshState}
+          closeConnection={closeConnection}
+        />
       )}
     </>
   );

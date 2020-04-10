@@ -4,7 +4,6 @@
 import adapter from 'webrtc-adapter';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Cookies from 'js-cookie';
 import _isEqual from 'lodash/isEqual';
 
 import { toWgKey, fromWgKey } from 'wegit-lib/utils/wgKey';
@@ -21,31 +20,26 @@ import useJustWgOs from './useJustWgOs';
 // NOTE: public servers list:
 //   https://gist.github.com/sagivo/3a4b2f2c7ac6e1b5267c2f1f59ac6c6b
 
-const { defaultSettings } = mainConfig();
-const weGitSettingsCookie = Cookies.get('weGit');
-const weGitSettingsCookieObject = weGitSettingsCookie
-  ? JSON.parse(weGitSettingsCookie)
-  : {};
+const { defaultSettings, tab: initialTab, dev } = mainConfig();
+const loadedSettings = JSON.parse(localStorage.getItem('weGit') || '{}');
 const weGitSettings = {
   ...defaultSettings,
-  ...weGitSettingsCookieObject,
-  currentUser: {
-    ...weGitSettingsCookieObject.currentUser,
-  },
+  ...loadedSettings,
 };
 
 const {
-  config,
+  config: initialConfig,
   currentUser: initialCurrentUser,
   apps: initialApps,
 } = weGitSettings;
 
 export default function useWgOs() {
-  const [currentUser, setCurrentUser] = useState(mainConfig().tab);
+  const [currentUser, setCurrentUser] = useState(initialCurrentUser);
+  const [config, setConfig] = useState(initialConfig);
   const [apps, setApps] = useState(initialApps);
   const [runningApp, setRunningApp] = useState(undefined);
 
-  const [mainTabState, setMainTabState] = useState('apps' || 'network');
+  const [mainTabState, setMainTabState] = useState(initialTab);
   const [networkTabState, setNetworkTabState] = useState('step1');
   const [meshState, setMeshState] = useState({
     connections: [],
@@ -81,7 +75,9 @@ export default function useWgOs() {
     ({ wgOs }) => {
       if (!wgOs) return;
       setApps(wgOs.apps);
+
       setCurrentUser(wgOs.currentUser);
+
       const baseMeshState = wgOs.getMeshState();
       const meshState = {
         connections: baseMeshState.connections.map(c => ({
@@ -130,11 +126,6 @@ export default function useWgOs() {
     apps,
     onChange,
   });
-
-  useEffect(() => {
-    if (!isReady) return;
-    setApps(wgOs.apps);
-  }, [wgOs]);
 
   const onError = () => {
     setNetworkAlert({
@@ -203,16 +194,24 @@ export default function useWgOs() {
   const onUpdateSettings = nextSettings => {
     const { user, config: nextConfig } = nextSettings;
     setCurrentUser(user);
+    setConfig(nextConfig);
     wgOs.saveCurrentUser(user);
 
-    Cookies.set('weGit', {
-      config: nextConfig,
-      currentUser: { userName: user.userName },
-    });
     if (!_isEqual(config, nextConfig)) {
-      location.reload(true);
+      setTimeout(() => location.reload(true), 300);
     }
   };
+
+  useEffect(() => {
+    localStorage.setItem(
+      'weGit',
+      JSON.stringify({
+        config,
+        currentUser,
+        apps,
+      }),
+    );
+  }, [apps, config, currentUser]);
 
   const onCreateApp = app => {
     wgOs.saveApps([app]);
@@ -229,6 +228,7 @@ export default function useWgOs() {
   };
 
   const onDeleteApp = appId => {
+    if (runningApp && runningApp.id === appId) onStopApp();
     wgOs.deleteApp(appId);
   };
 
@@ -239,9 +239,8 @@ export default function useWgOs() {
     if (!apps.length) return;
     if (isInitialized) return;
 
-    if (mainConfig().dev.runApp)
+    if (dev.runApp)
       setTimeout(() => {
-        console.log(apps);
         onRunApp(apps[0].id);
       });
     setIsInitialized(true);
