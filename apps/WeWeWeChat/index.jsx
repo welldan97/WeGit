@@ -49,7 +49,7 @@ const renderPage = () => `
                 type="submit"
                 class="btn btn-success btn-lg mt-4 d-block mx-auto"
               >
-                Send!
+                Send
               </button>
             </div>
           </form>

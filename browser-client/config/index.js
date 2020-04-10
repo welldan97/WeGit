@@ -12,14 +12,19 @@ export default () => ({
     },
     currentUser: { userName: undefined, type: 'browser' },
     apps: [
+      /*
+      // WeBlank is useful for development
       {
         id: 'WE-WE-WE-WE-WE--BLANK',
         name: 'WeBlank',
         description: '',
         icon: '\u{1F932}',
-        user: { userName: 'welldan97' },
+        user: {
+          userName: 'welldan97',
+        },
         source: 'console.log("hello from WeBlank")',
       },
+      */
     ],
   },
   iframeMode: {
@@ -29,5 +34,6 @@ export default () => ({
   dev: {
     appShellLocalApp: false,
     runApp: false,
+    //runApp: 'WE-WE-WE-WE-WE--BLANK',
   },
 });
