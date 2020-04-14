@@ -21,6 +21,9 @@ const main = async () => {
     <App utils={{ addStyles, styles }} />,
     document.getElementsByTagName('div')[0],
   );
+
+  if ('serviceWorker' in navigator)
+    navigator.serviceWorker.register('/service-worker.js');
 };
 
 main();
