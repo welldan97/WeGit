@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import _isEqual from 'lodash/isEqual';
 
 import { toWgKey, fromWgKey } from 'wegit-lib/utils/wgKey';
+import parseAppSource from 'wegit-lib/utils/parseAppSource';
 import 'wegit-lib/browser/bootstrap.min.css';
 
 import getConfig from '../../config';
@@ -227,7 +228,9 @@ export default function useWgOs() {
   }, [apps, config, currentUser]);
 
   const onCreateApp = app => {
-    wgOs.saveApps([app]);
+    if (app.source.startsWith('// ==WgApp=='))
+      wgOs.saveApps([parseAppSource(app.source)]);
+    else wgOs.saveApps([app]);
   };
 
   const onRunApp = appId => {
