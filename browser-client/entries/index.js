@@ -11,6 +11,21 @@ import styles from 'wegit-lib/browser/bootstrap.min.css';
 
 import App from '../components/App';
 
+// NOTE: using source to avoid extra code with iframe
+// may be parcel handles it though
+import appShellSource from './appShellSource';
+
+// Utils
+// =============================================================================
+
+const isIframe = () => {
+  try {
+    return window.self !== window.top;
+  } catch (e) {
+    return true;
+  }
+};
+
 // Main
 // =============================================================================
 
@@ -25,4 +40,12 @@ const main = async () => {
   );
 };
 
-main();
+const appShell = () => {
+  document.documentElement.innerHTML = '<head></head><body><div></div></body>';
+
+  const evaluate = new Function(appShellSource);
+  evaluate();
+};
+
+if (isIframe()) appShell();
+else main();

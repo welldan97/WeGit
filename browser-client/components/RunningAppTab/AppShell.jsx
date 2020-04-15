@@ -162,6 +162,7 @@ export default memo(function AppShell({
       transport={transport}
       isReady={isReady}
       key={iframeKey}
+      id={runningApp.id}
     />
   );
 });

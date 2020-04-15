@@ -9,6 +9,11 @@ const WeWeWeChatSource = readFileSync(
   'utf-8',
 );
 
+// Utils
+// =============================================================================
+
+const isFile = () => window.location.protocol === 'file:';
+
 // Main
 // =============================================================================
 
@@ -34,10 +39,10 @@ export default () => ({
   runApp: false,
   //runApp: 'WE-WE-WE-WE-WE--BLANK',
   iframeMode: {
+    // NOTE: crossOrigin doesn't work yet
     type: 'sameOrigin',
-    //url: 'http://localhost:1235',
   },
-  serviceWorkers: false,
+  serviceWorkers: !isFile(),
   appShellLocalApp: false,
   alwaysDefaultConfig: false,
 });

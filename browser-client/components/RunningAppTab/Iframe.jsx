@@ -3,20 +3,12 @@
 
 import React, { memo, useEffect, useRef, useState } from 'react';
 
-import { readFileSync } from 'fs';
-
-// NOTE: Build it before using it, even in dev! npm run build:appShell
-// NOTE: parcel builder loads it and replace it with contents automatically
-// https://github.com/parcel-bundler/parcel/issues/970#issuecomment-381403710
-const appShellSource = readFileSync(
-  __dirname + '../../../dist/appShell.js',
-  'utf-8',
-);
+import appShellSource from '../../entries/appShellSource';
 
 // Utils
 // =============================================================================
 
-const getIframeOptions = iframeMode => {
+const getIframeOptions = ({ iframeMode, id }) => {
   //const sandbox = 'allow-same-origin allow-scripts';
 
   if (iframeMode.type === 'development')
@@ -29,6 +21,12 @@ const getIframeOptions = iframeMode => {
       src: undefined,
       sandbox: undefined,
     };
+  else if (iframeMode.type === 'crossOrigin')
+    return {
+      src: iframeMode.url.replace('{id}', id),
+      sandbox: 'allow-scripts',
+    };
+  throw new Error('Wrong iframeMode.type');
 };
 
 const Loading = () => (
@@ -56,7 +54,7 @@ const Loading = () => (
 // =============================================================================
 
 export default memo(
-  function Iframe({ iframeMode, transport, isReady }) {
+  function Iframe({ iframeMode, transport, isReady, id }) {
     const ref = useRef(undefined);
     const [isTransportInitialized, setIsTransportInitialized] = useState(false);
 
@@ -77,10 +75,11 @@ export default memo(
         );
       });
       setIsTransportInitialized(true);
-      setTimeout(() => ref.current.contentWindow.eval(appShellSource));
+      if (iframeMode.type === 'sameOrigin')
+        setTimeout(() => ref.current.contentWindow.eval(appShellSource));
     }, [ref]);
 
-    const { src, sandbox } = getIframeOptions(iframeMode);
+    const { src, sandbox } = getIframeOptions({ iframeMode, id });
 
     const style = {
       width: '100%',
