@@ -7,6 +7,7 @@ import Navbar from './Navbar';
 import RunningAppTab from './RunningAppTab';
 import AppsTab from './AppsTab';
 import NetworkTab from './NetworkTab';
+import ShareTab from './ShareTab';
 import SettingsTab from './SettingsTab';
 
 import useWgOs from './useWgOs';
@@ -14,7 +15,7 @@ import useWgOs from './useWgOs';
 // Main
 // =============================================================================
 
-export default function App({ utils }) {
+export default function App({ utils, source }) {
   const {
     config,
     currentUser,
@@ -49,7 +50,9 @@ export default function App({ utils }) {
     onRunApp,
     onStopApp,
     onDeleteApp,
-  } = useWgOs();
+
+    onDownload,
+  } = useWgOs({ source });
 
   const connectedUsers = useMemo(
     () =>
@@ -114,6 +117,7 @@ export default function App({ utils }) {
                 }}
               />
             )}
+            {mainTabState === 'share' && <ShareTab onDownload={onDownload} />}
             {mainTabState === 'settings' && (
               <SettingsTab
                 config={config}

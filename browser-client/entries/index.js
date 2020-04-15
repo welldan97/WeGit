@@ -15,10 +15,12 @@ import App from '../components/App';
 // =============================================================================
 
 const main = async () => {
+  const source = document.body.innerHTML.trim() + '\n';
   document.documentElement.innerHTML = '<head></head><body><div></div></body>';
   addStyles(styles);
+
   ReactDOM.render(
-    <App utils={{ addStyles, styles }} />,
+    <App utils={{ addStyles, styles }} source={source} />,
     document.getElementsByTagName('div')[0],
   );
 };

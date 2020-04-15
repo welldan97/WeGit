@@ -15,6 +15,25 @@ import copyToClipboard from '../../lib/copyToClipboard';
 
 import useJustWgOs from './useJustWgOs';
 
+// Utils
+// =============================================================================
+
+const download = (filename, text) => {
+  var element = document.createElement('a');
+  element.setAttribute(
+    'href',
+    'data:text/plain;charset=utf-8,' + encodeURIComponent(text),
+  );
+  element.setAttribute('download', filename);
+
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
+};
+
 // Main
 // =============================================================================
 
@@ -34,7 +53,7 @@ const initialCurrentUser = loadedCurrentUser || {
   type: 'browser',
 };
 
-export default function useWgOs() {
+export default function useWgOs({ source }) {
   const [currentUser, setCurrentUser] = useState(initialCurrentUser);
   const [config, setConfig] = useState(initialConfig);
   const [apps, setApps] = useState(initialApps);
@@ -248,6 +267,10 @@ export default function useWgOs() {
     wgOs.deleteApp(appId);
   };
 
+  const onDownload = () => {
+    download('WeGit.html', source);
+  };
+
   const [isInitialized, setIsInitialized] = useState(false);
   useEffect(() => {
     if (!wgOs) return;
@@ -293,5 +316,7 @@ export default function useWgOs() {
     onRunApp,
     onStopApp,
     onDeleteApp,
+
+    onDownload,
   };
 }

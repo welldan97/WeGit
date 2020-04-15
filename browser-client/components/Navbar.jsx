@@ -57,6 +57,11 @@ export default function Navbar({
             )}
           </a>
         </li>
+        <li className={`nav-item ${active === 'share' ? 'active' : ''}`}>
+          <a className="nav-link" href="#" onClick={() => onActivate('share')}>
+            Share
+          </a>
+        </li>
       </ul>
       <ul className="navbar-nav ml-auto">
         <li className="nav-item dropdown">
