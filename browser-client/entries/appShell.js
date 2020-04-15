@@ -25,6 +25,8 @@ const callMethod = (method, [...args] = []) => {
 // 5. parent sends "runApp"
 // 6. appShell responds with "ready"
 
+const { appShellLocalApp } = config();
+
 const main = () => {
   let AppShell;
   const eventTarget = new EventTarget();
@@ -77,7 +79,7 @@ const main = () => {
         };
 
         window.AppShell = AppShell;
-        if (config().dev.appShellLocalApp) import('../dev').then(App => App());
+        if (appShellLocalApp) import('../dev').then(App => App());
         else evaluate(AppShell);
 
         callMethod('ready');

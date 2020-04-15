@@ -9,7 +9,7 @@ import _isEqual from 'lodash/isEqual';
 import { toWgKey, fromWgKey } from 'wegit-lib/utils/wgKey';
 import 'wegit-lib/browser/bootstrap.min.css';
 
-import mainConfig from '../../config';
+import getConfig from '../../config';
 import copyToClipboard from '../../lib/copyToClipboard';
 
 import useJustWgOs from './useJustWgOs';
@@ -17,21 +17,21 @@ import useJustWgOs from './useJustWgOs';
 // Main
 // =============================================================================
 
-// NOTE: public servers list:
-//   https://gist.github.com/sagivo/3a4b2f2c7ac6e1b5267c2f1f59ac6c6b
-
-const { defaultSettings, tab: initialTab, dev } = mainConfig();
-const loadedSettings = JSON.parse(localStorage.getItem('weGit') || '{}');
-const weGitSettings = {
-  ...defaultSettings,
-  ...loadedSettings,
-};
-
+const defaultConfig = getConfig();
 const {
-  config: initialConfig,
-  currentUser: initialCurrentUser,
-  apps: initialApps,
-} = weGitSettings;
+  config: loadedConfig,
+  currentUser: loadedCurrentUser,
+  apps: loadedApps,
+} = JSON.parse(localStorage.getItem('weGit') || '{}');
+
+const initialConfig = defaultConfig.alwaysDefaultConfig
+  ? defaultConfig
+  : loadedConfig || defaultConfig;
+const initialApps = loadedApps || defaultConfig.initialApps;
+const initialCurrentUser = loadedCurrentUser || {
+  userName: undefined,
+  type: 'browser',
+};
 
 export default function useWgOs() {
   const [currentUser, setCurrentUser] = useState(initialCurrentUser);
@@ -39,7 +39,7 @@ export default function useWgOs() {
   const [apps, setApps] = useState(initialApps);
   const [runningApp, setRunningApp] = useState(undefined);
 
-  const [mainTabState, setMainTabState] = useState(initialTab);
+  const [mainTabState, setMainTabState] = useState(initialConfig.tab);
   const [networkTabState, setNetworkTabState] = useState('step1');
   const [meshState, setMeshState] = useState({
     connections: [],
@@ -58,6 +58,11 @@ export default function useWgOs() {
   const [wgAnswerKeyForJoin, setWgAnswerKeyForJoin] = useState('');
 
   const currentConnectionIdRef = useRef(undefined);
+
+  useEffect(() => {
+    if (config.serviceWorkers && 'serviceWorker' in navigator)
+      navigator.serviceWorker.register('/service-worker.js');
+  }, []);
 
   useEffect(() => {
     if (networkTabState === 'step1') {
@@ -120,7 +125,7 @@ export default function useWgOs() {
   );
   // Initialization
 
-  const { isReady, wgOs, transport } = useJustWgOs({
+  const { /*isReady,*/ wgOs, transport } = useJustWgOs({
     config,
     currentUser,
     apps,
@@ -197,9 +202,17 @@ export default function useWgOs() {
     setConfig(nextConfig);
     wgOs.saveCurrentUser(user);
 
-    if (!_isEqual(config, nextConfig)) {
+    if (!_isEqual(config, nextConfig))
       setTimeout(() => location.reload(true), 300);
+  };
+
+  const onResetSettings = async () => {
+    localStorage.clear();
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (let registration of registrations) registration.unregister();
     }
+    setTimeout(() => location.reload(true), 300);
   };
 
   useEffect(() => {
@@ -239,10 +252,7 @@ export default function useWgOs() {
     if (!apps.length) return;
     if (isInitialized) return;
 
-    if (dev.runApp)
-      setTimeout(() => {
-        onRunApp(apps[0].id);
-      });
+    if (config.runApp) setTimeout(() => onRunApp(apps[0].id));
     setIsInitialized(true);
   }, [apps, wgOs]);
 
@@ -272,6 +282,7 @@ export default function useWgOs() {
     closeConnection,
 
     onUpdateSettings,
+    onResetSettings,
 
     runningApp,
     transport,

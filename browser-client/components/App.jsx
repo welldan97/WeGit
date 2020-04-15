@@ -41,6 +41,7 @@ export default function App({ utils }) {
     closeConnection,
 
     onUpdateSettings,
+    onResetSettings,
 
     runningApp,
     transport,
@@ -74,6 +75,7 @@ export default function App({ utils }) {
           transport={transport}
           utils={utils}
           isShown={mainTabState === 'runningApp'}
+          config={config}
         />
         {mainTabState !== 'runningApp' && (
           <div className="container" style={{ maxWidth: '720px' }}>
@@ -117,6 +119,7 @@ export default function App({ utils }) {
                 config={config}
                 user={currentUser}
                 onUpdateSettings={onUpdateSettings}
+                onResetSettings={onResetSettings}
               />
             )}
           </div>

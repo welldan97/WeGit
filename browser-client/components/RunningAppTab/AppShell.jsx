@@ -4,7 +4,6 @@
 import React, { memo, useEffect, useState, useRef } from 'react';
 
 import Iframe from './Iframe';
-import config from '../../config';
 
 // Events
 // =============================================================================
@@ -86,6 +85,7 @@ export default memo(function AppShell({
   users,
   transport,
   utils,
+  config,
 }) {
   // Set up methods
   // ---------------------------------------------------------------------------
@@ -158,7 +158,7 @@ export default memo(function AppShell({
   if (!runningApp) return null;
   return (
     <Iframe
-      iframeMode={config().iframeMode}
+      iframeMode={config.iframeMode}
       transport={transport}
       isReady={isReady}
       key={iframeKey}

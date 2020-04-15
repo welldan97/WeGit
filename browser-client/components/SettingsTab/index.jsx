@@ -6,15 +6,12 @@ import React, { useEffect, useState } from 'react';
 // Main
 // =============================================================================
 
-export default function SettingsTab({ user, config, onUpdateSettings }) {
-  // TODO: move from here
-  const onReset = async () => {
-    localStorage.clear();
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    for (let registration of registrations) registration.unregister();
-    setTimeout(() => location.reload(true), 300);
-  };
-
+export default function SettingsTab({
+  user,
+  config,
+  onUpdateSettings,
+  onResetSettings,
+}) {
   const [nextUserName, setNextUserName] = useState(user.userName || '');
   const [nextConfigText, setNextConfigText] = useState(
     JSON.stringify(config, undefined, 2) || '',
@@ -86,7 +83,7 @@ export default function SettingsTab({ user, config, onUpdateSettings }) {
             <button
               type="button"
               className="btn btn-danger btn-lg mt-4 mx-auto d-block"
-              onClick={onReset}
+              onClick={onResetSettings}
             >
               Complete reset
             </button>

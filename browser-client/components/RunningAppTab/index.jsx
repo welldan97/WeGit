@@ -15,6 +15,7 @@ export default memo(function RunningAppTab({
   transport,
   utils,
   isShown,
+  config,
 }) {
   const style = {
     width: '100%',
@@ -30,6 +31,7 @@ export default memo(function RunningAppTab({
         users={users}
         transport={transport}
         utils={utils}
+        config={config}
       />
     </div>
   );
