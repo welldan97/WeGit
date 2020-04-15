@@ -229,8 +229,12 @@ export default function useWgOs({ source }) {
   const onResetSettings = async () => {
     localStorage.clear();
     if ('serviceWorker' in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      for (let registration of registrations) registration.unregister();
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) registration.unregister();
+      } catch (e) {
+        //
+      }
     }
     setTimeout(() => location.reload(true), 300);
   };
