@@ -6,34 +6,43 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 
 const WgOs = require('wegit-lib/WgOs');
-const { toWgKey, fromWgKey } = require('wegit-lib/utils/wgKey');
 
 // Main
 // =============================================================================
 
-const config = {};
+const config = JSON.parse(process.env.WG_CONFIG || '{}');
 const currentUser = {
-  userName: 'Naive Signalling Server',
+  userName: 'HTTPS Signalling Server',
   type: 'signalling',
 };
 const apps = [];
 
-const wgOs = new WgOs({
-  config,
-  currentUser,
-  apps,
-});
+let wgOs;
+
+const reset = () => {
+  if (wgOs) wgOs.disconnnect();
+  wgOs = new WgOs({
+    config,
+    currentUser,
+    apps,
+  });
+};
+
+reset();
 
 const app = express();
-const port = 1236;
+const port = process.env.PORT || 1236;
 app.use(cors());
 app.use(bodyParser.json());
+
 app.get('/', (req, res) => res.send('It works!'));
+
+app.delete('/', (req, res) => reset());
+
 app.post('/', async (req, res) => {
-  const { wgOfferKey } = req.body;
-  const { wgAnswer } = await wgOs.join(fromWgKey(wgOfferKey));
-  const wgAnswerKey = toWgKey('wgAnswer')(wgAnswer);
-  res.json({ wgAnswerKey });
+  const { wgOffer } = req.body;
+  const { wgAnswer } = await wgOs.join(wgOffer);
+  res.json({ wgAnswer });
 });
 
 app.listen(port, () => console.log(`Listening on port ${port}!`));

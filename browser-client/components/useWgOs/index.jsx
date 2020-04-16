@@ -9,6 +9,7 @@ import _isEqual from 'lodash/isEqual';
 import { toWgKey, fromWgKey } from 'wegit-lib/utils/wgKey';
 import parseAppSource from 'wegit-lib/utils/parseAppSource';
 import 'wegit-lib/browser/bootstrap.min.css';
+import httpsSignallingClient from 'wegit-signalling-https-client';
 
 import getConfig from '../../config';
 import copyToClipboard from '../../lib/copyToClipboard';
@@ -51,6 +52,10 @@ const initialApps = loadedApps || defaultConfig.initialApps;
 const initialCurrentUser = loadedCurrentUser || {
   userName: undefined,
   type: 'browser',
+};
+
+const signalling = {
+  https: httpsSignallingClient,
 };
 
 export default function useWgOs({ source }) {
@@ -146,7 +151,12 @@ export default function useWgOs({ source }) {
   // Initialization
 
   const { /*isReady,*/ wgOs, transport } = useJustWgOs({
-    config,
+    config: {
+      iceServers: config.iceServers,
+    },
+    signalling:
+      config.signalling &&
+      signalling[config.signalling.type](config.signalling.options),
     currentUser,
     apps,
     onChange,

@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "parcel entries/index.html",
     "dev:appShell": "parcel -p 1235 entries/appShellDev.html",
-
     "build": "./scripts/build",
     "build:appShell": "parcel build --no-source-maps --no-content-hash entries/appShell.js"
   },
@@ -28,7 +27,8 @@
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "webrtc-adapter": "^7.4.0",
-    "wegit-lib": "file:../lib"
+    "wegit-lib": "file:../lib",
+    "wegit-signalling-https-client": "file:../signalling/https-client"
   },
   "babel": {
     "presets": [
