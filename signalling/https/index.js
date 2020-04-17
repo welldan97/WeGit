@@ -36,13 +36,27 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.get('/', (req, res) => res.send('It works!'));
+app.get('/state', (req, res) => {
+  const baseMeshState = wgOs.getMeshState();
+  const meshState = {
+    connections: baseMeshState.connections.map(c => ({
+      ...c,
+      user: wgOs.users.find(u => u.id === c.peer),
+    })),
+    globalState: baseMeshState.globalState,
+  };
+
+  res.send(`<pre>${JSON.stringify(meshState, undefined, 2)}</pre>`);
+});
 
 app.delete('/', (req, res) => reset());
 
 app.post('/', async (req, res) => {
   const { wgOffer } = req.body;
   const { wgAnswer } = await wgOs.join(wgOffer);
-  res.json({ wgAnswer });
+  if (wgAnswer) return res.json({ wgAnswer });
+  res.status(409);
+  res.send();
 });
 
 app.listen(port, () => console.log(`Listening on port ${port}!`));

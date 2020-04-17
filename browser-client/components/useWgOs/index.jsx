@@ -174,8 +174,9 @@ export default function useWgOs({ source }) {
   const invite = async () => {
     if (!wgOs) return;
     try {
-      setNetworkTabState('step2invite');
       const { wgConnection, wgOffer } = await wgOs.invite();
+      if (!wgConnection) return;
+      setNetworkTabState('step2invite');
       currentConnectionIdRef.current = wgConnection.id;
       const wgOfferKey = toWgKey('wgOffer')(wgOffer);
       setWgOfferKeyForInvite(wgOfferKey);
@@ -201,8 +202,10 @@ export default function useWgOs({ source }) {
   const join = async wgOfferKey => {
     if (!wgOs) return;
     try {
-      setNetworkTabState('step3join');
       const { wgConnection, wgAnswer } = await wgOs.join(fromWgKey(wgOfferKey));
+      if (!wgConnection) return;
+      setNetworkTabState('step3join');
+
       await new Promise(resolve => setTimeout(resolve, 1000));
       currentConnectionIdRef.current = wgConnection.id;
       const wgAnswerKey = toWgKey('wgAnswer')(wgAnswer);
