@@ -1,13 +1,15 @@
 // Imports
 // =============================================================================
 
+const doFetch = fetch || require('node-fetch');
+
 // Main
 // =============================================================================
 
 module.exports = ({ url }) => ({
   init: async wgOs => {
     const { wgOffer } = await wgOs.invite();
-    const response = await fetch(url, {
+    const response = await doFetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
