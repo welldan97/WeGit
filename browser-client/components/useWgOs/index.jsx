@@ -9,8 +9,8 @@ import _isEqual from 'lodash/isEqual';
 import { toWgKey, fromWgKey } from 'wegit-lib/utils/wgKey';
 import parseAppSource from 'wegit-lib/utils/parseAppSource';
 import 'wegit-lib/browser/bootstrap.min.css';
-import httpsSignallingClient from 'wegit-signalling-https-client';
-import firebaseSignallingClient from 'wegit-signalling-firebase-client';
+import httpsSignallingClient from 'wegit-signalling-https';
+import firebaseSignallingClient from 'wegit-signalling-firebase';
 
 import getConfig from '../../config';
 import copyToClipboard from '../../lib/copyToClipboard';

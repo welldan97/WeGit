@@ -28,8 +28,8 @@
     "react-dom": "^16.12.0",
     "webrtc-adapter": "^7.4.0",
     "wegit-lib": "file:../lib",
-    "wegit-signalling-firebase-client": "file:../signalling/firebase-client",
-    "wegit-signalling-https-client": "file:../signalling/https-client"
+    "wegit-signalling-firebase": "file:../signalling/firebase",
+    "wegit-signalling-https": "file:../signalling/https"
   },
   "babel": {
     "presets": [
