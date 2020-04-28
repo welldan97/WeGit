@@ -49,7 +49,9 @@ const {
 const initialConfig = defaultConfig.alwaysDefaultConfig
   ? defaultConfig
   : loadedConfig || defaultConfig;
-const initialApps = loadedApps || defaultConfig.initialApps;
+const initialApps = defaultConfig.alwaysDefaultConfig
+  ? defaultConfig.initialApps
+  : loadedApps || defaultConfig.initialApps;
 const initialCurrentUser = loadedCurrentUser || {
   userName: undefined,
   type: 'browser',
@@ -297,7 +299,7 @@ export default function useWgOs({ source }) {
     if (!apps.length) return;
     if (isInitialized) return;
 
-    if (config.runApp) setTimeout(() => onRunApp(apps[0].id));
+    if (config.runApp) setTimeout(() => onRunApp(config.runApp));
     setIsInitialized(true);
   }, [apps, wgOs]);
 
