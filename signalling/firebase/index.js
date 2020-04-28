@@ -35,7 +35,9 @@ module.exports = ({ room, firebaseConfig }) => ({
         const { wgAnswer } = await wgOs.join(value.wgOffer);
         if (!wgAnswer) return;
 
-        database.push(cleanUndefined({ wgAnswer }));
+        const date = new Date().toISOString();
+
+        database.push(cleanUndefined({ wgAnswer, date }));
       } else if (value.wgAnswer) {
         if (value.wgAnswer.receiver !== wgOs.currentUser.id) return;
 
@@ -43,11 +45,19 @@ module.exports = ({ room, firebaseConfig }) => ({
       }
     });
 
-    database.once('value', () => {
+    database.once('value', snapshot => {
       initialized = true;
       if (!wgOffer) return;
 
-      database.push(cleanUndefined({ wgOffer }));
+      const entries = snapshot.val();
+      Object.keys(entries).forEach(k => {
+        const child = database.child(k);
+        const TIMEOUT = 2 * 60 * 1000;
+        if (new Date() - new Date(entries[k].date) > TIMEOUT) child.remove();
+      });
+      const date = new Date().toISOString();
+
+      database.push(cleanUndefined({ wgOffer, date }));
     });
   },
 });
