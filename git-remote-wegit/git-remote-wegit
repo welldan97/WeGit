@@ -14,8 +14,6 @@ const sendInChunksMiddleware = require('wegit-lib/utils/sendInChunksMiddleware')
 const parser = require('./lib/parser');
 const transportMiddleware = require('./lib/transportMiddleware');
 
-git.plugins.set('fs', fs);
-
 // Utils
 // =============================================================================
 
@@ -30,6 +28,8 @@ const findAgent = meshState => {
 
 // Main
 // =============================================================================
+
+git.plugins.set('fs', fs);
 
 const main = async () => {
   let meshState = {
@@ -46,7 +46,6 @@ const main = async () => {
       transportMiddleware({
         git,
         gitInternals,
-        pfs: undefined,
         fs,
         remote,
         url,

@@ -30,10 +30,9 @@ const listRefs = ({ fs, git, gitInternals, helpers }) => async () => {
 // Handlers
 // =============================================================================
 
-const getHandler = ({ fs, pfs, git, gitInternals, dir = '.', send }) => {
+const getHandler = ({ fs, git, gitInternals, dir = '.', send }) => {
   const helpers = gitHelpers({
     fs,
-    pfs,
     git,
     gitInternals,
     dir,
@@ -84,8 +83,8 @@ const getHandler = ({ fs, pfs, git, gitInternals, dir = '.', send }) => {
 // Main
 // =============================================================================
 
-module.exports = ({ pfs, fs, git, gitInternals }) => ({ send, onMessage }) => {
-  const handler = getHandler({ fs, pfs, git, gitInternals, send });
+module.exports = ({ fs, git, gitInternals }) => ({ send, onMessage }) => {
+  const handler = getHandler({ fs, git, gitInternals, send });
 
   const nextSend = (userId, message) => {
     return send(userId, message);

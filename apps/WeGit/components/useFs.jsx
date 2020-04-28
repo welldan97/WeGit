@@ -1,16 +1,16 @@
 // Imports
 // =============================================================================
 
+import { promisify } from 'util';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as BrowserFS from 'browserfs';
-
-import promisifyFs from './lib/promisifyFs';
 
 // Utils
 // =============================================================================
 
 const getCurrentFile = ({ fs }) => async path => {
-  const isDirectory = (await fs.lstat(path)).isDirectory();
+  const lstat = promisify(fs.lstat);
+  const isDirectory = (await lstat(path)).isDirectory();
 
   return {
     isDirectory,
@@ -19,12 +19,16 @@ const getCurrentFile = ({ fs }) => async path => {
 };
 
 const getFilesAndPreviewFile = ({ fs }) => async (path, isDirectory) => {
+  const readdir = promisify(fs.readdir);
+  const lstat = promisify(fs.lstat);
+  const readFile = promisify(fs.readFile);
+
   if (isDirectory) {
-    const fileNames = (await fs.readdir(path)).filter(f => f !== '.git');
+    const fileNames = (await readdir(path)).filter(f => f !== '.git');
 
     const rawFiles = await Promise.all(
       fileNames.map(async name => {
-        const isDirectory = (await fs.lstat(
+        const isDirectory = (await lstat(
           `${path === '/' ? '' : path}/${name}`,
         )).isDirectory();
 
@@ -47,7 +51,7 @@ const getFilesAndPreviewFile = ({ fs }) => async (path, isDirectory) => {
     const readmeFile = files.find(f => f.name.toLowerCase().includes('readme'));
 
     if (readmeFile) {
-      const nextPreviewContents = await fs.readFile(
+      const nextPreviewContents = await readFile(
         `${path}/${readmeFile.name}`,
         'utf8',
       );
@@ -64,7 +68,7 @@ const getFilesAndPreviewFile = ({ fs }) => async (path, isDirectory) => {
         previewFile: undefined,
       };
   } else {
-    const nextPreviewContents = await fs.readFile(path, 'utf8');
+    const nextPreviewContents = await readFile(path, 'utf8');
 
     return {
       files: [],
@@ -77,8 +81,10 @@ const getFilesAndPreviewFile = ({ fs }) => async (path, isDirectory) => {
 };
 
 const getHasRepo = ({ fs }) => async () => {
+  const lstat = promisify(fs.lstat);
+
   try {
-    await fs.lstat('.git');
+    await lstat('.git');
     return true;
   } catch (e) {
     return false;
@@ -109,7 +115,6 @@ export default ({ path: basePath }) => {
     hasRepo,
   } = state;
 
-  const baseFsRef = useRef();
   const fsRef = useRef();
 
   useEffect(() => {
@@ -117,10 +122,8 @@ export default ({ path: basePath }) => {
 
     BrowserFS.configure({ fs: 'IndexedDB', options: {} }, err => {
       if (err) return console.log(err);
-      baseFsRef.current = BrowserFS.BFSRequire('fs');
-      fsRef.current = promisifyFs(baseFsRef.current);
+      fsRef.current = BrowserFS.BFSRequire('fs');
       window.fs = fsRef.current;
-      window.basefs = baseFsRef.current;
       setState({ ...state, isReady: true });
     });
   }, []);
@@ -154,8 +157,7 @@ export default ({ path: basePath }) => {
   }, [basePath, isReady, version]);
 
   return {
-    fs: baseFsRef.current,
-    pfs: fsRef.current,
+    fs: fsRef.current,
     onFsUpdate,
 
     isReady,

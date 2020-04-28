@@ -21,7 +21,6 @@ export default function App({ AppShell }) {
   const ciState = 'disabled';
   const {
     fs,
-    pfs,
     onFsUpdate,
     hasRepo,
     files,
@@ -41,7 +40,6 @@ export default function App({ AppShell }) {
     getLastCommitHolder,
   } = useGit({
     fs,
-    pfs,
     hasRepo,
     onFsUpdate,
     AppShell,
