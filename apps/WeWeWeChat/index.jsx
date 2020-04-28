@@ -107,6 +107,22 @@ const addMessage = ({ user, message, highlighted, godmode }) => {
   if ($messages.children.length > 7) $messages.children[0].remove();
 };
 
+const safeWords = JSON.parse(
+  atob(
+    'eyJmdWNrIjoiZm9yayIsInNoaXQiOiJzaGlydCIsImJpdGNoIjoiYmVuY2giLCJhc3MiOiJhc2giLCJjb2NrIjoiY29yayIsImRpY2siOiJkaW5rIn0=',
+  ),
+);
+const safe = message => {
+  let nextMessage = message;
+  Object.keys(safeWords).forEach(w => {
+    nextMessage = nextMessage.replace(
+      new RegExp(`\\b${w}`, 'gi'),
+      safeWords[w],
+    );
+  });
+  return nextMessage;
+};
+
 const main = () => {
   let message = '';
   let godmode = false;
@@ -130,12 +146,12 @@ const main = () => {
         type: 'message',
         payload: {
           user,
-          message,
+          message: safe(message),
           godmode,
         },
       });
     }
-    addMessage({ user, message, highlighted: true, godmode });
+    addMessage({ user, message: safe(message), highlighted: true, godmode });
 
     message = '';
     $inputMessage.value = '';
