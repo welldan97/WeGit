@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "parcel entries/index.html",
-    "dev:appShell": "parcel -p 1235 entries/appShellDev.html",
+    "dev": "parcel -p 2001 entries/index.html",
+    "dev:appShell": "parcel -p 2002 entries/appShellDev.html",
     "build": "./scripts/build",
     "build:appShell": "parcel build --no-source-maps --no-content-hash entries/appShell.js"
   },
