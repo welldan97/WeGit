@@ -1,0 +1,20 @@
+{
+  "name": "wegit-node-client",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "chalk": "^4.0.0",
+    "clipboardy": "^2.3.0",
+    "inquirer": "^7.1.0",
+    "ora": "^4.0.4",
+    "wegit-lib": "file:../lib",
+    "wegit-signalling-firebase": "file:../signalling/firebase",
+    "wegit-signalling-https": "file:../signalling/https"
+  },
+  "author": "",
+  "license": "ISC"
+}

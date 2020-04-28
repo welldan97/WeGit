@@ -20,12 +20,7 @@ const isFile = () => window.location.protocol === 'file:';
 export default () => ({
   tab: 'network',
   iceServers: [{ urls: ['stun:stun.l.google.com:19302'] }],
-  signalling: {
-    type: 'https',
-    options: {
-      url: 'http://localhost:1236',
-    },
-  },
+  signalling: undefined,
   initialApps: [
     parseAppSource(WeWeWeChatSource),
     /*

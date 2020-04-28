@@ -28,7 +28,6 @@ module.exports = ({ room, firebaseConfig }) => ({
     database.on('child_added', async data => {
       if (!initialized) return;
       const value = data.val();
-      console.log(value);
       if (value.wgOffer) {
         if (!isAgent(wgOs)) return;
         if (value.wgOffer.sender === wgOs.currentUser.id) return;

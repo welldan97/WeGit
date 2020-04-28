@@ -1,7 +1,7 @@
 // Imports
 // =============================================================================
 
-const doFetch = fetch || require('node-fetch');
+const doFetch = typeof fetch === 'undefined' ? require('node-fetch') : fetch;
 
 // Main
 // =============================================================================
