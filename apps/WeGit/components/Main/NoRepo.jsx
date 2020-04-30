@@ -3,8 +3,6 @@
 
 import React, { useCallback, useState } from 'react';
 
-import Progressbar from './Progressbar';
-
 // Main
 // =============================================================================
 
@@ -15,15 +13,14 @@ export default function NoRepo({ progress, onClone }) {
 
   return (
     <>
-      <Progressbar
-        progress={progress}
-        key={progress ? progress.phase : 'Preparing for cloning'}
-      />
       {progress && (
         <div className="row mt-4">
           <div className="col-12">
             <div className="alert alert-secondary" role="alert">
-              ⏳ Please wait… Your Repository is being cloned: {progress.phase}…
+              <h2 className="card-title text-center">
+                Preparing your repository, please wait… <br />
+                {'\u{1f477}'}
+              </h2>
             </div>
           </div>
         </div>
@@ -33,20 +30,23 @@ export default function NoRepo({ progress, onClone }) {
           <div className="row mt-4">
             <div className="col-12">
               <div className="alert alert-secondary" role="alert">
-                🕳 Your repository is empty!
+                <h2 className="card-title text-center">
+                  Your repository is empty <br />
+                  {'\u{1f573}'}
+                </h2>
               </div>
             </div>
           </div>
           <div className="row">
             <div className="col-12">
-              <div className="card mt-4">
+              <div className="card">
                 <div className="card-body">
                   <h3 className="card-title text-center">
-                    {'\u{2B07} '}Clone Repo from another place
+                    {'\u{2B07} '}Clone from another place
                   </h3>
                   <p className="card-text text-center">
-                    Just fill in the url, and the Repo would be cloned from
-                    there, and will appear here
+                    Just fill in the url, and the repository would be cloned
+                    from there, and will appear here
                   </p>
                   <form
                     style={{ display: 'contents' }}

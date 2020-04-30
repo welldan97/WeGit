@@ -9,6 +9,7 @@ import useFs from './useFs';
 import Tabs from './Tabs';
 import Main from './Main';
 import Settings from './Settings';
+import Progressbar from './Progressbar';
 
 // Main
 // =============================================================================
@@ -28,7 +29,6 @@ export default function App({ AppShell }) {
     previewFile,
     currentFile,
     path,
-    onReset,
   } = useFs({
     path: basePath,
   });
@@ -40,6 +40,7 @@ export default function App({ AppShell }) {
     currentBranch,
     findFilesLastCommits,
     getLastCommitHolder,
+    onReset,
   } = useGit({
     fs,
     hasRepo,
@@ -65,52 +66,54 @@ export default function App({ AppShell }) {
 
     (async () => setLastCommitHolder(await getLastCommitHolder()))();
   }, [files, getLastCommitHolder]);
-
   if (!isReady) return null;
   return (
-    <div className="container mb-4" style={{ maxWidth: '720px' }}>
-      <div className="row mt-4">
-        <div className="col-12">
-          <h2>
-            {'\u{1F5C4} '}
-            {repoName || 'noname'}
-          </h2>
-          <p>
-            {ciState === 'success' && (
-              <span className="text-success">
-                {'\u{2705}'} tests are passing
-              </span>
-            )}
-            {ciState === 'fail' && (
-              <span className="text-danger">
-                {'\u{274C}'} tests are failing
-              </span>
-            )}
-            {ciState === 'disabled' && '\u{00a0}'}
-          </p>
+    <>
+      <div className="container mb-4" style={{ maxWidth: '720px' }}>
+        <div className="row mt-4">
+          <div className="col-12">
+            <h2>
+              {'\u{1F5C4} '}
+              {repoName || 'noname'}
+            </h2>
+            <p>
+              {ciState === 'success' && (
+                <span className="text-success">
+                  {'\u{2705}'} tests are passing
+                </span>
+              )}
+              {ciState === 'fail' && (
+                <span className="text-danger">
+                  {'\u{274C}'} tests are failing
+                </span>
+              )}
+              {ciState === 'disabled' && '\u{00a0}'}
+            </p>
+          </div>
         </div>
-      </div>
-      <Tabs active={activeTab} onActivate={setActiveTab} />
-      {activeTab === 'main' && (
-        <Main
-          {...{
-            repoName,
-            currentBranch,
-            lastCommitHolder,
+        <Tabs active={activeTab} onActivate={setActiveTab} />
+        {activeTab === 'main' && (
+          <Main
+            {...{
+              repoName,
+              currentBranch,
+              lastCommitHolder,
 
-            path,
-            onPathChange,
-            files: filesWithCommits,
-            previewFile,
-            currentFile,
-            //
-            hasRepo,
-            progress,
-            onClone,
-          }}
-        />
-      )}
-      {activeTab === 'settings' && <Settings {...{ onReset }} />}
-    </div>
+              path,
+              onPathChange,
+              files: filesWithCommits,
+              previewFile,
+              currentFile,
+              //
+              hasRepo,
+              progress,
+              onClone,
+            }}
+          />
+        )}
+        {activeTab === 'settings' && <Settings {...{ onReset }} />}
+      </div>
+      <Progressbar progress={progress} />
+    </>
   );
 }

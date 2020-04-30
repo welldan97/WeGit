@@ -1,6 +1,7 @@
 // Imports
 // =============================================================================
 
+import { promisify } from 'util';
 import { useEffect, useRef, useState } from 'react';
 import * as git from 'isomorphic-git';
 import * as gitInternals from 'isomorphic-git/dist/internal.umd.min.js';
@@ -8,6 +9,20 @@ import EventEmitter from 'eventemitter3';
 
 import gitHelpers from './lib/gitHelpers';
 import transportMiddleware from './lib/transportMiddleware';
+
+// Utils
+// =============================================================================
+
+const exists = ({ fs }) => async path => {
+  const lstat = promisify(fs.lstat);
+
+  try {
+    await lstat(path);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
 
 // Main
 // =============================================================================
@@ -75,11 +90,45 @@ export default ({ fs, hasRepo, onFsUpdate, AppShell }) => {
     onFsUpdate();
   };
 
+  const onReset = async () => {
+    const readdir = promisify(fs.readdir);
+    const lstat = promisify(fs.lstat);
+    const unlink = promisify(fs.unlink);
+    const rmdir = promisify(fs.rmdir);
+
+    // FIXME: copypasta, probably better to remove indexdb
+
+    setProgress({
+      phase: 'Reseting',
+      loaded: 0,
+      lengthComputable: false,
+    });
+
+    const deleteFolderRecursive = async path => {
+      if (path === '/' || exists({ fs })(path)) {
+        await Promise.all(
+          (await readdir(path)).map(async file => {
+            const curPath = path === '/' ? '/' + file : path + '/' + file;
+            if ((await lstat(curPath)).isDirectory())
+              await deleteFolderRecursive(curPath);
+            else await unlink(curPath);
+          }),
+        );
+
+        if (path !== '/') await rmdir(path);
+      }
+    };
+    await deleteFolderRecursive('/');
+    setProgress(undefined);
+    onFsUpdate();
+  };
+
   return {
     isReady,
     onClone,
     progress,
     currentBranch,
+    onReset,
     ...helpers,
   };
 };

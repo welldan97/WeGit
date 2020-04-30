@@ -159,34 +159,6 @@ export default ({ path: basePath }) => {
     })();
   }, [basePath, isReady, version]);
 
-  const onReset = async () => {
-    const readdir = promisify(fs.readdir);
-    const lstat = promisify(fs.lstat);
-    const unlink = promisify(fs.unlink);
-    const rmdir = promisify(fs.rmdir);
-
-    // FIXME: copypasta, probably better to remove indexdb
-
-    const deleteFolderRecursive = async path => {
-      if (path === '/' || exists({ fs })(path)) {
-        await Promise.all(
-          (await readdir(path)).map(async file => {
-            const curPath = path === '/' ? '/' + file : path + '/' + file;
-            if ((await lstat(curPath)).isDirectory()) {
-              await deleteFolderRecursive(curPath);
-            } else {
-              await unlink(curPath);
-            }
-          }),
-        );
-
-        if (path !== '/') await rmdir(path);
-      }
-    };
-    await deleteFolderRecursive('/');
-    onFsUpdate();
-  };
-
   return {
     fs: fsRef.current,
     onFsUpdate,
@@ -197,6 +169,5 @@ export default ({ path: basePath }) => {
     previewFile,
     currentFile,
     hasRepo,
-    onReset,
   };
 };
