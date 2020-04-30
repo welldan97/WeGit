@@ -99,7 +99,7 @@ export default ({ fs, hasRepo, onFsUpdate, AppShell }) => {
     // FIXME: copypasta, probably better to remove indexdb
 
     setProgress({
-      phase: 'Reseting',
+      phase: 'Resetting',
       loaded: 0,
       lengthComputable: false,
     });
