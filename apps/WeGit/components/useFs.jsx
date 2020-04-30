@@ -8,6 +8,17 @@ import * as BrowserFS from 'browserfs';
 // Utils
 // =============================================================================
 
+const exists = ({ fs }) => async path => {
+  const lstat = promisify(fs.lstat);
+
+  try {
+    await lstat(path);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
 const getCurrentFile = ({ fs }) => async path => {
   const lstat = promisify(fs.lstat);
   const isDirectory = (await lstat(path)).isDirectory();
@@ -81,14 +92,7 @@ const getFilesAndPreviewFile = ({ fs }) => async (path, isDirectory) => {
 };
 
 const getHasRepo = ({ fs }) => async () => {
-  const lstat = promisify(fs.lstat);
-
-  try {
-    await lstat('.git');
-    return true;
-  } catch (e) {
-    return false;
-  }
+  return await exists({ fs })('/.git');
 };
 
 // Main
@@ -119,7 +123,6 @@ export default ({ path: basePath }) => {
 
   useEffect(() => {
     if (isReady) return;
-
     BrowserFS.configure({ fs: 'IndexedDB', options: {} }, err => {
       if (err) return console.log(err);
       fsRef.current = BrowserFS.BFSRequire('fs');
@@ -156,6 +159,34 @@ export default ({ path: basePath }) => {
     })();
   }, [basePath, isReady, version]);
 
+  const onReset = async () => {
+    const readdir = promisify(fs.readdir);
+    const lstat = promisify(fs.lstat);
+    const unlink = promisify(fs.unlink);
+    const rmdir = promisify(fs.rmdir);
+
+    // FIXME: copypasta, probably better to remove indexdb
+
+    const deleteFolderRecursive = async path => {
+      if (path === '/' || exists({ fs })(path)) {
+        await Promise.all(
+          (await readdir(path)).map(async file => {
+            const curPath = path === '/' ? '/' + file : path + '/' + file;
+            if ((await lstat(curPath)).isDirectory()) {
+              await deleteFolderRecursive(curPath);
+            } else {
+              await unlink(curPath);
+            }
+          }),
+        );
+
+        if (path !== '/') await rmdir(path);
+      }
+    };
+    await deleteFolderRecursive('/');
+    onFsUpdate();
+  };
+
   return {
     fs: fsRef.current,
     onFsUpdate,
@@ -166,5 +197,6 @@ export default ({ path: basePath }) => {
     previewFile,
     currentFile,
     hasRepo,
+    onReset,
   };
 };

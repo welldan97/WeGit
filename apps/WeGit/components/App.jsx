@@ -6,8 +6,9 @@ import React, { memo, useEffect, useCallback, useState } from 'react';
 import useGit from './useGit';
 import useFs from './useFs';
 
-import Main from './Main';
 import Tabs from './Tabs';
+import Main from './Main';
+import Settings from './Settings';
 
 // Main
 // =============================================================================
@@ -27,6 +28,7 @@ export default function App({ AppShell }) {
     previewFile,
     currentFile,
     path,
+    onReset,
   } = useFs({
     path: basePath,
   });
@@ -106,6 +108,7 @@ export default function App({ AppShell }) {
           }}
         />
       )}
+      {activeTab === 'settings' && <Settings {...{ onReset }} />}
     </div>
   );
 }
