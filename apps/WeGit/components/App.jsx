@@ -52,6 +52,7 @@ export default function App({ AppShell }) {
     setFilesWithCommits(files);
     if (!currentFile.isDirectory) return;
     if (!findFilesLastCommits) return;
+    if (!hasRepo) return;
 
     (async () =>
       setFilesWithCommits(await findFilesLastCommits(path, files)))();
@@ -60,6 +61,7 @@ export default function App({ AppShell }) {
   const [lastCommitHolder, setLastCommitHolder] = useState(files);
   useEffect(() => {
     if (!getLastCommitHolder) return;
+    if (!hasRepo) return;
 
     (async () => setLastCommitHolder(await getLastCommitHolder()))();
   }, [files, getLastCommitHolder]);
