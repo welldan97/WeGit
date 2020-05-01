@@ -9,6 +9,10 @@ const WeWeWeChatSource = readFileSync(
   'utf-8',
 );
 
+const baseConfig = JSON.parse(
+  readFileSync(__dirname + '../../../config.json', 'utf-8'),
+);
+
 // Utils
 // =============================================================================
 
@@ -21,24 +25,8 @@ export default () => ({
   tab: 'network',
   iceServers: [{ urls: ['stun:stun.l.google.com:19302'] }],
   signalling: undefined,
-  initialApps: [
-    parseAppSource(WeWeWeChatSource),
-    /*
-    // WeBlank is useful for development
-    {
-      id: 'WE-WE-WE-WE-WE--BLANK',
-      name: 'WeBlank',
-      description: '',
-      icon: '\u{1F932}',
-      user: {
-        userName: 'welldan97',
-      },
-      source: 'console.log("hello from WeBlank")',
-    },
-    */
-  ],
+  //runApp: 'WE-WE-WE-WE-WE-WECHAT',
   runApp: false,
-  //runApp: 'WE-WE-WE-WE-WE--BLANK',
   iframeMode: {
     // NOTE: crossOrigin doesn't work yet
     type: 'sameOrigin',
@@ -46,4 +34,6 @@ export default () => ({
   serviceWorkers: !isFile(),
   appShellLocalApp: false,
   alwaysDefaultConfig: false,
+  ...baseConfig,
+  initialApps: [parseAppSource(WeWeWeChatSource), ...baseConfig.initialApps],
 });
