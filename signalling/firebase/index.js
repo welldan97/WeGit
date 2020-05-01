@@ -12,7 +12,10 @@ const isAgent = wgOs => {
   return (
     [
       wgOs.currentUser.id,
-      ...wgOs.getMeshState().connections.map(c => c.peer),
+      ...wgOs
+        .getMeshState()
+        .connections.filter(c => c.state === 'connected')
+        .map(c => c.peer),
     ].sort()[0] === wgOs.currentUser.id
   );
 };
