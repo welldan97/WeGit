@@ -25,7 +25,7 @@ const main = async () => {
   const wgOsTransport = connectWgOs({ config, userName });
 
   serverTransport.onMessage((userId, message) => {
-    serverTransport.send(userId, message);
+    wgOsTransport.send(userId, message);
   });
 
   serverTransport.onChange(state => {

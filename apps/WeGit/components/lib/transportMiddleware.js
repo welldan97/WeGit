@@ -6,20 +6,28 @@ import gitHelpers from 'wegit-lib/utils/gitHelpers';
 // Utils
 // =============================================================================
 
-const listRefs = ({ fs, git, gitInternals, helpers }) => async () => {
+const listRefs = ({
+  fs,
+  git,
+  gitInternals,
+  helpers,
+  dir = '.',
+}) => async () => {
   const x = await helpers.hasRepo();
   if (!(await helpers.hasRepo())) return [];
   const refs = [
     'HEAD',
     ...(await gitInternals.GitRefManager.listRefs({
       fs,
+
+      // FIXME: should we use dir var here?
       gitdir: '.git',
       filepath: `refs`,
     })).map(r => `refs/${r}`),
   ];
   const value = await Promise.all(
     refs.map(async ref => {
-      const sha = await git.resolveRef({ dir: '/', ref });
+      const sha = await git.resolveRef({ dir, ref });
       return { sha, ref };
     }),
   );

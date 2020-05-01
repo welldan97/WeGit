@@ -4,13 +4,13 @@
 // Main
 // =============================================================================
 
-export default ({ fs, git, gitInternals }) => {
+export default ({ fs, git, gitInternals, dir = '.' }) => {
   // Utils
   // ---------------------------------------------------------------------------
 
   const findFileHoldersForTree = async (treeOid, path, files) => {
     const treeHolder = await git.readTree({
-      dir: '/',
+      dir,
       oid: treeOid,
     });
     if (path === '/')
@@ -25,7 +25,7 @@ export default ({ fs, git, gitInternals }) => {
 
   const findFileHoldersForCommit = async (commitOid, path, files) => {
     const commitHolder = await git.readCommit({
-      dir: '/',
+      dir,
       oid: commitOid,
     });
     const fileHolders = await findFileHoldersForTree(
@@ -97,7 +97,7 @@ export default ({ fs, git, gitInternals }) => {
 
   return {
     async findFilesLastCommits(path, files) {
-      const commitOid = await git.resolveRef({ dir: '/', ref: 'HEAD' });
+      const commitOid = await git.resolveRef({ dir, ref: 'HEAD' });
       return await findFilesLastCommitsImplementation({
         commitOid,
         path,
@@ -106,9 +106,9 @@ export default ({ fs, git, gitInternals }) => {
     },
 
     async getLastCommitHolder() {
-      const commitOid = await git.resolveRef({ dir: '/', ref: 'HEAD' });
+      const commitOid = await git.resolveRef({ dir, ref: 'HEAD' });
       return await git.readCommit({
-        dir: '/',
+        dir,
         oid: commitOid,
       });
     },

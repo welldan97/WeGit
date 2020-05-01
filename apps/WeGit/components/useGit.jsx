@@ -28,7 +28,7 @@ const exists = ({ fs }) => async path => {
 // =============================================================================
 
 // TODO
-const showError = name => alert(name);
+const showError = name => alert(`Error: ${name}`);
 
 export default ({
   isFsReady,
@@ -40,7 +40,31 @@ export default ({
 
   AppShell,
 }) => {
-  const [isReady, setIsReady] = useState(false);
+  const [state, setState] = useState({
+    version: 0,
+    helpers: {},
+    isGitReady: false,
+    isReady: false,
+    currentBranch: undefined,
+    lastCommitHolder,
+  });
+
+  const onUpdate = () =>
+    setState({
+      ...state,
+      version: state.version + 1,
+    });
+
+  const {
+    version,
+    helpers,
+    isReady,
+    isGitReady,
+    currentBranch,
+    lastCommitHolder,
+    //
+  } = state;
+
   const [progress, setProgress] = useState();
   const [isLocked, setIsLocked] = useState(false);
   const progressPrefixRef = useRef('');
@@ -48,11 +72,10 @@ export default ({
 
   // Init
   // ---------------------------------------------------------------------------
-  const [helpers, setHelpers] = useState({});
   useEffect(() => {
     (async () => {
       if (!isFsReady) return;
-      if (isReady) return;
+      if (isGitReady) return;
       emitterRef.current = new EventEmitter();
       emitterRef.current.on('progress', nextProgress =>
         setProgress({
@@ -67,7 +90,6 @@ export default ({
       window.gitInternals = gitInternals;
 
       const nextHelpers = gitHelpers({ git, gitInternals, fs });
-      setHelpers(nextHelpers);
 
       const { onMessage } = transportMiddleware({ fs, git, gitInternals })({
         onMessage: message => {
@@ -79,9 +101,13 @@ export default ({
       });
 
       AppShell.on('message', onMessage);
-      setIsReady(true);
+      setState({
+        ...state,
+        helpers: nextHelpers,
+        isGitReady: true,
+      });
     })();
-  }, [isFsReady, isReady]);
+  }, [isFsReady, isGitReady]);
 
   // Files with commit info
   // ---------------------------------------------------------------------------
@@ -89,35 +115,42 @@ export default ({
   const [filesWithCommits, setFilesWithCommits] = useState(files);
   useEffect(() => {
     setFilesWithCommits(files);
-    if (!helpers.findFilesLastCommits) return;
+    if (!isGitReady) return;
     if (!hasRepo) return;
+    if (!files.length) return;
 
     (async () =>
       setFilesWithCommits(await helpers.findFilesLastCommits(path, files)))();
-  }, [files, helpers.findFilesLastCommits]);
+  }, [files, isGitReady, hasRepo]);
 
   // Current Branch & Last commit
   // ---------------------------------------------------------------------------
 
-  const [currentBranch, setCurrentBranch] = useState();
   useEffect(() => {
     (async () => {
-      if (!hasRepo) return;
-      if (!isReady) return;
-      const nextCurrentBranch = await git.currentBranch({ dir: '/' });
+      if (!isGitReady) return;
 
-      setCurrentBranch(nextCurrentBranch);
+      if (!hasRepo) {
+        setState({
+          ...state,
+          currentBranch: undefined,
+          lastCommitHolder: undefined,
+          isReady: true,
+        });
+        return;
+      }
+
+      const nextCurrentBranch = await git.currentBranch({ dir: '.' });
+      const nextLastCommitHolder = await helpers.getLastCommitHolder();
+
+      setState({
+        ...state,
+        currentBranch: nextCurrentBranch,
+        lastCommitHolder: nextLastCommitHolder,
+        isReady: true,
+      });
     })();
-  }, [hasRepo, isReady]);
-
-  const [lastCommitHolder, setLastCommitHolder] = useState(undefined);
-  useEffect(() => {
-    if (!helpers.getLastCommitHolder) return;
-    if (!hasRepo) return;
-
-    (async () => setLastCommitHolder(await helpers.getLastCommitHolder()))();
-    // TODO: Add version for update
-  }, [helpers.getLastCommitHolder]);
+  }, [isGitReady, hasRepo]);
 
   // Methods
   // ---------------------------------------------------------------------------

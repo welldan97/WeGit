@@ -29,6 +29,8 @@ const findAgent = meshState => {
 // Main
 // =============================================================================
 
+const port = process.env.PORT || 1996;
+
 git.plugins.set('fs', fs);
 
 const main = async () => {
@@ -39,7 +41,7 @@ const main = async () => {
 
   const onChange = nextMeshState => (meshState = nextMeshState);
 
-  const connection = net.connect({ port: 9001 }, () => {
+  const connection = net.connect({ port }, () => {
     const remote = process.argv[2];
     const url = process.argv[3];
     const { send, onMessage } = receiveInChunksMiddleware(
@@ -76,10 +78,10 @@ const main = async () => {
       switch (method) {
         case 'change':
           return onChange(...args);
-        case 'onMessage':
+        case 'send':
           return onMessage(...args);
         default:
-          throw new Error('unknown method');
+          throw new Error('unknown method', method);
       }
     });
 

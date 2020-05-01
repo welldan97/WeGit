@@ -10,8 +10,10 @@ const cleanUndefined = value => JSON.parse(JSON.stringify(value));
 
 const isAgent = wgOs => {
   return (
-    [wgOs.currentUser.id, ...wgOs.users.map(u => u.id)].sort()[0] ===
-    wgOs.currentUser.id
+    [
+      wgOs.currentUser.id,
+      ...wgOs.getMeshState().connections.map(c => c.peer),
+    ].sort()[0] === wgOs.currentUser.id
   );
 };
 
@@ -29,8 +31,8 @@ module.exports = ({ room, firebaseConfig }) => ({
       if (!initialized) return;
       const value = data.val();
       if (value.wgOffer) {
-        if (!isAgent(wgOs)) return;
         if (value.wgOffer.sender === wgOs.currentUser.id) return;
+        if (!isAgent(wgOs)) return;
 
         const { wgAnswer } = await wgOs.join(value.wgOffer);
         if (!wgAnswer) return;
