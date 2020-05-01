@@ -27,6 +27,9 @@ const exists = ({ fs }) => async path => {
 // Main
 // =============================================================================
 
+// TODO
+const showError = name => alert(name);
+
 export default ({
   isFsReady,
   fs,
@@ -39,6 +42,7 @@ export default ({
 }) => {
   const [isReady, setIsReady] = useState(false);
   const [progress, setProgress] = useState();
+  const [isLocked, setIsLocked] = useState(false);
   const progressPrefixRef = useRef('');
   const emitterRef = useRef();
 
@@ -119,6 +123,9 @@ export default ({
   // ---------------------------------------------------------------------------
 
   const onClone = async url => {
+    if (isLocked) return void showError('Repository is locked');
+    setIsLocked(true);
+
     progressPrefixRef.current = 'Cloning: ';
     setProgress({
       phase: 'Cloning: Preparing',
@@ -133,9 +140,14 @@ export default ({
     progressPrefixRef.current = '';
     setProgress(undefined);
     onFsUpdate();
+
+    setIsLocked(false);
   };
 
   const onReset = async () => {
+    if (isLocked) return void showError('Repository is locked');
+    setIsLocked(true);
+
     const readdir = promisify(fs.readdir);
     const lstat = promisify(fs.lstat);
     const unlink = promisify(fs.unlink);
@@ -166,10 +178,13 @@ export default ({
     await deleteFolderRecursive('/');
     setProgress(undefined);
     onFsUpdate();
+
+    setIsLocked(false);
   };
 
   return {
     isReady,
+    isLocked,
     progress,
     files: filesWithCommits,
     currentBranch,

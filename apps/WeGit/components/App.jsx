@@ -33,9 +33,9 @@ export default function App({ AppShell }) {
   } = useFs({
     path: basePath,
   });
-
   const {
     isReady,
+    isLocked,
     files,
 
     progress,
@@ -102,7 +102,7 @@ export default function App({ AppShell }) {
         )}
         {activeTab === 'settings' && <Settings {...{ onReset }} />}
       </div>
-      <Progressbar progress={progress} />
+      <Progressbar progress={progress} isLocked={isLocked} />
     </>
   );
 }
