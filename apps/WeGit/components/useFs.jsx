@@ -100,6 +100,7 @@ const getHasRepo = ({ fs }) => async () => {
 
 export default ({ path: basePath }) => {
   const [state, setState] = useState({
+    isBrowserFsReady: false,
     isReady: false,
     version: 0,
     path: basePath,
@@ -110,6 +111,7 @@ export default ({ path: basePath }) => {
   });
 
   const {
+    isBrowserFsReady,
     isReady,
     version,
     path,
@@ -127,7 +129,7 @@ export default ({ path: basePath }) => {
       if (err) return console.log(err);
       fsRef.current = BrowserFS.BFSRequire('fs');
       window.fs = fsRef.current;
-      setState({ ...state, isReady: true });
+      setState({ ...state, isBrowserFsReady: true });
     });
   }, []);
 
@@ -138,7 +140,7 @@ export default ({ path: basePath }) => {
     });
 
   useEffect(() => {
-    if (!isReady) return;
+    if (!isBrowserFsReady) return;
 
     (async () => {
       const currentFile = await getCurrentFile({ fs })(basePath);
@@ -150,6 +152,7 @@ export default ({ path: basePath }) => {
 
       setState({
         ...state,
+        isReady: true,
         path: basePath,
         files,
         previewFile,
@@ -157,13 +160,13 @@ export default ({ path: basePath }) => {
         hasRepo,
       });
     })();
-  }, [basePath, isReady, version]);
+  }, [basePath, isBrowserFsReady, version]);
 
   return {
+    isReady,
     fs: fsRef.current,
     onFsUpdate,
 
-    isReady,
     path,
     files,
     previewFile,

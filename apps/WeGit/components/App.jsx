@@ -22,10 +22,11 @@ export default function App({ AppShell }) {
   const repoName = '';
   const ciState = 'disabled';
   const {
+    isReady: isFsReady,
     fs,
     onFsUpdate,
     hasRepo,
-    files,
+    files: fsFiles,
     previewFile,
     currentFile,
     path,
@@ -35,37 +36,25 @@ export default function App({ AppShell }) {
 
   const {
     isReady,
-    onClone,
+    files,
+
     progress,
+
     currentBranch,
-    findFilesLastCommits,
-    getLastCommitHolder,
+    lastCommitHolder,
+
+    onClone,
     onReset,
   } = useGit({
     fs,
+    isFsReady,
+    path,
+    files: fsFiles,
     hasRepo,
     onFsUpdate,
     AppShell,
   });
 
-  const [filesWithCommits, setFilesWithCommits] = useState(files);
-  useEffect(() => {
-    setFilesWithCommits(files);
-    if (!currentFile.isDirectory) return;
-    if (!findFilesLastCommits) return;
-    if (!hasRepo) return;
-
-    (async () =>
-      setFilesWithCommits(await findFilesLastCommits(path, files)))();
-  }, [files, findFilesLastCommits]);
-
-  const [lastCommitHolder, setLastCommitHolder] = useState(files);
-  useEffect(() => {
-    if (!getLastCommitHolder) return;
-    if (!hasRepo) return;
-
-    (async () => setLastCommitHolder(await getLastCommitHolder()))();
-  }, [files, getLastCommitHolder]);
   if (!isReady) return null;
   return (
     <>
@@ -101,7 +90,7 @@ export default function App({ AppShell }) {
 
               path,
               onPathChange,
-              files: filesWithCommits,
+              files,
               previewFile,
               currentFile,
               //

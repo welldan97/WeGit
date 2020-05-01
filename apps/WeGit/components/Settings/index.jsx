@@ -9,8 +9,8 @@ import React, { memo, useCallback, useState } from 'react';
 export default function Settings({ onReset }) {
   return (
     <div className="row mt-4">
-      <div className="col-12 border border-danger pt-3 pb-3">
-        <>
+      <div className="col-12">
+        <div className="border border-danger p-3">
           <div className="alert alert-danger" role="alert">
             ⚠️ Danger zone
           </div>
@@ -21,7 +21,7 @@ export default function Settings({ onReset }) {
           >
             Reset repository
           </button>
-        </>
+        </div>
       </div>
     </div>
   );

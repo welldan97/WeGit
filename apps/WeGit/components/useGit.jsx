@@ -27,20 +27,34 @@ const exists = ({ fs }) => async path => {
 // Main
 // =============================================================================
 
-export default ({ fs, hasRepo, onFsUpdate, AppShell }) => {
+export default ({
+  isFsReady,
+  fs,
+  path,
+  files,
+  hasRepo,
+  onFsUpdate,
+
+  AppShell,
+}) => {
   const [isReady, setIsReady] = useState(false);
   const [progress, setProgress] = useState();
+  const progressPrefixRef = useRef('');
   const emitterRef = useRef();
 
-  const [currentBranch, setCurrentBranch] = useState();
+  // Init
+  // ---------------------------------------------------------------------------
   const [helpers, setHelpers] = useState({});
   useEffect(() => {
     (async () => {
-      if (!fs) return;
+      if (!isFsReady) return;
       if (isReady) return;
       emitterRef.current = new EventEmitter();
       emitterRef.current.on('progress', nextProgress =>
-        setProgress(nextProgress),
+        setProgress({
+          ...nextProgress,
+          phase: progressPrefixRef.current + nextProgress.phase,
+        }),
       );
 
       git.plugins.set('fs', fs);
@@ -63,8 +77,25 @@ export default ({ fs, hasRepo, onFsUpdate, AppShell }) => {
       AppShell.on('message', onMessage);
       setIsReady(true);
     })();
-  }, [fs, isReady]);
+  }, [isFsReady, isReady]);
 
+  // Files with commit info
+  // ---------------------------------------------------------------------------
+
+  const [filesWithCommits, setFilesWithCommits] = useState(files);
+  useEffect(() => {
+    setFilesWithCommits(files);
+    if (!helpers.findFilesLastCommits) return;
+    if (!hasRepo) return;
+
+    (async () =>
+      setFilesWithCommits(await helpers.findFilesLastCommits(path, files)))();
+  }, [files, helpers.findFilesLastCommits]);
+
+  // Current Branch & Last commit
+  // ---------------------------------------------------------------------------
+
+  const [currentBranch, setCurrentBranch] = useState();
   useEffect(() => {
     (async () => {
       if (!hasRepo) return;
@@ -75,9 +106,22 @@ export default ({ fs, hasRepo, onFsUpdate, AppShell }) => {
     })();
   }, [hasRepo, isReady]);
 
+  const [lastCommitHolder, setLastCommitHolder] = useState(undefined);
+  useEffect(() => {
+    if (!helpers.getLastCommitHolder) return;
+    if (!hasRepo) return;
+
+    (async () => setLastCommitHolder(await helpers.getLastCommitHolder()))();
+    // TODO: Add version for update
+  }, [helpers.getLastCommitHolder]);
+
+  // Methods
+  // ---------------------------------------------------------------------------
+
   const onClone = async url => {
+    progressPrefixRef.current = 'Cloning: ';
     setProgress({
-      phase: 'Preparing for cloning',
+      phase: 'Cloning: Preparing',
       loaded: 0,
       lengthComputable: false,
     });
@@ -86,6 +130,7 @@ export default ({ fs, hasRepo, onFsUpdate, AppShell }) => {
       corsProxy: 'https://cors.isomorphic-git.org',
       url,
     });
+    progressPrefixRef.current = '';
     setProgress(undefined);
     onFsUpdate();
   };
@@ -125,10 +170,11 @@ export default ({ fs, hasRepo, onFsUpdate, AppShell }) => {
 
   return {
     isReady,
-    onClone,
     progress,
+    files: filesWithCommits,
     currentBranch,
+    lastCommitHolder,
+    onClone,
     onReset,
-    ...helpers,
   };
 };
