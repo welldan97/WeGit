@@ -38,7 +38,17 @@ const listRefs = ({
 // Handlers
 // =============================================================================
 
-const getHandler = ({ fs, git, gitInternals, dir = '.', send }) => {
+const getHandler = ({
+  fs,
+  git,
+  gitInternals,
+  setIsLocked,
+  getIsLocked,
+  dir = '.',
+  send,
+  onProgress,
+}) => {
+  let currentWork;
   const helpers = gitHelpers({
     fs,
     git,
@@ -48,6 +58,12 @@ const getHandler = ({ fs, git, gitInternals, dir = '.', send }) => {
 
   return {
     async capabilites(message) {
+      if (getIsLocked())
+        return void send(message.path[0], {
+          type: 'transport:busy',
+        });
+
+      setIsLocked(true);
       send(message.path[0], {
         type: 'transport:capabilitiesResponse',
         payload: { capabilities: ['fetch', 'push'] },
@@ -55,7 +71,16 @@ const getHandler = ({ fs, git, gitInternals, dir = '.', send }) => {
     },
 
     async list(message) {
-      const forPush = message.payload.forPush;
+      const { forPush } = message.payload;
+      currentWork = forPush ? 'Pushing' : 'Pulling';
+
+      onProgress({
+        phase: `${currentWork}: Preparing`,
+        loaded: 0,
+        lengthComputable: false,
+        phaseNo: 1,
+        phasesTotal: 2,
+      });
 
       const refs = await listRefs({ fs, git, gitInternals, helpers })();
       send(message.path[0], {
@@ -68,10 +93,27 @@ const getHandler = ({ fs, git, gitInternals, dir = '.', send }) => {
       const objectBundle = await helpers.createObjectBundle(
         message.payload.oidRanges,
       );
-      send(message.path[0], {
-        type: 'transport:fetchResponse',
-        payload: { objectBundle },
-      });
+
+      await send(
+        message.path[0],
+        {
+          type: 'transport:fetchResponse',
+          payload: { objectBundle },
+        },
+        {
+          onProgress: progress => {
+            onProgress(
+              progress && {
+                ...progress,
+                phase: `${currentWork}: Sending`,
+                phaseNo: 2,
+                phasesTotal: 2,
+              },
+            );
+          },
+        },
+      );
+      setIsLocked(false);
     },
 
     async push(message) {
@@ -91,11 +133,26 @@ const getHandler = ({ fs, git, gitInternals, dir = '.', send }) => {
 // Main
 // =============================================================================
 
-module.exports = ({ fs, git, gitInternals }) => ({ send, onMessage }) => {
-  const handler = getHandler({ fs, git, gitInternals, send });
+module.exports = ({
+  fs,
+  git,
+  gitInternals,
+  setIsLocked,
+  getIsLocked,
+  onProgress,
+}) => ({ send, onMessage }) => {
+  const handler = getHandler({
+    fs,
+    git,
+    gitInternals,
+    setIsLocked,
+    getIsLocked,
+    send,
+    onProgress,
+  });
 
-  const nextSend = (userId, message) => {
-    return send(userId, message);
+  const nextSend = (userId, message, options) => {
+    return send(userId, message, options);
   };
 
   const nextOnMessage = async message => {

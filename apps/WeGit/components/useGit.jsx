@@ -66,7 +66,13 @@ export default ({
   } = state;
 
   const [progress, setProgress] = useState();
-  const [isLocked, setIsLocked] = useState(false);
+  const isLockedRef = useRef(false);
+  const [isLocked, baseSetIsLocked] = useState(isLockedRef.current);
+  const setIsLocked = value => {
+    isLockedRef.current = value;
+    baseSetIsLocked(value);
+  };
+  const getIsLocked = () => isLockedRef.current;
   const progressPrefixRef = useRef('');
   const emitterRef = useRef();
 
@@ -76,13 +82,22 @@ export default ({
     (async () => {
       if (!isFsReady) return;
       if (isGitReady) return;
+
       emitterRef.current = new EventEmitter();
-      emitterRef.current.on('progress', nextProgress =>
+      emitterRef.current.on('progress', nextProgress => {
+        const phaseNos = {
+          'Receiving objects': 2,
+          'Resolving deltas': 3,
+          'Updating workdir': 4,
+        };
+
         setProgress({
           ...nextProgress,
           phase: progressPrefixRef.current + nextProgress.phase,
-        }),
-      );
+          phaseNo: phaseNos[nextProgress.phase] || '!!',
+          phasesTotal: 4,
+        });
+      });
 
       git.plugins.set('fs', fs);
       git.plugins.set('emitter', emitterRef.current);
@@ -91,13 +106,19 @@ export default ({
 
       const nextHelpers = gitHelpers({ git, gitInternals, fs });
 
-      const { onMessage } = transportMiddleware({ fs, git, gitInternals })({
+      const { onMessage } = transportMiddleware({
+        fs,
+        git,
+        gitInternals,
+        setIsLocked,
+        getIsLocked,
+        onProgress: progress => setProgress(progress),
+      })({
         onMessage: message => {
           console.log(message, '!!!!!!!');
         },
-        send: (userId, message) => {
-          AppShell.send(userId, message);
-        },
+        send: (userId, message, options) =>
+          AppShell.send(userId, message, options),
       });
 
       AppShell.on('message', onMessage);
@@ -164,6 +185,8 @@ export default ({
       phase: 'Cloning: Preparing',
       loaded: 0,
       lengthComputable: false,
+      phaseNo: 1,
+      phasesTotal: 4,
     });
     await git.clone({
       dir: '/',
@@ -192,6 +215,8 @@ export default ({
       phase: 'Resetting',
       loaded: 0,
       lengthComputable: false,
+      phaseNo: 1,
+      phasesTotal: 1,
     });
 
     const deleteFolderRecursive = async path => {

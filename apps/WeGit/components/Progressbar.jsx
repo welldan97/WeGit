@@ -7,7 +7,14 @@ import React from 'react';
 // =============================================================================
 
 export default function Progressbar({ progress: progressObject, isLocked }) {
-  const { loaded, total, lengthComputable } = progressObject || {};
+  const {
+    loaded,
+    total,
+    lengthComputable,
+    phaseNo,
+    phasesTotal,
+    //
+  } = progressObject || {};
   const isPresent = !!progressObject || isLocked;
 
   let progress = 100;
@@ -26,6 +33,7 @@ export default function Progressbar({ progress: progressObject, isLocked }) {
         {!!progressObject && (
           <>
             {'\u{23F3}'}
+            {phasesTotal !== 1 && `(${phaseNo}/${phasesTotal}) `}
             {progressObject.phase}…
           </>
         )}

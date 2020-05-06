@@ -146,6 +146,11 @@ const getOnMessageHandler = ({
         return onMessage(message);
       });
     },
+
+    onBusy() {
+      console.warn('The client is busy');
+      process.exit(1);
+    },
   };
 };
 
@@ -206,14 +211,12 @@ module.exports = ({ fs, pfs, git, gitInternals, remote, url }) => ({
     const type = rawType.replace(/^transport:/, '');
 
     switch (type) {
-      case 'fetchResponse': {
-        await handler.onFetch(message);
-        return;
-      }
-      case 'listResponse': {
-        await handler.onList(message);
-        return;
-      }
+      case 'fetchResponse':
+        return void (await handler.onFetch(message));
+      case 'listResponse':
+        return void (await handler.onList(message));
+      case 'busy':
+        return void (await handler.onBusy());
       default:
         return onMessage(message);
     }
