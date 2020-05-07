@@ -3,7 +3,6 @@
 // Imports
 // =============================================================================
 
-const cp = require('child_process');
 const path = require('path');
 const gitHelpers = require('wegit-lib/utils/gitHelpers');
 
@@ -21,10 +20,18 @@ const fetchDiffBundle = {
   objectBundle: undefined,
 };
 
-const getSendHandler = ({ fs, pfs, git, gitInternals, dir = '.', send }) => {
+const getSendHandler = ({
+  fs,
+
+  git,
+  gitInternals,
+  dir = '.',
+  send,
+  onError,
+}) => {
   const helpers = gitHelpers({
     fs,
-    pfs,
+
     git,
     gitInternals,
     dir,
@@ -41,9 +48,7 @@ const getSendHandler = ({ fs, pfs, git, gitInternals, dir = '.', send }) => {
 
           try {
             hasOid = await git.resolveRef({ dir, ref: rh.ref });
-          } catch (e) {
-            //
-          }
+          } catch (e) {}
           return {
             ref: rh.ref,
             wantOid: rh.oid,
@@ -88,17 +93,19 @@ const getSendHandler = ({ fs, pfs, git, gitInternals, dir = '.', send }) => {
 
 const getOnMessageHandler = ({
   fs,
-  pfs,
+
   git,
   gitInternals,
   dir = '.',
   onMessage,
+  options,
   remote,
   url,
+  onError,
 }) => {
   const helpers = gitHelpers({
     fs,
-    pfs,
+
     git,
     gitInternals,
     dir,
@@ -106,50 +113,34 @@ const getOnMessageHandler = ({
 
   return {
     async onFetch(message) {
-      const dirName = url.replace(/^.*\//, '');
-      let nextDir = dir;
       fetchDiffBundle.objectBundle = message.payload.objectBundle;
 
-      const exists = fs.existsSync(path.join(dir, '.git'));
-      if (!exists) nextDir = path.join(dir, dirName);
-      await gitHelpers({
-        fs,
-        pfs,
-        git,
-        gitInternals,
-        dir: nextDir,
-      }).applyObjectBundle(fetchDiffBundle.objectBundle);
+      await helpers.applyObjectBundle(fetchDiffBundle.objectBundle);
 
-      return onMessage(message);
+      return onMessage(message, options);
     },
 
-    onList(message) {
+    async onList(message, onProgress) {
       const { payload } = message;
-      if (!message.payload.forPush) return onMessage(message);
-
-      const gitProcess = cp.spawn('git', ['show-ref', '--head']);
-
-      gitProcess.stdout.on('readable', () => {
-        const value = gitProcess.stdout.read();
-        if (!value) return;
-
-        distRefObjects = payload.refs;
-        srcRefObjects = value
-          .toString()
-          .trim()
-          .split('\n')
-          .map(l => {
-            const [oid, ref] = l.split(' ');
-            return { oid, ref };
-          });
-
+      if (!message.payload.forPush) {
+        onProgress({
+          phase: 'Preparing',
+          loaded: 0,
+          lengthComputable: false,
+          phaseNo: 1,
+          phasesTotal: 2,
+        });
         return onMessage(message);
-      });
+      }
+
+      srcRefObjects = await helpers.listRefs();
+      distRefObjects = payload.refs;
+
+      return onMessage(message, options);
     },
 
     onBusy() {
-      console.warn('The client is busy');
-      process.exit(1);
+      onError('The client is busy');
     },
   };
 };
@@ -157,21 +148,29 @@ const getOnMessageHandler = ({
 // Main
 // =============================================================================
 
-module.exports = ({ fs, pfs, git, gitInternals, remote, url }) => ({
-  send,
-  onMessage,
-}) => {
+module.exports = ({
+  fs,
+  dir,
+  git,
+  gitInternals,
+  remote,
+  url,
+  onError,
+  onProgress,
+  DEBUG,
+}) => ({ send, onMessage }) => {
   const nextSend = async (userId, message) => {
-    console.warn('->', message);
+    if (DEBUG) console.warn('->', message);
 
     const handler = getSendHandler({
       fs,
-      pfs,
+      dir,
       git,
       gitInternals,
       send,
       remote,
       url,
+      onError,
     });
     const { type: rawType } = message;
 
@@ -193,32 +192,34 @@ module.exports = ({ fs, pfs, git, gitInternals, remote, url }) => ({
     }
   };
 
-  const nextOnMessage = async message => {
-    console.warn('<-', message);
+  const nextOnMessage = async (message, options = {}) => {
+    if (DEBUG) console.warn('<-', message);
 
     const handler = getOnMessageHandler({
       fs,
-      pfs,
+      dir,
       git,
       gitInternals,
       onMessage,
+      options,
       remote,
       url,
+      onError,
     });
     const { type: rawType } = message;
 
-    if (!rawType.startsWith('transport:')) return onMessage(message);
+    if (!rawType.startsWith('transport:')) return;
     const type = rawType.replace(/^transport:/, '');
 
     switch (type) {
       case 'fetchResponse':
         return void (await handler.onFetch(message));
       case 'listResponse':
-        return void (await handler.onList(message));
+        return void (await handler.onList(message, onProgress));
       case 'busy':
         return void (await handler.onBusy());
       default:
-        return onMessage(message);
+        return onMessage(message, options);
     }
   };
 

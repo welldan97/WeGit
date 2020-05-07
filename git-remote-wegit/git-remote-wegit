@@ -3,10 +3,13 @@
 // Imports
 // =============================================================================
 
+const cp = require('child_process');
 const fs = require('fs');
 const net = require('net');
+
 const git = require('isomorphic-git');
 const gitInternals = require('isomorphic-git/dist/for-node/isomorphic-git/internal-apis');
+const ora = require('ora');
 
 const receiveInChunksMiddleware = require('wegit-lib/utils/receiveInChunksMiddleware');
 const sendInChunksMiddleware = require('wegit-lib/utils/sendInChunksMiddleware');
@@ -16,6 +19,11 @@ const transportMiddleware = require('./lib/transportMiddleware');
 
 // Utils
 // =============================================================================
+const onError = message => {
+  console.warn('');
+  console.warn(`Error: ${message}`);
+  process.exit(1);
+};
 
 const findAgent = meshState => {
   const wgOsConnection = meshState.connections
@@ -26,8 +34,26 @@ const findAgent = meshState => {
   return wgOsConnection.user.id;
 };
 
+const getRootDir = async () =>
+  new Promise(resolve => {
+    const gitProcess = cp.spawn('git', ['rev-parse', '--git-dir']);
+    gitProcess.stdout.on('readable', () => {
+      const value = gitProcess.stdout.read();
+      if (!value) return;
+
+      resolve(
+        value
+          .toString()
+          .trim()
+          .replace(/\/\.git$/, ''),
+      );
+    });
+  });
+
 // Main
 // =============================================================================
+
+const DEBUG = false;
 
 const port = process.env.PORT || 1996;
 
@@ -41,16 +67,37 @@ const main = async () => {
 
   const onChange = nextMeshState => (meshState = nextMeshState);
 
+  const dir = await getRootDir();
+
   const connection = net.connect({ port }, () => {
     const remote = process.argv[2];
     const url = process.argv[3];
+
+    const spinner = ora('Connecting…').start();
+    const onProgress = progress => {
+      const phase =
+        progress.phasesTotal > 1
+          ? `(${progress.phaseNo}/${progress.phasesTotal}) `
+          : '';
+
+      const loaded = progress.lengthComputable
+        ? ` ${Math.floor((progress.loaded / progress.total) * 100)}%`
+        : '';
+
+      spinner.text = `${phase}${progress.phase}…${loaded}\n`;
+    };
+
     const { send, onMessage } = receiveInChunksMiddleware(
       transportMiddleware({
         git,
         gitInternals,
         fs,
+        dir,
         remote,
         url,
+        onError,
+        onProgress,
+        DEBUG,
       })(
         sendInChunksMiddleware({
           send(userId, message) {
@@ -66,7 +113,7 @@ const main = async () => {
 
           onMessage(message) {
             const value = parser.messageToStdout(message);
-            console.warn('[<-]', value);
+            if (DEBUG) console.warn('[<-]', value);
 
             process.stdout.write(value);
           },
@@ -79,9 +126,17 @@ const main = async () => {
         case 'change':
           return onChange(...args);
         case 'send':
-          return onMessage(...args);
+          return onMessage(...args, {
+            onProgress: progress => {
+              onProgress({
+                ...progress,
+                phaseNo: 2,
+                phasesTotal: 2,
+              });
+            },
+          });
         default:
-          throw new Error('unknown method', method);
+          return onError(`unknown method ${method}`);
       }
     });
 
@@ -94,13 +149,13 @@ const main = async () => {
         return;
       }
 
-      console.warn('[->]', value);
+      if (DEBUG) console.warn('[->]', value);
       const message = parser.stdinToMessage(value);
       send(findAgent(meshState), message);
     });
   });
 
-  connection.on('end', () => console.warn('disconnected from server'));
+  connection.on('end', () => onError('disconnected from server'));
 };
 
 main();

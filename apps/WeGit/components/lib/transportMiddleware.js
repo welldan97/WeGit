@@ -3,38 +3,6 @@
 
 import gitHelpers from 'wegit-lib/utils/gitHelpers';
 
-// Utils
-// =============================================================================
-
-const listRefs = ({
-  fs,
-  git,
-  gitInternals,
-  helpers,
-  dir = '.',
-}) => async () => {
-  const x = await helpers.hasRepo();
-  if (!(await helpers.hasRepo())) return [];
-  const refs = [
-    'HEAD',
-    ...(await gitInternals.GitRefManager.listRefs({
-      fs,
-
-      // FIXME: should we use dir var here?
-      gitdir: '.git',
-      filepath: `refs`,
-    })).map(r => `refs/${r}`),
-  ];
-  const value = await Promise.all(
-    refs.map(async ref => {
-      const oid = await git.resolveRef({ dir, ref });
-      return { oid, ref };
-    }),
-  );
-
-  return value;
-};
-
 // Handlers
 // =============================================================================
 
@@ -82,7 +50,7 @@ const getHandler = ({
         phasesTotal: 2,
       });
 
-      const refs = await listRefs({ fs, git, gitInternals, helpers })();
+      const refs = await helpers.listRefs();
       send(message.path[0], {
         type: 'transport:listResponse',
         payload: { refs, forPush },
