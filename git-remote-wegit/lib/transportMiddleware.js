@@ -65,8 +65,8 @@ const getSendHandler = ({ fs, pfs, git, gitInternals, dir = '.', send }) => {
 
     async push(userId, message) {
       const { fromRef, toRef } = message.payload;
-      const wantOid = srcRefObjects.find(o => o.ref === fromRef).sha;
-      const hasOid = (distRefObjects.find(o => o.ref === toRef) || {}).sha;
+      const wantOid = srcRefObjects.find(o => o.ref === fromRef).oid;
+      const hasOid = (distRefObjects.find(o => o.ref === toRef) || {}).oid;
       const objectBundle = await helpers.createObjectBundle([
         {
           hasOid,
@@ -139,8 +139,8 @@ const getOnMessageHandler = ({
           .trim()
           .split('\n')
           .map(l => {
-            const [sha, ref] = l.split(' ');
-            return { sha, ref };
+            const [oid, ref] = l.split(' ');
+            return { oid, ref };
           });
 
         return onMessage(message);

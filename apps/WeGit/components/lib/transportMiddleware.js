@@ -27,8 +27,8 @@ const listRefs = ({
   ];
   const value = await Promise.all(
     refs.map(async ref => {
-      const sha = await git.resolveRef({ dir, ref });
-      return { sha, ref };
+      const oid = await git.resolveRef({ dir, ref });
+      return { oid, ref };
     }),
   );
 

@@ -70,7 +70,7 @@ module.exports = {
         return payload.capabilities.join('\n') + '\n\n';
       case 'transport:listResponse':
         return payload.refs.length
-          ? payload.refs.map(({ sha, ref }) => `${sha} ${ref}`).join('\n') +
+          ? payload.refs.map(({ oid, ref }) => `${oid} ${ref}`).join('\n') +
               '\n\n'
           : '\n';
 
