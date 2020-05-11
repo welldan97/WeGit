@@ -42,15 +42,20 @@ const getHandler = ({
       const { forPush } = message.payload;
       currentWork = forPush ? 'Pushing' : 'Pulling';
 
-      onProgress({
-        phase: `${currentWork}: Preparing`,
-        loaded: 0,
-        lengthComputable: false,
-        phaseNo: 1,
-        phasesTotal: 2,
-      });
-
       const refs = await helpers.listRefs();
+
+      if (refs.length) {
+        onProgress({
+          phase: `${currentWork}: Preparing`,
+          loaded: 0,
+          lengthComputable: false,
+          phaseNo: 1,
+          phasesTotal: 2,
+        });
+      } else {
+        onProgress(undefined);
+        setIsLocked(false);
+      }
       send(message.path[0], {
         type: 'transport:listResponse',
         payload: { refs, forPush },

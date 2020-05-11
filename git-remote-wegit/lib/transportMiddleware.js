@@ -140,7 +140,7 @@ const getOnMessageHandler = ({
     },
 
     onBusy() {
-      onError('The client is busy');
+      onError('Could not connect, try again later');
     },
   };
 };

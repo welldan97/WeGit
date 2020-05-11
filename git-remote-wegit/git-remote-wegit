@@ -87,6 +87,11 @@ const main = async () => {
       spinner.text = `${phase}${progress.phase}…${loaded}\n`;
     };
 
+    const onDone = () => {
+      spinner.stop();
+      console.warn('\u{2705} Done');
+    };
+
     const { send, onMessage } = receiveInChunksMiddleware(
       transportMiddleware({
         git,
@@ -114,12 +119,21 @@ const main = async () => {
           onMessage(message) {
             const value = parser.messageToStdout(message);
             if (DEBUG) console.warn('[<-]', value);
+            // TODO: move from here
+            if (message.type === 'transport:fetchResponse') onDone();
+            if (message.type === 'transport:pushResponse') onDone();
+            if (
+              message.type === 'transport:listResponse' &&
+              !message.payload.refs.length
+            )
+              onDone();
 
             process.stdout.write(value);
           },
         }),
       ),
     );
+
     connection.on('data', data => {
       const { method, args } = JSON.parse(data.toString());
       switch (method) {
