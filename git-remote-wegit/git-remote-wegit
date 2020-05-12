@@ -19,6 +19,7 @@ const transportMiddleware = require('./lib/transportMiddleware');
 
 // Utils
 // =============================================================================
+
 const onError = message => {
   console.warn('');
   console.warn(`Error: ${message}`);
@@ -38,15 +39,11 @@ const getRootDir = async () =>
   new Promise(resolve => {
     const gitProcess = cp.spawn('git', ['rev-parse', '--git-dir']);
     gitProcess.stdout.on('readable', () => {
-      const value = gitProcess.stdout.read();
-      if (!value) return;
-
-      resolve(
-        value
-          .toString()
-          .trim()
-          .replace(/\/\.git$/, ''),
-      );
+      const rawValue = gitProcess.stdout.read();
+      if (!rawValue) return;
+      const value = rawValue.toString().trim();
+      if (value === '.git') return void resolve('.');
+      resolve(value.replace(/\/\.git$/, ''));
     });
   });
 
@@ -108,6 +105,9 @@ const main = async () => {
           send(userId, message) {
             if (!userId) return;
             const { type, payload } = message;
+            if (DEBUG)
+              console.warn('->', JSON.stringify(message, undefined, 2));
+
             connection.write(
               JSON.stringify({
                 method: 'send',
@@ -124,7 +124,8 @@ const main = async () => {
             if (message.type === 'transport:pushResponse') onDone();
             if (
               message.type === 'transport:listResponse' &&
-              !message.payload.refs.length
+              !message.payload.refs.length &&
+              !message.payload.forPush
             )
               onDone();
 
@@ -139,7 +140,8 @@ const main = async () => {
       switch (method) {
         case 'change':
           return onChange(...args);
-        case 'send':
+        case 'send': {
+          if (DEBUG) console.warn('<-', JSON.stringify(args[0], undefined, 2));
           return onMessage(...args, {
             onProgress: progress => {
               onProgress({
@@ -149,23 +151,43 @@ const main = async () => {
               });
             },
           });
+        }
         default:
           return onError(`unknown method ${method}`);
       }
     });
 
     process.stdin.setEncoding('utf8');
-    process.stdin.on('readable', async () => {
-      const value = process.stdin.read();
+    process.stdin.on('readable', () => {
+      (async () => {
+        const value = process.stdin.read();
 
-      if (value === null || value === '\n') {
-        process.exit();
-        return;
-      }
+        if (value === null || value === '\n') {
+          process.exit();
+          return;
+        }
 
-      if (DEBUG) console.warn('[->]', value);
-      const message = parser.stdinToMessage(value);
-      send(findAgent(meshState), message);
+        if (DEBUG) console.warn('[->]', value);
+        const message = parser.stdinToMessage(value);
+        await send(findAgent(meshState), message, {
+          onProgress: progress => {
+            if (!progress) return;
+            onProgress({
+              ...progress,
+              phaseNo: 2,
+              phasesTotal: 3,
+            });
+          },
+        });
+        if (message.type === 'transport:push')
+          onProgress({
+            phase: 'Updating',
+            loaded: 0,
+            lengthComputable: false,
+            phaseNo: 3,
+            phasesTotal: 3,
+          });
+      })();
     });
   });
 

@@ -62,13 +62,13 @@ const getSendHandler = ({
         hasOid: r.hasOid,
       }));
 
-      send(userId, {
+      return send(userId, {
         type: message.type,
         payload: { oidRanges },
       });
     },
 
-    async push(userId, message) {
+    async push(userId, message, options) {
       const { fromRef, toRef } = message.payload;
       const wantOid = srcRefObjects.find(o => o.ref === fromRef).oid;
       const hasOid = (distRefObjects.find(o => o.ref === toRef) || {}).oid;
@@ -78,15 +78,20 @@ const getSendHandler = ({
           wantOid,
         },
       ]);
-      send(userId, {
-        type: message.type,
-        payload: {
-          diffBundle: {
-            refDiff: [{ ref: toRef, hasOid, wantOid }],
-            objectBundle,
+      await send(
+        userId,
+        {
+          type: message.type,
+          payload: {
+            diffBundle: {
+              refDiff: [{ ref: toRef, hasOid, wantOid }],
+              objectBundle,
+            },
           },
         },
-      });
+        options,
+      );
+      return;
     },
   };
 };
@@ -131,6 +136,14 @@ const getOnMessageHandler = ({
           phasesTotal: 2,
         });
         return onMessage(message);
+      } else {
+        onProgress({
+          phase: 'Preparing',
+          loaded: 0,
+          lengthComputable: false,
+          phaseNo: 1,
+          phasesTotal: 3,
+        });
       }
 
       srcRefObjects = await helpers.listRefs();
@@ -159,9 +172,7 @@ module.exports = ({
   onProgress,
   DEBUG,
 }) => ({ send, onMessage }) => {
-  const nextSend = async (userId, message) => {
-    if (DEBUG) console.warn('->', message);
-
+  const nextSend = async (userId, message, options) => {
     const handler = getSendHandler({
       fs,
       dir,
@@ -174,27 +185,24 @@ module.exports = ({
     });
     const { type: rawType } = message;
 
-    if (!rawType.startsWith('transport:')) return send(userId, message);
+    if (!rawType.startsWith('transport:'))
+      return send(userId, message, options);
     const type = rawType.replace(/^transport:/, '');
 
     switch (type) {
       case 'fetch': {
-        await handler.fetch(userId, message);
-        return;
+        return handler.fetch(userId, message, options);
       }
 
       case 'push': {
-        await handler.push(userId, message);
-        return;
+        return handler.push(userId, message, options);
       }
       default:
-        return send(userId, message);
+        return send(userId, message, options);
     }
   };
 
   const nextOnMessage = async (message, options = {}) => {
-    if (DEBUG) console.warn('<-', message);
-
     const handler = getOnMessageHandler({
       fs,
       dir,
@@ -208,7 +216,7 @@ module.exports = ({
     });
     const { type: rawType } = message;
 
-    if (!rawType.startsWith('transport:')) return;
+    if (!rawType.startsWith('transport:')) return onMessage(message, options);
     const type = rawType.replace(/^transport:/, '');
 
     switch (type) {
