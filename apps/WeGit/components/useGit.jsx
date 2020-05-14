@@ -73,7 +73,13 @@ export default ({
     baseSetIsLocked(value);
   };
   const getIsLocked = () => isLockedRef.current;
+
   const progressPrefixRef = useRef('');
+
+  const setProgressPrefix = value => {
+    progressPrefixRef.current = value;
+  };
+  const getProgressPrefix = () => progressPrefixRef.current;
   const emitterRef = useRef();
 
   // Init
@@ -86,17 +92,27 @@ export default ({
       emitterRef.current = new EventEmitter();
       emitterRef.current.on('progress', nextProgress => {
         const phaseNos = {
-          'Receiving objects': 2,
-          'Resolving deltas': 3,
-          'Updating workdir': 4,
+          Pushing: {
+            'Analyzing workdir': 3,
+            'Updating workdir': 4,
+          },
+          Cloning: {
+            'Receiving objects': 2,
+            'Resolving deltas': 3,
+            'Updating workdir': 4,
+          },
         };
-
-        setProgress({
-          ...nextProgress,
-          phase: progressPrefixRef.current + nextProgress.phase,
-          phaseNo: phaseNos[nextProgress.phase] || '!!',
-          phasesTotal: 4,
-        });
+        setProgress(
+          nextProgress && {
+            ...nextProgress,
+            phase: progressPrefixRef.current
+              ? `${progressPrefixRef.current}: ${nextProgress.phase}`
+              : nextProgress.phase,
+            phaseNo:
+              phaseNos[progressPrefixRef.current][nextProgress.phase] || '!!',
+            phasesTotal: 4,
+          },
+        );
       });
 
       git.plugins.set('fs', fs);
@@ -105,7 +121,6 @@ export default ({
       window.gitInternals = gitInternals;
 
       const nextHelpers = gitHelpers({ git, gitInternals, fs });
-
       const { onMessage } = transportMiddleware({
         fs,
         git,
@@ -113,6 +128,9 @@ export default ({
         setIsLocked,
         getIsLocked,
         onProgress: progress => setProgress(progress),
+        setProgressPrefix,
+        getProgressPrefix,
+        onFsUpdate,
       })({
         onMessage: message => {
           console.log(message, '!!!!!!!');
@@ -121,7 +139,19 @@ export default ({
           AppShell.send(userId, message, options),
       });
 
-      AppShell.on('message', onMessage);
+      AppShell.on('message', onMessage, {
+        onProgress: progress => {
+          if (getProgressPrefix() !== 'Pushing') return;
+          setProgress(
+            progress && {
+              ...progress,
+              phase: `${getProgressPrefix()}: ${progress.phase}`,
+              phaseNo: 2,
+              phasesTotal: 4,
+            },
+          );
+        },
+      });
       setState({
         ...state,
         helpers: nextHelpers,
@@ -180,7 +210,7 @@ export default ({
     if (isLocked) return void showError('Repository is locked');
     setIsLocked(true);
 
-    progressPrefixRef.current = 'Cloning: ';
+    progressPrefixRef.current = 'Cloning';
     setProgress({
       phase: 'Cloning: Preparing',
       loaded: 0,

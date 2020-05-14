@@ -30,6 +30,7 @@ const { appShellLocalApp } = config();
 const main = () => {
   let AppShell;
   const eventTarget = new EventTarget();
+  let options = {};
 
   const { send, onMessage } = receiveInChunksMiddleware(
     sendInChunksMiddleware({
@@ -37,7 +38,7 @@ const main = () => {
         callMethod('send', [userId, message]);
       },
 
-      onMessage(message) {
+      onMessage(message, options) {
         const appEvent = new Event('message');
         appEvent.data = message;
         eventTarget.dispatchEvent(appEvent);
@@ -48,10 +49,12 @@ const main = () => {
   const sendAll = message => {
     AppShell.users.forEach(u => send(u.id, message));
   };
-
-  const on = (type, fn) => {
+  const on = (type, fn, nextOptions = {}) => {
     if (type !== 'message') return;
-    eventTarget.addEventListener('message', e => fn(e.data /* message */));
+    eventTarget.addEventListener('message', e => {
+      options = nextOptions;
+      fn(e.data /* message */);
+    });
   };
 
   window.addEventListener('message', e => {
@@ -98,7 +101,7 @@ const main = () => {
       default:
     }
 
-    onMessage(message);
+    onMessage(message, options);
   });
 
   callMethod('init');

@@ -50,7 +50,8 @@ const getRootDir = async () =>
 // Main
 // =============================================================================
 
-const DEBUG = false;
+const DEBUG = true;
+const DEBUG2 = false;
 
 const port = process.env.PORT || 1996;
 
@@ -61,8 +62,15 @@ const main = async () => {
     connections: [],
     globalState: 'disconnected',
   };
+  let agent;
 
-  const onChange = nextMeshState => (meshState = nextMeshState);
+  // send abort if no push needed
+  let shouldSendAbort = false;
+
+  const onChange = async nextMeshState => {
+    meshState = nextMeshState;
+    agent = await findAgent(nextMeshState);
+  };
 
   const dir = await getRootDir();
 
@@ -105,7 +113,7 @@ const main = async () => {
           send(userId, message) {
             if (!userId) return;
             const { type, payload } = message;
-            if (DEBUG)
+            if (DEBUG2)
               console.warn('->', JSON.stringify(message, undefined, 2));
 
             connection.write(
@@ -141,7 +149,7 @@ const main = async () => {
         case 'change':
           return onChange(...args);
         case 'send': {
-          if (DEBUG) console.warn('<-', JSON.stringify(args[0], undefined, 2));
+          if (DEBUG2) console.warn('<-', JSON.stringify(args[0], undefined, 2));
           return onMessage(...args, {
             onProgress: progress => {
               onProgress({
@@ -169,7 +177,12 @@ const main = async () => {
 
         if (DEBUG) console.warn('[->]', value);
         const message = parser.stdinToMessage(value);
-        await send(findAgent(meshState), message, {
+
+        shouldSendAbort = false;
+        if (message.type === 'transport:list' && message.payload.forPush)
+          shouldSendAbort = true;
+
+        await send(agent, message, {
           onProgress: progress => {
             if (!progress) return;
             onProgress({
@@ -188,6 +201,11 @@ const main = async () => {
             phasesTotal: 3,
           });
       })();
+    });
+
+    process.on('exit', () => {
+      if (shouldSendAbort)
+        send(agent, { type: 'transport:abort', payload: undefined });
     });
   });
 

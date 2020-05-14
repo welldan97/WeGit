@@ -12,11 +12,13 @@ const getHandler = ({
   gitInternals,
   setIsLocked,
   getIsLocked,
+  setProgressPrefix,
+  getProgressPrefix,
   dir = '.',
   send,
   onProgress,
+  onFsUpdate,
 }) => {
-  let currentWork;
   const helpers = gitHelpers({
     fs,
     git,
@@ -40,22 +42,32 @@ const getHandler = ({
 
     async list(message) {
       const { forPush } = message.payload;
-      currentWork = forPush ? 'Pushing' : 'Pulling';
+      setProgressPrefix(forPush ? 'Pushing' : 'Pulling');
 
       const refs = await helpers.listRefs();
 
-      if (refs.length) {
+      if (getProgressPrefix() === 'Pulling' && refs.length) {
         onProgress({
-          phase: `${currentWork}: Preparing`,
+          phase: `${getProgressPrefix()}: Preparing`,
           loaded: 0,
           lengthComputable: false,
           phaseNo: 1,
           phasesTotal: 2,
         });
+      } else if (getProgressPrefix() === 'Pushing') {
+        onProgress({
+          phase: `${getProgressPrefix()}: Preparing`,
+          loaded: 0,
+          lengthComputable: false,
+          phaseNo: 1,
+          phasesTotal: 4,
+        });
       } else {
+        setProgressPrefix(undefined);
         onProgress(undefined);
         setIsLocked(false);
       }
+
       send(message.path[0], {
         type: 'transport:listResponse',
         payload: { refs, forPush },
@@ -78,7 +90,7 @@ const getHandler = ({
             onProgress(
               progress && {
                 ...progress,
-                phase: `${currentWork}: Sending`,
+                phase: `${getProgressPrefix()}: Sending`,
                 phaseNo: 2,
                 phasesTotal: 2,
               },
@@ -86,6 +98,7 @@ const getHandler = ({
           },
         },
       );
+      setProgressPrefix(undefined);
       setIsLocked(false);
     },
 
@@ -93,12 +106,23 @@ const getHandler = ({
       const { diffBundle } = message.payload;
       await helpers.applyDiffBundle(diffBundle);
 
-      send(message.path[0], {
+      await send(message.path[0], {
         type: 'transport:pushResponse',
         payload: {
           refDiff: diffBundle.refDiff,
         },
       });
+
+      onFsUpdate();
+      setProgressPrefix(undefined);
+      onProgress(undefined);
+      setIsLocked(false);
+    },
+
+    async abort(message) {
+      setProgressPrefix(undefined);
+      onProgress(undefined);
+      setIsLocked(false);
     },
   };
 };
@@ -112,7 +136,10 @@ module.exports = ({
   gitInternals,
   setIsLocked,
   getIsLocked,
+  setProgressPrefix,
+  getProgressPrefix,
   onProgress,
+  onFsUpdate,
 }) => ({ send, onMessage }) => {
   const handler = getHandler({
     fs,
@@ -120,8 +147,11 @@ module.exports = ({
     gitInternals,
     setIsLocked,
     getIsLocked,
+    setProgressPrefix,
+    getProgressPrefix,
     send,
     onProgress,
+    onFsUpdate,
   });
 
   const nextSend = (userId, message, options) => {
@@ -142,6 +172,8 @@ module.exports = ({
         return await handler.fetch(message);
       case 'push':
         return await handler.push(message);
+      case 'abort':
+        return await handler.abort(message);
 
       default:
         return onMessage(message);
