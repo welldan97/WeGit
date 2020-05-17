@@ -42,7 +42,7 @@ const getRootDir = async () =>
 // Main
 // =============================================================================
 
-const DEBUG = true;
+const DEBUG = false;
 const DEBUG2 = false;
 
 const port = process.env.PORT || 1996;
@@ -185,8 +185,7 @@ const main = async () => {
         const message = parser.stdinToMessage(value);
 
         shouldSendAbort = false;
-        if (message.type === 'transport:list' && message.payload.forPush)
-          shouldSendAbort = true;
+        if (message.type === 'transport:list') shouldSendAbort = true;
 
         await send(agent, message, {
           onProgress: progress => {
@@ -210,8 +209,10 @@ const main = async () => {
     });
 
     process.on('exit', () => {
-      if (shouldSendAbort)
+      if (shouldSendAbort) {
+        onDone();
         send(agent, { type: 'transport:abort', payload: undefined });
+      }
     });
   });
 
