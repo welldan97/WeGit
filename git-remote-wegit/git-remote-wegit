@@ -16,6 +16,7 @@ const sendInChunksMiddleware = require('wegit-lib/utils/sendInChunksMiddleware')
 
 const parser = require('./lib/parser');
 const transportMiddleware = require('./lib/transportMiddleware');
+const findAgentMiddleware = require('./lib/findAgentMiddleware');
 
 // Utils
 // =============================================================================
@@ -24,15 +25,6 @@ const onError = message => {
   console.warn('');
   console.warn(`Error: ${message}`);
   process.exit(1);
-};
-
-const findAgent = meshState => {
-  const wgOsConnection = meshState.connections
-    .filter(c => c.state === 'connected')
-    .filter(c => c.user && c.user.type === 'browser')[0];
-  if (!wgOsConnection) return;
-
-  return wgOsConnection.user.id;
 };
 
 const getRootDir = async () =>
@@ -62,19 +54,27 @@ const main = async () => {
     connections: [],
     globalState: 'disconnected',
   };
-  let agent;
 
   // send abort if no push needed
   let shouldSendAbort = false;
 
+  let isReady = false;
+  let isReadyResolve;
+  const isReadyPromise = new Promise(
+    resolve => (isReadyResolve = (...args) => resolve(...args)),
+  );
+
   const onChange = async nextMeshState => {
+    if (!isReady && nextMeshState.globalState === 'connected') {
+      isReady = true;
+      isReadyResolve(nextMeshState);
+    }
     meshState = nextMeshState;
-    agent = await findAgent(nextMeshState);
   };
 
   const dir = await getRootDir();
 
-  const connection = net.connect({ port }, () => {
+  const connection = net.connect({ port }, async () => {
     const remote = process.argv[2];
     const url = process.argv[3];
 
@@ -97,7 +97,7 @@ const main = async () => {
       console.warn('\u{2705} Done');
     };
 
-    const { send, onMessage } = receiveInChunksMiddleware(
+    const { send, onMessage, findAgent } = receiveInChunksMiddleware(
       transportMiddleware({
         git,
         gitInternals,
@@ -109,37 +109,39 @@ const main = async () => {
         onProgress,
         DEBUG,
       })(
-        sendInChunksMiddleware({
-          send(userId, message) {
-            if (!userId) return;
-            const { type, payload } = message;
-            if (DEBUG2)
-              console.warn('->', JSON.stringify(message, undefined, 2));
+        findAgentMiddleware({ isReadyPromise })(
+          sendInChunksMiddleware({
+            send(userId, message) {
+              if (!userId) return;
+              const { type, payload } = message;
+              if (DEBUG2)
+                console.warn('->', JSON.stringify(message, undefined, 2));
 
-            connection.write(
-              JSON.stringify({
-                method: 'send',
-                args: [userId, { type: `app:${type}`, payload }],
-              }),
-            );
-          },
+              connection.write(
+                JSON.stringify({
+                  method: 'send',
+                  args: [userId, { type: `app:${type}`, payload }],
+                }),
+              );
+            },
 
-          onMessage(message) {
-            const value = parser.messageToStdout(message);
-            if (DEBUG) console.warn('[<-]', value);
-            // TODO: move from here
-            if (message.type === 'transport:fetchResponse') onDone();
-            if (message.type === 'transport:pushResponse') onDone();
-            if (
-              message.type === 'transport:listResponse' &&
-              !message.payload.refs.length &&
-              !message.payload.forPush
-            )
-              onDone();
+            onMessage(message) {
+              const value = parser.messageToStdout(message);
+              if (DEBUG) console.warn('[<-]', value);
+              // TODO: move from here
+              if (message.type === 'transport:fetchResponse') onDone();
+              if (message.type === 'transport:pushResponse') onDone();
+              if (
+                message.type === 'transport:listResponse' &&
+                !message.payload.refs.length &&
+                !message.payload.forPush
+              )
+                onDone();
 
-            process.stdout.write(value);
-          },
-        }),
+              process.stdout.write(value);
+            },
+          }),
+        ),
       ),
     );
 
@@ -164,6 +166,10 @@ const main = async () => {
           return onError(`unknown method ${method}`);
       }
     });
+
+    await isReadyPromise;
+    const agent = await findAgent;
+    if (!agent) return void onError('Could not connect, try again later');
 
     process.stdin.setEncoding('utf8');
     process.stdin.on('readable', () => {

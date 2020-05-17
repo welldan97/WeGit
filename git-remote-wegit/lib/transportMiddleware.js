@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 // Imports
 // =============================================================================
 
@@ -171,7 +169,7 @@ module.exports = ({
   onError,
   onProgress,
   DEBUG,
-}) => ({ send, onMessage }) => {
+}) => ({ send, onMessage, ...args }) => {
   const nextSend = async (userId, message, options) => {
     const handler = getSendHandler({
       fs,
@@ -185,7 +183,7 @@ module.exports = ({
     });
     const { type: rawType } = message;
 
-    if (!rawType.startsWith('transport:'))
+    if (!rawType.startsWith('transport:') || rawType === 'transport:status')
       return send(userId, message, options);
     const type = rawType.replace(/^transport:/, '');
 
@@ -216,7 +214,11 @@ module.exports = ({
     });
     const { type: rawType } = message;
 
-    if (!rawType.startsWith('transport:')) return onMessage(message, options);
+    if (
+      !rawType.startsWith('transport:') ||
+      rawType === 'transport:statusResponse'
+    )
+      return onMessage(message, options);
     const type = rawType.replace(/^transport:/, '');
 
     switch (type) {
@@ -231,5 +233,5 @@ module.exports = ({
     }
   };
 
-  return { send: nextSend, onMessage: nextOnMessage };
+  return { ...args, send: nextSend, onMessage: nextOnMessage };
 };

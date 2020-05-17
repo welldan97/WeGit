@@ -27,10 +27,18 @@ const getHandler = ({
   });
 
   return {
+    async status(message) {
+      send(message.path[0], {
+        type: 'transport:statusResponse',
+        payload: { isReady: !getIsLocked() },
+      });
+    },
+
     async capabilites(message) {
       if (getIsLocked())
         return void send(message.path[0], {
           type: 'transport:busy',
+          payload: {},
         });
 
       setIsLocked(true);
@@ -164,6 +172,8 @@ module.exports = ({
     const type = rawType.replace(/^transport:/, '');
 
     switch (type) {
+      case 'status':
+        return await handler.status(message);
       case 'capabilities':
         return await handler.capabilites(message);
       case 'list':
