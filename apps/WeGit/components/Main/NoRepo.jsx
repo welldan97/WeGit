@@ -72,6 +72,7 @@ export default function NoRepo({ progress, onClone }) {
                     >
                       Clone
                     </button>
+                    <div className="bg-danger">TODO: push from local</div>
                   </form>
                 </div>
               </div>

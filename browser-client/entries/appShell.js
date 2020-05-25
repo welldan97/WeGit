@@ -49,9 +49,10 @@ const main = () => {
   const sendAll = message => {
     AppShell.users.forEach(u => send(u.id, message));
   };
+
   const on = (type, fn, nextOptions = {}) => {
-    if (type !== 'message') return;
-    eventTarget.addEventListener('message', e => {
+    if (type !== 'message' && type !== 'saveUsers') return;
+    eventTarget.addEventListener(type, e => {
       options = nextOptions;
       fn(e.data /* message */);
     });
@@ -96,6 +97,11 @@ const main = () => {
 
       case 'os:saveUsers': {
         AppShell.users = payload.users;
+
+        const appEvent = new Event('saveUsers');
+        appEvent.data = AppShell.users;
+        eventTarget.dispatchEvent(appEvent);
+
         return;
       }
       default:

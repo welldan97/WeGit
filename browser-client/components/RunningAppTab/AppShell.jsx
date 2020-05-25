@@ -2,6 +2,7 @@
 // =============================================================================
 
 import React, { memo, useEffect, useState, useRef } from 'react';
+import isEqual from 'lodash/fp/isEqual';
 
 import Iframe from './Iframe';
 
@@ -66,7 +67,9 @@ const methods = ({ app, currentUser, users, transport, utils, onReady }) => ({
     });
   },
 
-  saveUsers(users) {
+  saveUsers(users, prevUsers) {
+    if (isEqual(users, prevUsers)) return;
+    console.log('SAVE', users, prevUsers);
     transport.sendBack({
       type: 'app:os:saveUsers',
       payload: {
@@ -150,7 +153,16 @@ export default memo(function AppShell({
     currentUser,
   ]);
 
-  useEffect(() => methodsRef.current.saveUsers(users), [users]);
+  const prevUsersRef = useRef(users);
+
+  useEffect(() => {
+    // FIXME: fixing some users events mistakes here
+    //   this should be fixed somewhere earlier
+    //   also this whole file seem ugly, should be refactored
+    const nextUsers = users.filter(e => e);
+    methodsRef.current.saveUsers(nextUsers, prevUsersRef.current);
+    prevUsersRef.current = nextUsers;
+  }, [users]);
 
   // Render
   // ---------------------------------------------------------------------------
