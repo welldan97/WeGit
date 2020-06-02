@@ -3,6 +3,8 @@
 
 import gitHelpers from 'wegit-lib/utils/gitHelpers';
 
+import { promisify } from 'util';
+
 // Main
 // =============================================================================
 
@@ -12,14 +14,7 @@ module.exports = ({
   gitInternals,
   dir = '.',
   onUpdate,
-  setSharedStateAfetrUpdate,
-
-  /*setIsLocked,
-  getIsLocked,
-  setProgressPrefix,
-  getProgressPrefix,
-  onProgress,
-  onUpdate,*/
+  setSharedStateAfterUpdate,
 }) => ({ send, onMessage, ...args }) => {
   const helpers = gitHelpers({
     fs,
@@ -62,36 +57,65 @@ module.exports = ({
   const synchronize = async (nextSharedState, id) => {
     const { refs } = nextSharedState;
 
-    const refDiff = await Promise.all(
-      refs.map(async rh => {
-        let hasOid;
+    if (refs.length) {
+      const refDiff = await Promise.all(
+        refs.map(async rh => {
+          let hasOid;
+
+          try {
+            hasOid = await git.resolveRef({ dir, ref: rh.ref });
+          } catch (e) {
+            //
+          }
+          return {
+            ref: rh.ref,
+            wantOid: rh.oid,
+            hasOid,
+          };
+        }),
+      );
+
+      await send(id, {
+        type: 'sync:fetch',
+        payload: { refDiff },
+      });
+      await new Promise(resolve => (resolveFetch = resolve));
+    } else {
+      const readdir = promisify(fs.readdir);
+      const lstat = promisify(fs.lstat);
+      const unlink = promisify(fs.unlink);
+      const rmdir = promisify(fs.rmdir);
+
+      // FIXME: copypasta, duplicate with onReset
+      const exists = ({ fs }) => async path => {
+        const lstat = promisify(fs.lstat);
 
         try {
-          hasOid = await git.resolveRef({ dir, ref: rh.ref });
+          await lstat(path);
+          return true;
         } catch (e) {
-          //
+          return false;
         }
-        return {
-          ref: rh.ref,
-          wantOid: rh.oid,
-          hasOid,
-        };
-      }),
-    );
-    /*
-    const oidRanges = refDiff
-      .filter(r => r.hasOid !== r.wantOid)
-      .map(r => ({
-        wantOid: r.wantOid,
-        hasOid: r.hasOid,
-      }));*/
+      };
 
-    await send(id, {
-      type: 'sync:fetch',
-      payload: { refDiff },
-    });
-    await new Promise(resolve => (resolveFetch = resolve));
-    setSharedStateAfetrUpdate(nextSharedState);
+      const deleteFolderRecursive = async path => {
+        if (path === '/' || exists({ fs })(path)) {
+          await Promise.all(
+            (await readdir(path)).map(async file => {
+              const curPath = path === '/' ? '/' + file : path + '/' + file;
+              if ((await lstat(curPath)).isDirectory())
+                await deleteFolderRecursive(curPath);
+              else await unlink(curPath);
+            }),
+          );
+
+          if (path !== '/') await rmdir(path);
+        }
+      };
+      await deleteFolderRecursive('/');
+    }
+
+    setSharedStateAfterUpdate(nextSharedState);
     onUpdate();
   };
 

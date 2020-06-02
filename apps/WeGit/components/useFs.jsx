@@ -134,7 +134,6 @@ export default ({ path: basePath }) => {
   }, []);
 
   const onFsUpdate = useCallback(() => {
-    console.log(state);
     setState({
       ...state,
       version: state.version + 1,
@@ -151,7 +150,6 @@ export default ({ path: basePath }) => {
         currentFile.isDirectory,
       );
       const hasRepo = await getHasRepo({ fs })();
-      console.log('fsUpdate', hasRepo);
 
       setState({
         ...state,

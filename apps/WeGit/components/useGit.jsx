@@ -97,7 +97,6 @@ export default ({
     syncOutdated,
     syncTotal,
   ) => {
-    console.log('!', isSynchronizing);
     setIsLocked(isSynchronizing);
     if (isSynchronizing)
       setProgress({
@@ -114,18 +113,17 @@ export default ({
     return Math.sign(a.version - b.version);
   };
 
-  const setSharedState = nextSharedState => {
+  const setSharedState = (nextSharedState, { force = false } = {}) => {
     localStorage.setItem(
       'wegit',
       JSON.stringify({ version: nextSharedState.version }),
     );
-    console.log('sharedStateChange', nextSharedState);
-    sharedStateBindingsRef.current.changeState(nextSharedState);
+    sharedStateBindingsRef.current.changeState(nextSharedState, { force });
     sharedStateBindingsRef.current.ready();
     baseSetSharedState(nextSharedState);
   };
 
-  const setSharedStateAfetrUpdate = nextSharedState => {
+  const setSharedStateAfterUpdate = nextSharedState => {
     localStorage.setItem(
       'wegit',
       JSON.stringify({ version: nextSharedState.version }),
@@ -156,6 +154,7 @@ export default ({
       shouldUpdateFs = true,
       shouldUpdateVersion = true,
       shouldUpdateSharedState = true,
+      reset = false,
     } = {}) => {
       if (!state.isGitReady) return;
 
@@ -172,11 +171,14 @@ export default ({
           const refs = await libHelpers.listRefs();
           if (isEqual(refs, sharedState.refs)) return;
 
-          setSharedState({
-            ...sharedState,
-            version: sharedState.version + 1,
-            refs,
-          });
+          setSharedState(
+            {
+              ...sharedState,
+              version: reset ? 0 : sharedState.version + 1,
+              refs,
+            },
+            { force: reset },
+          );
         })();
     };
   }, [state, sharedState, onFsUpdate]);
@@ -236,7 +238,7 @@ export default ({
           onUpdateRef.current({
             shouldUpdateSharedState: false,
           }),
-        setSharedStateAfetrUpdate,
+        setSharedStateAfterUpdate,
       })({
         onMessage: message => {
           console.log(message, '!!!!!!!');
@@ -265,7 +267,7 @@ export default ({
           onChangeState: passedMiddleware.synchronize,
           onSynchronizing: onSharedStateSynchronizing,
           stateComparator: sharedStateComparator,
-          onInnerStateChange: sharedState => console.log('SHARED', sharedState),
+          //onInnerStateChange: sharedState => console.log('SHARED', sharedState),
 
           initialState: sharedState,
           initialUsers: AppShell.users,
@@ -407,7 +409,7 @@ export default ({
     };
     await deleteFolderRecursive('/');
     setProgress(undefined);
-    onUpdateRef.current();
+    onUpdateRef.current({ reset: true });
 
     setIsLocked(false);
   };
