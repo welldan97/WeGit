@@ -56,7 +56,7 @@ export default function useJustWgOs({
       signalling,
       currentUser,
       apps,
-      log,
+      //log,
     });
 
     wgOsRef.current.on('mesh:change', (...args) =>

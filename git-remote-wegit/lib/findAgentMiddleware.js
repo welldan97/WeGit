@@ -28,10 +28,13 @@ module.exports = ({ isReadyPromise }) => ({ send, onMessage, ...args }) => {
   };
 
   isReadyPromise.then(meshState => {
-    const userIds = meshState.connections
-      .filter(c => c.state === 'connected')
-      .filter(c => c.user && c.user.type === 'browser')
-      .map(c => c.user.id);
+    // NOTE: for now due locks, just ask first user
+    const userIds = [
+      meshState.connections
+        .filter(c => c.state === 'connected')
+        .filter(c => c.user && c.user.type === 'browser')
+        .map(c => c.user.id)[0],
+    ];
 
     userIdsToProcess = userIds.length;
     if (!userIds.length) return findAgentResolve(undefined);

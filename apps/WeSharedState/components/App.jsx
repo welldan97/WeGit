@@ -21,12 +21,12 @@ const initialState = {
   b: randomString(),
 };
 
-const showInnerState = false;
+const showInnerState = true;
 
 export default function App({ AppShell }) {
   const [state, setState] = useState(initialState);
   const [innerState, setInnerState] = useState({});
-  const [isSynchronizing, setIsSynchronizing] = useState(false);
+  const [isSynchronizing, setIsSynchronizing] = useState(true);
   const sharedStateRef = useRef();
 
   const onChangeState = async nextState => {
@@ -64,6 +64,8 @@ export default function App({ AppShell }) {
       });
       AppShell.on('message', onMessage);
       AppShell.on('saveUsers', sharedState.saveUsers);
+      setTimeout(sharedState.ready, Math.random() * 3000 + 1000);
+
       sharedStateRef.current = sharedState;
     })();
   }, []);

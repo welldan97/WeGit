@@ -39,9 +39,9 @@ const getFilesAndPreviewFile = ({ fs }) => async (path, isDirectory) => {
 
     const rawFiles = await Promise.all(
       fileNames.map(async name => {
-        const isDirectory = (await lstat(
-          `${path === '/' ? '' : path}/${name}`,
-        )).isDirectory();
+        const isDirectory = (
+          await lstat(`${path === '/' ? '' : path}/${name}`)
+        ).isDirectory();
 
         return {
           name,
@@ -133,11 +133,13 @@ export default ({ path: basePath }) => {
     });
   }, []);
 
-  const onFsUpdate = () =>
+  const onFsUpdate = useCallback(() => {
+    console.log(state);
     setState({
       ...state,
       version: state.version + 1,
     });
+  }, [state]);
 
   useEffect(() => {
     if (!isBrowserFsReady) return;
@@ -149,6 +151,7 @@ export default ({ path: basePath }) => {
         currentFile.isDirectory,
       );
       const hasRepo = await getHasRepo({ fs })();
+      console.log('fsUpdate', hasRepo);
 
       setState({
         ...state,

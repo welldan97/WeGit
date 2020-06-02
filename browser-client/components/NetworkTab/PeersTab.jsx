@@ -7,7 +7,6 @@ import React from 'react';
 // =============================================================================
 
 const getUserType = user => {
-  console.log(user);
   switch (user.type) {
     case 'browser':
       return '\u{1F30D}';

@@ -69,7 +69,6 @@ const methods = ({ app, currentUser, users, transport, utils, onReady }) => ({
 
   saveUsers(users, prevUsers) {
     if (isEqual(users, prevUsers)) return;
-    console.log('SAVE', users, prevUsers);
     transport.sendBack({
       type: 'app:os:saveUsers',
       payload: {
@@ -128,13 +127,16 @@ export default memo(function AppShell({
   const listenerRef = useRef(undefined);
 
   useEffect(() => {
-    const listener = e => listenerRef.current(e);
+    const listener = e => {
+      if (!listenerRef.current) return;
+      return listenerRef.current(e);
+    };
     window.addEventListener('message', listener);
 
     return () => {
       window.removeEventListener('message', listener);
     };
-  }, []);
+  }, [listenerRef.current]);
 
   useEffect(() => {
     if (!runningApp) return;

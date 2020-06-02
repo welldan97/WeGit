@@ -32,7 +32,7 @@ export default function Progressbar({ progress: progressObject, isLocked }) {
       <div className="mr-2" style={{ width: '400px' }}>
         {!!progressObject && (
           <>
-            {'\u{23F3}'}
+            {'\u{23F3} '}
             {phasesTotal !== 1 && `(${phaseNo}/${phasesTotal}) `}
             {progressObject.phase}…
           </>

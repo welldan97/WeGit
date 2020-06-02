@@ -17,7 +17,7 @@ const getHandler = ({
   dir = '.',
   send,
   onProgress,
-  onFsUpdate,
+  onUpdate,
 }) => {
   const helpers = gitHelpers({
     fs,
@@ -121,13 +121,13 @@ const getHandler = ({
         },
       });
 
-      onFsUpdate();
+      onUpdate();
       setProgressPrefix(undefined);
       onProgress(undefined);
       setIsLocked(false);
     },
 
-    async abort(message) {
+    async abort() {
       setProgressPrefix(undefined);
       onProgress(undefined);
       setIsLocked(false);
@@ -147,8 +147,8 @@ module.exports = ({
   setProgressPrefix,
   getProgressPrefix,
   onProgress,
-  onFsUpdate,
-}) => ({ send, onMessage }) => {
+  onUpdate,
+}) => ({ send, onMessage, ...args }) => {
   const handler = getHandler({
     fs,
     git,
@@ -159,7 +159,7 @@ module.exports = ({
     getProgressPrefix,
     send,
     onProgress,
-    onFsUpdate,
+    onUpdate,
   });
 
   const nextSend = (userId, message, options) => {
@@ -190,5 +190,5 @@ module.exports = ({
     }
   };
 
-  return { send: nextSend, onMessage: nextOnMessage };
+  return { send: nextSend, onMessage: nextOnMessage, ...args };
 };
