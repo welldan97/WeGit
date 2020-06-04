@@ -3,7 +3,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 
-import sharedStateMiddleware from 'wegit-lib/utils/sharedStateMiddleware';
+import sharedVersionStateMiddleware from 'wegit-lib/utils/sharedVersionStateMiddleware';
 
 // Utils
 // =============================================================================
@@ -48,7 +48,7 @@ export default function App({ AppShell }) {
   };
   useEffect(() => {
     (async () => {
-      const { send, onMessage, sharedState } = sharedStateMiddleware({
+      const { send, onMessage, sharedState } = sharedVersionStateMiddleware({
         onChangeState,
         onInnerStateChange,
         onSynchronizing: setIsSynchronizing,

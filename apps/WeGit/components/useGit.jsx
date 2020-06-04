@@ -8,7 +8,8 @@ import * as git from 'isomorphic-git';
 import * as gitInternals from 'isomorphic-git/dist/internal.umd.min.js';
 import EventEmitter from 'eventemitter3';
 
-import sharedStateMiddleware from 'wegit-lib/utils/sharedStateMiddleware';
+import sharedVersionStateMiddleware from 'wegit-lib/utils/sharedVersionStateMiddleware';
+import sharedSimpleStateMiddleware from 'wegit-lib/utils/sharedSimpleStateMiddleware';
 
 import gitHelpers from './lib/gitHelpers';
 import libGitHelpers from 'wegit-lib/utils/gitHelpers';
@@ -83,13 +84,12 @@ export default ({
   const getProgressPrefix = () => progressPrefixRef.current;
   const emitterRef = useRef();
 
-  // Shared State
+  // Shared Version State (repo itself)
   // ---------------------------------------------------------------------------
 
   const sharedStateBindingsRef = useRef();
   const [sharedState, baseSetSharedState] = useState({
-    version: JSON.parse(localStorage.getItem('wegit') || '{"version": 0}')
-      .version,
+    version: JSON.parse(localStorage.getItem('wegit') || '{}').version || 0,
     refs: undefined,
   });
   const onSharedStateSynchronizing = (
@@ -116,7 +116,10 @@ export default ({
   const setSharedState = (nextSharedState, { force = false } = {}) => {
     localStorage.setItem(
       'wegit',
-      JSON.stringify({ version: nextSharedState.version }),
+      JSON.stringify({
+        ...JSON.parse(localStorage.getItem('wegit') || '{}'),
+        version: nextSharedState.version,
+      }),
     );
     sharedStateBindingsRef.current.changeState(nextSharedState, { force });
     sharedStateBindingsRef.current.ready();
@@ -143,6 +146,42 @@ export default ({
       });
     })();
   }, [isGitReady]);
+
+  // Shared Simple State (repo metadata)
+  // ---------------------------------------------------------------------------
+  const initialSharedSimpleStateBase =
+    localStorage.getItem('wegit') && JSON.parse(localStorage.getItem('wegit'));
+
+  const initialSharedSimpleState =
+    (initialSharedSimpleStateBase &&
+      initialSharedSimpleStateBase.name && {
+        name: initialSharedSimpleStateBase.name,
+      }) ||
+    undefined;
+
+  const [sharedSimpleState, baseSetSharedSimpleState] = useState(
+    initialSharedSimpleState && {
+      name: initialSharedSimpleState.name,
+    },
+  );
+
+  const sharedSimpleStateBindingsRef = useRef();
+
+  const setSharedSimpleState = nextState => {
+    localStorage.setItem(
+      'wegit',
+      JSON.stringify({
+        ...JSON.parse(localStorage.getItem('wegit') || '{}'),
+        name: nextState.name,
+      }),
+    );
+    sharedSimpleStateBindingsRef.current.changeState(nextState);
+    baseSetSharedSimpleState(nextState);
+  };
+
+  const onChangeRepoName = name => {
+    setSharedSimpleState({ ...sharedSimpleState, name });
+  };
 
   // Update
   // ---------------------------------------------------------------------------
@@ -252,6 +291,7 @@ export default ({
       const {
         onMessage,
         sharedState: sharedStateBindings,
+        sharedSimpleState: sharedSimpleStateBindings,
       } = transportMiddleware({
         fs,
         git,
@@ -263,18 +303,29 @@ export default ({
         getProgressPrefix,
         onUpdate: () => onUpdateRef.current(),
       })(
-        sharedStateMiddleware({
-          onChangeState: passedMiddleware.synchronize,
-          onSynchronizing: onSharedStateSynchronizing,
-          stateComparator: sharedStateComparator,
-          //onInnerStateChange: sharedState => console.log('SHARED', sharedState),
+        sharedSimpleStateMiddleware({
+          onChangeState: baseSetSharedSimpleState,
 
-          initialState: sharedState,
+          initialState: sharedSimpleState,
           initialUsers: AppShell.users,
-        })(passedMiddleware),
+        })(
+          sharedVersionStateMiddleware({
+            onChangeState: passedMiddleware.synchronize,
+            onSynchronizing: onSharedStateSynchronizing,
+            stateComparator: sharedStateComparator,
+            //onInnerStateChange: sharedState => console.log('SHARED', sharedState),
+
+            initialState: sharedState,
+            initialUsers: AppShell.users,
+          })(passedMiddleware),
+        ),
       );
       sharedStateBindingsRef.current = sharedStateBindings;
-      AppShell.on('saveUsers', sharedStateBindings.saveUsers);
+      sharedSimpleStateBindingsRef.current = sharedSimpleStateBindings;
+      AppShell.on('saveUsers', users => {
+        sharedStateBindings.saveUsers(users);
+        sharedSimpleStateBindings.saveUsers(users);
+      });
       AppShell.on(
         'message',
         (...args) => {
@@ -370,7 +421,7 @@ export default ({
     progressPrefixRef.current = '';
     setProgress(undefined);
     onUpdateRef.current();
-
+    onChangeRepoName(url.replace(/^.*\//, '').replace(/\..*$/, ''));
     setIsLocked(false);
   };
 
@@ -412,6 +463,7 @@ export default ({
     onUpdateRef.current({ reset: true });
 
     setIsLocked(false);
+    onChangeRepoName('');
   };
 
   return {
@@ -419,6 +471,8 @@ export default ({
     isLocked,
     progress,
     files: filesWithCommits,
+    repoName: (sharedSimpleState && sharedSimpleState.name) || '',
+    onChangeRepoName,
     currentBranch,
     lastCommitHolder,
     onClone,

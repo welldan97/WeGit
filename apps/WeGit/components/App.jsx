@@ -19,7 +19,6 @@ export default function App({ AppShell }) {
   const [basePath, setBasePath] = useState('/');
   const onPathChange = useCallback(path => setBasePath(path), [setBasePath]);
 
-  const repoName = '';
   const ciState = 'disabled';
   const {
     isReady: isFsReady,
@@ -40,6 +39,8 @@ export default function App({ AppShell }) {
 
     progress,
 
+    repoName,
+    onChangeRepoName,
     currentBranch,
     lastCommitHolder,
 
@@ -100,7 +101,9 @@ export default function App({ AppShell }) {
             }}
           />
         )}
-        {activeTab === 'settings' && <Settings {...{ onReset }} />}
+        {activeTab === 'settings' && (
+          <Settings {...{ repoName, onChangeRepoName, onReset }} />
+        )}
       </div>
       <Progressbar progress={progress} isLocked={isLocked} />
     </>
