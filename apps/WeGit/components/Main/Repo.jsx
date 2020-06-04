@@ -1,7 +1,7 @@
 // Imports
 // =============================================================================
 
-import React, { Fragment } from 'react';
+import React, { Fragment, useState } from 'react';
 
 import Files from './Files';
 import Preview from './Preview';
@@ -12,6 +12,8 @@ import Preview from './Preview';
 export default function Repo({
   repoName,
   currentBranch,
+  branches,
+  onChangeBranch,
   lastCommitHolder,
 
   path,
@@ -21,6 +23,8 @@ export default function Repo({
   currentFile,
 }) {
   const pathParts = path === '/' ? [] : path.replace(/^\//, '').split('/');
+
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
 
   return (
     <>
@@ -34,19 +38,37 @@ export default function Repo({
           >
             {'\u{1F5C4} '}
             {repoName || 'noname'}
-            {'\u{00A0}\u{00A0} /'}
           </button>
+          {'\u{00A0}\u{00A0} /'}
           {' \u{00A0}\u{00A0}'}
-          <button
-            className="btn btn-link btn-lg p-0 text-info"
-            onClick={() => onPathChange('/')}
-            type="button"
-            key="branch"
+          <div
+            className="dropdown d-inline-block"
+            onClick={() => setIsBranchOpen(!isBranchOpen)}
           >
-            {'\u{1F500} '}
-            {currentBranch}
-            {!!pathParts.length && '\u{00A0}\u{00A0} /'}
-          </button>
+            <button className="btn btn-secondary dropdown-toggle" type="button">
+              {'\u{1F500} '}
+              <span className="mx-1">{currentBranch}</span>
+            </button>
+            <div
+              className={`dropdown-menu ${isBranchOpen ? 'show' : ''}`}
+              aria-labelledby="dropdownMenuButton"
+            >
+              {branches.map(b => (
+                <a
+                  className="dropdown-item"
+                  href="#"
+                  key={b}
+                  onClick={e => {
+                    e.preventDefault();
+                    onChangeBranch(b);
+                  }}
+                >
+                  {b}
+                </a>
+              ))}
+            </div>
+          </div>
+          {!!pathParts.length && '\u{00A0}\u{00A0} /'}
           {pathParts.map((p, i) => (
             <Fragment key={i}>
               {' \u{00A0}\u{00A0}'}

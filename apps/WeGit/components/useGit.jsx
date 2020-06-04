@@ -54,6 +54,7 @@ export default ({
     isGitReady: false,
     isReady: false,
     currentBranch: undefined,
+    branches: [],
     lastCommitHolder,
   });
   const {
@@ -63,6 +64,7 @@ export default ({
     isReady,
     isGitReady,
     currentBranch,
+    branches,
     lastCommitHolder,
     //
   } = state;
@@ -369,7 +371,7 @@ export default ({
       setFilesWithCommits(await helpers.findFilesLastCommits(path, files)))();
   }, [files, isGitReady, hasRepo]);
 
-  // Current Branch & Last commit
+  // Current branch, all branches, last commit
   // ---------------------------------------------------------------------------
 
   useEffect(() => {
@@ -388,10 +390,14 @@ export default ({
 
       const nextCurrentBranch = await git.currentBranch({ dir: '.' });
       const nextLastCommitHolder = await helpers.getLastCommitHolder();
+      const branches = (await git.listBranches({ dir: '.' })).sort((a, b) =>
+        a.localeCompare(b),
+      );
 
       setState({
         ...state,
         currentBranch: nextCurrentBranch,
+        branches,
         lastCommitHolder: nextLastCommitHolder,
         isReady: true,
       });
@@ -466,6 +472,26 @@ export default ({
     onChangeRepoName('');
   };
 
+  const onChangeBranch = async branch => {
+    if (isLocked) return void showError('Repository is locked');
+    setIsLocked(true);
+    setProgress({
+      phase: 'Changing branch',
+      loaded: 0,
+      lengthComputable: false,
+      phaseNo: 1,
+      phasesTotal: 1,
+    });
+
+    await git.checkout({ dir: '.', ref: branch });
+    onUpdateRef.current({
+      shouldUpdateSharedState: false,
+    });
+
+    setProgress(undefined);
+    setIsLocked(false);
+  };
+
   return {
     isReady,
     isLocked,
@@ -474,6 +500,8 @@ export default ({
     repoName: (sharedSimpleState && sharedSimpleState.name) || '',
     onChangeRepoName,
     currentBranch,
+    branches,
+    onChangeBranch,
     lastCommitHolder,
     onClone,
     onReset,

@@ -42,6 +42,8 @@ export default function App({ AppShell }) {
     repoName,
     onChangeRepoName,
     currentBranch,
+    branches,
+    onChangeBranch,
     lastCommitHolder,
 
     onClone,
@@ -87,6 +89,8 @@ export default function App({ AppShell }) {
             {...{
               repoName,
               currentBranch,
+              branches,
+              onChangeBranch,
               lastCommitHolder,
 
               path,
