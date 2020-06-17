@@ -93,7 +93,7 @@ export default function CreateAppForm({ onCancel, onSubmit }) {
               type="submit"
               className="btn btn-success btn-lg mt-4 d-block"
             >
-              Create!
+              Create
             </button>
           </div>
         </form>

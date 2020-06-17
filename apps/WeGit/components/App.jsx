@@ -8,6 +8,7 @@ import useFs from './useFs';
 
 import Tabs from './Tabs';
 import Main from './Main';
+import PullRequests from './PullRequests';
 import Settings from './Settings';
 import Progressbar from './Progressbar';
 
@@ -15,7 +16,7 @@ import Progressbar from './Progressbar';
 // =============================================================================
 
 export default function App({ AppShell }) {
-  const [activeTab, setActiveTab] = useState('main');
+  const [activeTab, setActiveTab] = useState('pullRequests');
   const [basePath, setBasePath] = useState('/');
   const onPathChange = useCallback(path => setBasePath(path), [setBasePath]);
 
@@ -45,9 +46,15 @@ export default function App({ AppShell }) {
     branches,
     onChangeBranch,
     lastCommitHolder,
+    pullRequests,
+    onCreatePullRequest,
+    onDeletePullRequest,
+    onMergePullRequest,
 
     onClone,
     onReset,
+
+    libHelpers,
   } = useGit({
     fs,
     isFsReady,
@@ -102,6 +109,20 @@ export default function App({ AppShell }) {
               hasRepo,
               progress,
               onClone,
+            }}
+          />
+        )}
+
+        {activeTab === 'pullRequests' && (
+          <PullRequests
+            {...{
+              currentBranch,
+              branches,
+              pullRequests,
+              onCreatePullRequest,
+              onDeletePullRequest,
+              onMergePullRequest,
+              libHelpers,
             }}
           />
         )}

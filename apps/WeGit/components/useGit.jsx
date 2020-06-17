@@ -91,7 +91,8 @@ export default ({
 
   const sharedStateBindingsRef = useRef();
   const [sharedState, baseSetSharedState] = useState({
-    version: JSON.parse(localStorage.getItem('wegit') || '{}').version || 0,
+    version:
+      JSON.parse(localStorage.getItem('wegitVersion') || '{}').version || 0,
     refs: undefined,
   });
   const onSharedStateSynchronizing = (
@@ -117,7 +118,7 @@ export default ({
 
   const setSharedState = (nextSharedState, { force = false } = {}) => {
     localStorage.setItem(
-      'wegit',
+      'wegitVersion',
       JSON.stringify({
         ...JSON.parse(localStorage.getItem('wegit') || '{}'),
         version: nextSharedState.version,
@@ -130,7 +131,7 @@ export default ({
 
   const setSharedStateAfterUpdate = nextSharedState => {
     localStorage.setItem(
-      'wegit',
+      'wegitVersion',
       JSON.stringify({ version: nextSharedState.version }),
     );
     baseSetSharedState(nextSharedState);
@@ -151,38 +152,27 @@ export default ({
 
   // Shared Simple State (repo metadata)
   // ---------------------------------------------------------------------------
-  const initialSharedSimpleStateBase =
-    localStorage.getItem('wegit') && JSON.parse(localStorage.getItem('wegit'));
-
   const initialSharedSimpleState =
-    (initialSharedSimpleStateBase &&
-      initialSharedSimpleStateBase.name && {
-        name: initialSharedSimpleStateBase.name,
-      }) ||
-    undefined;
+    localStorage.getItem('wegitSimple') &&
+    JSON.parse(localStorage.getItem('wegitSimple'));
 
   const [sharedSimpleState, baseSetSharedSimpleState] = useState(
-    initialSharedSimpleState && {
-      name: initialSharedSimpleState.name,
-    },
+    initialSharedSimpleState,
   );
 
   const sharedSimpleStateBindingsRef = useRef();
 
   const setSharedSimpleState = nextState => {
     localStorage.setItem(
-      'wegit',
+      'wegitSimple',
       JSON.stringify({
-        ...JSON.parse(localStorage.getItem('wegit') || '{}'),
-        name: nextState.name,
+        ...JSON.parse(localStorage.getItem('wegitSimple') || '{}'),
+        ...nextState,
       }),
     );
+    console.log(nextState);
     sharedSimpleStateBindingsRef.current.changeState(nextState);
     baseSetSharedSimpleState(nextState);
-  };
-
-  const onChangeRepoName = name => {
-    setSharedSimpleState({ ...sharedSimpleState, name });
   };
 
   // Update
@@ -467,9 +457,8 @@ export default ({
     await deleteFolderRecursive('/');
     setProgress(undefined);
     onUpdateRef.current({ reset: true });
-
+    setSharedSimpleState({ name: undefined, pullRequests: undefined });
     setIsLocked(false);
-    onChangeRepoName('');
   };
 
   const onChangeBranch = async branch => {
@@ -492,18 +481,78 @@ export default ({
     setIsLocked(false);
   };
 
+  const onChangeRepoName = name => {
+    if (isLocked) return void showError('Repository is locked');
+    setSharedSimpleState({ ...(sharedSimpleState || {}), name });
+  };
+
+  const onCreatePullRequest = async pullRequest => {
+    if (isLocked) return void showError('Repository is locked');
+    setSharedSimpleState({
+      ...(sharedSimpleState || {}),
+      pullRequests: [...(sharedSimpleState?.pullRequests || []), pullRequest],
+    });
+  };
+
+  const onDeletePullRequest = async pullRequest => {
+    if (isLocked) return void showError('Repository is locked');
+    setSharedSimpleState({
+      ...(sharedSimpleState || {}),
+      pullRequests: sharedSimpleState.pullRequests.filter(
+        p => p.id !== pullRequest.id,
+      ),
+    });
+  };
+
+  const onMergePullRequest = async pullRequest => {
+    if (isLocked) return void showError('Repository is locked');
+    setIsLocked(true);
+    setProgress({
+      phase: 'Merging branch',
+      loaded: 0,
+      lengthComputable: false,
+      phaseNo: 1,
+      phasesTotal: 1,
+    });
+
+    await git.merge({
+      dir: '.',
+      ours: pullRequest.to,
+      theirs: pullRequest.from,
+    });
+
+    setSharedSimpleState({
+      ...(sharedSimpleState || {}),
+      pullRequests: sharedSimpleState.pullRequests.filter(
+        p => p.id !== pullRequest.id,
+      ),
+    });
+
+    setProgress(undefined);
+    setIsLocked(false);
+    onUpdateRef.current();
+  };
+
   return {
     isReady,
     isLocked,
     progress,
     files: filesWithCommits,
-    repoName: (sharedSimpleState && sharedSimpleState.name) || '',
+    repoName: sharedSimpleState?.name || '',
+    pullRequests: sharedSimpleState?.pullRequests || [],
     onChangeRepoName,
     currentBranch,
     branches,
     onChangeBranch,
     lastCommitHolder,
+
     onClone,
     onReset,
+
+    onCreatePullRequest,
+    onDeletePullRequest,
+    onMergePullRequest,
+
+    libHelpers: state.libHelpers,
   };
 };
