@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Mocha Tests</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      @charset "utf-8";
+
+      #mocha-stats {
+        display: none;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #EBEBEB;
+        text-align: left;
+        background-color: #2B3E50;
+      }
+
+      h1 {
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 0;
+        background-color: rgba(255,255,255,0.075);
+        border-bottom: 1px solid rgba(0,0,0,0.125);
+        font-size: 16px;
+      }
+      h1 a {
+        color: rgb(235, 235, 235);
+        text-decoration: none;
+      }
+
+      ul {
+        list-style: none;
+      }
+
+      ul, li {
+        margin: 0;
+        padding: 0;
+      }
+
+      h2 {
+        font-size: 14px;
+        padding: 12px;
+        line-height: normal;
+        cursor: pointer;
+      }
+
+      .test {
+        border: 1px solid #5bc0de;
+        color: #5bc0de;
+      }
+
+      .test.pass {
+        border-color: #5cb85c;
+        color: #5cb85c;
+      }
+
+      .test.pass h2::before {
+        content: "\2705";
+        margin-right: 0.25rem;
+      }
+
+      .test.fail {
+        border-color: #d9534f;
+        color: #d9534f;
+      }
+
+
+      .test.fail h2::before {
+        content: "\274C";
+        margin-right: 0.25rem;
+      }
+
+      .test .duration{
+        margin-left: 0.25rem;
+        display: inline-block;
+        padding: 0.25em 0.4em;
+        font-size: 75%;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+
+        color: #fff;
+        background-color: #5cb85c;
+        padding-right: 0.6em;
+        padding-left: 0.6em;
+        border-radius: 10rem;
+      }
+
+      .test.slow .duration{
+        margin-left: 0.25rem;
+        display: inline-block;
+        padding: 0.25em 0.4em;
+        font-size: 75%;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+
+        color: #fff;
+        background-color: #d9534f;
+        padding-right: 0.6em;
+        padding-left: 0.6em;
+        border-radius: 10rem;
+      }
+
+      .replay {
+        display: none;
+      }
+
+      pre, code {
+        font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 14px;
+      }
+
+      pre {
+        padding: 24px;
+        background-color: rgba(255,255,255,0.075);
+        margin: 0;
+      }
+
+      pre.error::before {
+        content: "\1F480";
+        margin-right: 0.25rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="mocha"></div>
+
+    <script src="https://unpkg.com/chai/chai.js"></script>
+    <script src="https://unpkg.com/mocha/mocha.js"></script>
+
+    <script>
+      window.addEventListener('message', e => {
+        const message = e.data;
+        if (message.type !== 'run') return;
+        const { ciCd } = message.payload;
+        eval(ciCd.testsTarget);
+        eval(ciCd.tests);
+        mocha.run((err) => {console.log('TESTS DONE', err)});
+      })
+      mocha.setup('bdd');
+      mocha.checkLeaks();
+    </script>
+
+  </body>
+</html>

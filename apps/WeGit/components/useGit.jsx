@@ -56,6 +56,7 @@ export default ({
     currentBranch: undefined,
     branches: [],
     lastCommitHolder,
+    ciCd: undefined,
   });
   const {
     version,
@@ -66,6 +67,7 @@ export default ({
     currentBranch,
     branches,
     lastCommitHolder,
+    ciCd,
     //
   } = state;
 
@@ -384,11 +386,28 @@ export default ({
         a.localeCompare(b),
       );
 
+      const readFile = promisify(fs.readFile);
+
+      let ciCd;
+
+      try {
+        const packageJson = JSON.parse(await readFile(`/package.json`, 'utf8'));
+        const tests =
+          packageJson.weGit?.testsSrc &&
+          (await readFile(packageJson.weGit.testsSrc, 'utf8'));
+
+        const testsTarget =
+          packageJson.weGit?.testsTargetSrc &&
+          (await readFile(packageJson.weGit.testsTargetSrc, 'utf8'));
+        ciCd = { tests, testsTarget };
+      } catch (e) {}
+
       setState({
         ...state,
         currentBranch: nextCurrentBranch,
         branches,
         lastCommitHolder: nextLastCommitHolder,
+        ciCd,
         isReady: true,
       });
     })();
@@ -532,7 +551,6 @@ export default ({
     setIsLocked(false);
     onUpdateRef.current();
   };
-
   return {
     isReady,
     isLocked,
@@ -552,6 +570,8 @@ export default ({
     onCreatePullRequest,
     onDeletePullRequest,
     onMergePullRequest,
+
+    ciCd,
 
     libHelpers: state.libHelpers,
   };

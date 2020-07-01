@@ -7,16 +7,19 @@ import useGit from './useGit';
 import useFs from './useFs';
 
 import Tabs from './Tabs';
+
 import Main from './Main';
 import PullRequests from './PullRequests';
+import CiCd from './CiCd';
 import Settings from './Settings';
+
 import Progressbar from './Progressbar';
 
 // Main
 // =============================================================================
 
 export default function App({ AppShell }) {
-  const [activeTab, setActiveTab] = useState('pullRequests');
+  const [activeTab, setActiveTab] = useState('ciCd');
   const [basePath, setBasePath] = useState('/');
   const onPathChange = useCallback(path => setBasePath(path), [setBasePath]);
 
@@ -51,6 +54,8 @@ export default function App({ AppShell }) {
     onDeletePullRequest,
     onMergePullRequest,
 
+    ciCd,
+
     onClone,
     onReset,
 
@@ -64,7 +69,6 @@ export default function App({ AppShell }) {
     onFsUpdate,
     AppShell,
   });
-
   if (!isReady) return null;
   return (
     <>
@@ -126,6 +130,7 @@ export default function App({ AppShell }) {
             }}
           />
         )}
+        {activeTab === 'ciCd' && <CiCd {...{ ciCd }} />}
         {activeTab === 'settings' && (
           <Settings {...{ repoName, onChangeRepoName, onReset }} />
         )}
