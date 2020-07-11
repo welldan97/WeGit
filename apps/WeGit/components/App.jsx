@@ -23,7 +23,6 @@ export default function App({ AppShell }) {
   const [basePath, setBasePath] = useState('/');
   const onPathChange = useCallback(path => setBasePath(path), [setBasePath]);
 
-  const ciState = 'disabled';
   const {
     isReady: isFsReady,
     fs,
@@ -49,12 +48,14 @@ export default function App({ AppShell }) {
     branches,
     onChangeBranch,
     lastCommitHolder,
+    commitHoldersLog,
     pullRequests,
     onCreatePullRequest,
     onDeletePullRequest,
     onMergePullRequest,
 
     ciCd,
+    ciCdState,
 
     onClone,
     onReset,
@@ -70,6 +71,21 @@ export default function App({ AppShell }) {
     AppShell,
   });
   if (!isReady) return null;
+
+  let testsState = 'disabled';
+  if (
+    lastCommitHolder &&
+    ciCdState?.tests?.find?.(t => t.oid === lastCommitHolder.oid)
+  ) {
+    testsState = 'success';
+  }
+  if (
+    ciCdState?.tests?.find?.(t => t.oid === lastCommitHolder?.oid)
+      ?.failuresCount > 0
+  ) {
+    testsState = 'fail';
+  }
+
   return (
     <>
       <div className="container mb-4" style={{ maxWidth: '720px' }}>
@@ -80,17 +96,17 @@ export default function App({ AppShell }) {
               {repoName || 'noname'}
             </h2>
             <p>
-              {ciState === 'success' && (
+              {testsState === 'success' && (
                 <span className="text-success">
                   {'\u{2705}'} tests are passing
                 </span>
               )}
-              {ciState === 'fail' && (
+              {testsState === 'fail' && (
                 <span className="text-danger">
                   {'\u{274C}'} tests are failing
                 </span>
               )}
-              {ciState === 'disabled' && '\u{00a0}'}
+              {testsState === 'disabled' && '\u{00a0}'}
             </p>
           </div>
         </div>
@@ -130,7 +146,9 @@ export default function App({ AppShell }) {
             }}
           />
         )}
-        {activeTab === 'ciCd' && <CiCd {...{ ciCd }} />}
+        {activeTab === 'ciCd' && (
+          <CiCd {...{ ciCd, ciCdState, commitHoldersLog }} />
+        )}
         {activeTab === 'settings' && (
           <Settings {...{ repoName, onChangeRepoName, onReset }} />
         )}

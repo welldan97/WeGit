@@ -22,7 +22,7 @@ export default function Navbar({
       }`}
     >
       <a className="navbar-brand" href="#">
-        {'\u{1F310}'}WeGit Network
+        {'\u{1F310}'} WeGit Network
       </a>
       <ul className="navbar-nav mr-auto">
         {runningApp && (

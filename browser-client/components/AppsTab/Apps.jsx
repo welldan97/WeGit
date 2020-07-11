@@ -68,7 +68,7 @@ export default function Apps({ apps, runningApp, onRun, onStop, onDelete }) {
                         className="btn btn-success btn-block btn-sm"
                         onClick={() => onRun(a.id)}
                       >
-                        ▶️ Run
+                        {'\u{25b6}'} Run
                       </button>
                     )}
                     {isRunning && (
@@ -77,7 +77,7 @@ export default function Apps({ apps, runningApp, onRun, onStop, onDelete }) {
                         className="btn btn-warning btn-block btn-sm"
                         onClick={() => onStop()}
                       >
-                        ⏹ Stop
+                        {'\u{23f9}'} Stop
                       </button>
                     )}
 

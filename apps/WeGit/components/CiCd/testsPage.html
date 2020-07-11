@@ -8,7 +8,7 @@
       @charset "utf-8";
 
       #mocha {
-        margin-right: 3px;
+        margin: 24px;
       }
 
       #mocha-stats {
@@ -204,10 +204,22 @@
       window.addEventListener('message', e => {
         const message = e.data;
         if (message.type !== 'run') return;
-        const { ciCd } = message.payload;
+        const { ciCd, oid, id } = message.payload;
         eval(ciCd.testsTarget);
         eval(ciCd.tests);
-        mocha.run((err) => {console.log('TESTS DONE', err)});
+        mocha.run((err) => {
+          window.parent.postMessage(
+            {
+              type: 'testsDone',
+              payload: {
+                id,
+                oid,
+                failuresCount: err
+              }
+            },
+            '*');
+
+        });
       })
       mocha.setup('bdd');
       mocha.checkLeaks();

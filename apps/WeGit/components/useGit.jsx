@@ -55,7 +55,8 @@ export default ({
     isReady: false,
     currentBranch: undefined,
     branches: [],
-    lastCommitHolder,
+    lastCommitHolder: undefined,
+    commitHoldersLog: [],
     ciCd: undefined,
   });
   const {
@@ -67,6 +68,8 @@ export default ({
     currentBranch,
     branches,
     lastCommitHolder,
+    commitHoldersLog,
+
     ciCd,
     //
   } = state;
@@ -172,8 +175,18 @@ export default ({
         ...nextState,
       }),
     );
-    console.log(nextState);
     sharedSimpleStateBindingsRef.current.changeState(nextState);
+    baseSetSharedSimpleState(nextState);
+  };
+
+  const changeSharedSimpleState = nextState => {
+    localStorage.setItem(
+      'wegitSimple',
+      JSON.stringify({
+        ...JSON.parse(localStorage.getItem('wegitSimple') || '{}'),
+        ...nextState,
+      }),
+    );
     baseSetSharedSimpleState(nextState);
   };
 
@@ -274,6 +287,8 @@ export default ({
         setSharedStateAfterUpdate,
       })({
         onMessage: message => {
+          const { type, payload } = message;
+          if (type === 'testsDone') onTestsDoneRef.current(message);
           console.log(message, '!!!!!!!');
         },
         send: (userId, message, options) => {
@@ -298,7 +313,7 @@ export default ({
         onUpdate: () => onUpdateRef.current(),
       })(
         sharedSimpleStateMiddleware({
-          onChangeState: baseSetSharedSimpleState,
+          onChangeState: changeSharedSimpleState,
 
           initialState: sharedSimpleState,
           initialUsers: AppShell.users,
@@ -374,7 +389,12 @@ export default ({
         setState({
           ...state,
           currentBranch: undefined,
+          branches: [],
+
           lastCommitHolder: undefined,
+          commitHoldersLog: [],
+          ciCd: undefined,
+
           isReady: true,
         });
         return;
@@ -385,7 +405,7 @@ export default ({
       const branches = (await git.listBranches({ dir: '.' })).sort((a, b) =>
         a.localeCompare(b),
       );
-
+      const nextCommitHoldersLog = await libHelpers.listCommitHolders(5);
       const readFile = promisify(fs.readFile);
 
       let ciCd;
@@ -407,6 +427,7 @@ export default ({
         currentBranch: nextCurrentBranch,
         branches,
         lastCommitHolder: nextLastCommitHolder,
+        commitHoldersLog: nextCommitHoldersLog,
         ciCd,
         isReady: true,
       });
@@ -476,7 +497,11 @@ export default ({
     await deleteFolderRecursive('/');
     setProgress(undefined);
     onUpdateRef.current({ reset: true });
-    setSharedSimpleState({ name: undefined, pullRequests: undefined });
+    setSharedSimpleState({
+      name: undefined,
+      pullRequests: undefined,
+      ciCdState: undefined,
+    });
     setIsLocked(false);
   };
 
@@ -551,6 +576,44 @@ export default ({
     setIsLocked(false);
     onUpdateRef.current();
   };
+
+  // CI CD
+  // ---------------------------------------------------------------------------
+
+  const onTestsDoneRef = useRef();
+
+  useEffect(() => {
+    onTestsDoneRef.current = message => {
+      const { type, payload } = message;
+
+      if (isLocked) return void showError('Repository is locked');
+
+      const prevCiCdState = sharedSimpleState?.ciCdState || { tests: [] };
+
+      let nextTests = [
+        ...prevCiCdState.tests.filter(t => t.oid !== payload.oid),
+        payload,
+      ];
+
+      console.log('kk', prevCiCdState, nextTests, {
+        ...(sharedSimpleState || {}),
+        ciCdState: {
+          ...prevCiCdState,
+          tests: nextTests,
+        },
+      });
+
+      setSharedSimpleState({
+        ...(sharedSimpleState || {}),
+        ciCdState: {
+          ...prevCiCdState,
+          tests: nextTests,
+        },
+      });
+      return;
+    };
+  }, [isLocked, sharedSimpleState]);
+
   return {
     isReady,
     isLocked,
@@ -563,6 +626,7 @@ export default ({
     branches,
     onChangeBranch,
     lastCommitHolder,
+    commitHoldersLog,
 
     onClone,
     onReset,
@@ -572,6 +636,9 @@ export default ({
     onMergePullRequest,
 
     ciCd,
+    ciCdState: sharedSimpleState?.ciCdState || {
+      tests: [],
+    },
 
     libHelpers: state.libHelpers,
   };
