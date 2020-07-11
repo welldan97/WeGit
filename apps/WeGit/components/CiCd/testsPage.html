@@ -7,8 +7,64 @@
     <style>
       @charset "utf-8";
 
+      #mocha {
+        margin-right: 3px;
+      }
+
       #mocha-stats {
+        display: flex;
+        margin-bottom: 24px;
+      }
+
+      #mocha-stats .progress {
         display: none;
+      }
+
+
+      #mocha-stats > li {
+        flex-grow: 1;
+        padding: 0.75rem 1.25rem;
+        margin: 0;
+        background-color: rgba(255,255,255,0.075);
+        border-bottom: 1px solid rgba(0,0,0,0.125);
+        font-size: 16px;
+        margin-right: 0.75rem;
+        width: 33%
+      }
+
+      #mocha-stats * {
+        font-style: normal;
+        cursor: default;
+        text-decoration: none;
+        color: inherit;
+      }
+
+      #mocha-stats .passes {
+        color: #5cb85c;
+      }
+
+      #mocha-stats .passes::before {
+        content: "\2705";
+        margin-right: 0.5rem;
+      }
+
+      #mocha-stats .failures {
+        color: #d9534f;
+      }
+
+
+      #mocha-stats .failures::before {
+        content: "\274C";
+        margin-right: 0.5rem;
+      }
+
+      #mocha-stats >  li.duration {
+        margin-right: 0;
+      }
+
+      #mocha-stats .duration::before {
+        content: "\23F3";
+        margin-right: 0.5rem;
       }
 
       body {
@@ -22,16 +78,21 @@
         background-color: #2B3E50;
       }
 
+      .suite {
+        margin-bottom: 24px;
+      }
       h1 {
         padding: 0.75rem 1.25rem;
-        margin-bottom: 0;
+        margin: 0;
         background-color: rgba(255,255,255,0.075);
         border-bottom: 1px solid rgba(0,0,0,0.125);
         font-size: 16px;
       }
+
       h1 a {
         color: rgb(235, 235, 235);
         text-decoration: none;
+        cursor: default;
       }
 
       ul {

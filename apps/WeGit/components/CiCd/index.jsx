@@ -15,7 +15,7 @@ export default function CiCd({ ciCd }) {
 
   const style = {
     width: '100%',
-    height: '100%',
+    height: '100vh',
     border: 'none',
   };
 
@@ -40,5 +40,11 @@ export default function CiCd({ ciCd }) {
     iframeRef.current.eval('mocha.run();');*/
   }, [ciCd]);
 
-  return <iframe srcDoc={testsPage} style={style} ref={iframeRef}></iframe>;
+  return (
+    <div className="row mt-4">
+      <div className="col-12">
+        <iframe srcDoc={testsPage} style={style} ref={iframeRef}></iframe>
+      </div>
+    </div>
+  );
 }
