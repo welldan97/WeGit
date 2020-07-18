@@ -419,7 +419,16 @@ export default ({
         const testsTarget =
           packageJson.weGit?.testsTargetSrc &&
           (await readFile(packageJson.weGit.testsTargetSrc, 'utf8'));
-        ciCd = { tests, testsTarget };
+
+        const buildTarget =
+          packageJson.weGit?.buildTargetSrc &&
+          (await readFile(packageJson.weGit.buildTargetSrc, 'utf8'));
+
+        const build =
+          packageJson.weGit?.buildSrc &&
+          (await readFile(packageJson.weGit.buildSrc, 'utf8'));
+
+        ciCd = { build, buildTarget, tests, testsTarget };
       } catch (e) {}
 
       setState({
@@ -595,14 +604,6 @@ export default ({
         payload,
       ];
 
-      console.log('kk', prevCiCdState, nextTests, {
-        ...(sharedSimpleState || {}),
-        ciCdState: {
-          ...prevCiCdState,
-          tests: nextTests,
-        },
-      });
-
       setSharedSimpleState({
         ...(sharedSimpleState || {}),
         ciCdState: {
@@ -613,6 +614,10 @@ export default ({
       return;
     };
   }, [isLocked, sharedSimpleState]);
+
+  const onBuild = source => {
+    AppShell.createApp({ source });
+  };
 
   return {
     isReady,
@@ -639,6 +644,7 @@ export default ({
     ciCdState: sharedSimpleState?.ciCdState || {
       tests: [],
     },
+    onBuild,
 
     libHelpers: state.libHelpers,
   };

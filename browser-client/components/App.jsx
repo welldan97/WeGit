@@ -79,6 +79,7 @@ export default function App({ utils, source }) {
           utils={utils}
           isShown={mainTabState === 'runningApp'}
           config={config}
+          onCreateApp={onCreateApp}
         />
         {mainTabState !== 'runningApp' && (
           <div className="container" style={{ maxWidth: '720px' }}>

@@ -31,7 +31,12 @@ const formatCommitMessage = commitHolder =>
 // Main
 // =============================================================================
 
-export default function CiCd({ ciCd, ciCdState, commitHoldersLog }) {
+export default function CiCd({
+  ciCd,
+  ciCdState,
+  commitHoldersLog,
+  onBuild: baseOnBuild,
+}) {
   const [state, setState] = useState({
     testsStatus: 'clean',
     testsOid: undefined,
@@ -117,10 +122,25 @@ export default function CiCd({ ciCd, ciCdState, commitHoldersLog }) {
     onRun(commitHoldersLog[0].oid);
   }, [testsStatus, commitHoldersLog, runAutomatically]);
 
+  const onBuild = () => {
+    const evaluateBuild = new Function('source', ciCd.build);
+    const result = evaluateBuild(ciCd.buildTarget);
+    baseOnBuild(result);
+  };
+
   return (
     <div className="row mt-4">
       <div className="col-12">
-        <h3>Tests</h3>
+        <h3>Build</h3>
+        <button
+          type="button"
+          className="btn btn-success btn-lg mt-4 mb-4"
+          onClick={onBuild}
+        >
+          {'\u{1F477} '} Build App
+        </button>
+        <hr />
+        <h3 className="mt-4">Tests</h3>
         <div className="mt-2">
           <input
             type="checkbox"

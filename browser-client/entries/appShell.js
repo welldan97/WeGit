@@ -80,6 +80,7 @@ const main = () => {
           on,
           currentUser: payload.currentUser,
           users: payload.users,
+          createApp: app => callMethod('createApp', [app]),
         };
 
         window.AppShell = AppShell;

@@ -56,6 +56,7 @@ export default function App({ AppShell }) {
 
     ciCd,
     ciCdState,
+    onBuild,
 
     onClone,
     onReset,
@@ -147,7 +148,7 @@ export default function App({ AppShell }) {
           />
         )}
         {activeTab === 'ciCd' && (
-          <CiCd {...{ ciCd, ciCdState, commitHoldersLog }} />
+          <CiCd {...{ ciCd, ciCdState, commitHoldersLog, onBuild }} />
         )}
         {activeTab === 'settings' && (
           <Settings {...{ repoName, onChangeRepoName, onReset }} />

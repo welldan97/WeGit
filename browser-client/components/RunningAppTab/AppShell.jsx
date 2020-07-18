@@ -9,7 +9,15 @@ import Iframe from './Iframe';
 // Events
 // =============================================================================
 
-const methods = ({ app, currentUser, users, transport, utils, onReady }) => ({
+const methods = ({
+  app,
+  currentUser,
+  users,
+  transport,
+  utils,
+  onReady,
+  onCreateApp,
+}) => ({
   send(userId, message) {
     if (message.type.startsWith('os:')) return;
 
@@ -17,6 +25,10 @@ const methods = ({ app, currentUser, users, transport, utils, onReady }) => ({
       type: `app:${message.type}`,
       payload: message.payload,
     });
+  },
+
+  createApp(app) {
+    onCreateApp(app);
   },
 
   // TODO: this is probably not needed since sendAll now implemented in appShell
@@ -88,6 +100,7 @@ export default memo(function AppShell({
   transport,
   utils,
   config,
+  onCreateApp,
 }) {
   // Set up methods
   // ---------------------------------------------------------------------------
@@ -103,6 +116,7 @@ export default memo(function AppShell({
       transport,
       utils,
       onReady: () => setIsReady(true),
+      onCreateApp,
     });
   }, [runningApp, currentUser, users, transport]);
 
