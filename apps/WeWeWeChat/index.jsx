@@ -11,7 +11,7 @@ const renderPage = () => `
     <div class="container" style="max-width: 720px">
       <div class="row mt-4">
         <div class="col-12">
-          <h1>Chat</h1>
+          <h1>WeWeWeChat</h1>
         </div>
       </div>
       <div class="row mt-4">
