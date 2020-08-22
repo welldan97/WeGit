@@ -2,7 +2,7 @@
 // @id WE-WE-WE-WE-WE-WECHAT
 // @name WeWeWeChat
 // @description Hello world application of WeGit
-// @icon '\u{1F919}'
+// @icon '\u{1F4AC}'
 // @user { "userName": "welldan97" }
 // ==/WgApp==
 

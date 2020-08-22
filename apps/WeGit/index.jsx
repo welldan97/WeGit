@@ -1,4 +1,5 @@
 // ==WgApp==
+// @id WE-WE-WE-WE-WE-WE-GIT
 // @name WeGit
 // @description P2P hub for git users
 // @icon '\u{1F46F}'
@@ -17,12 +18,17 @@ import App from './components/App';
 // Main
 // =============================================================================
 const main = () => {
+  console.log('!');
   document.body.innerHTML = '<div></div>';
   ReactDOM.render(
     <App AppShell={AppShell} />,
     document.getElementsByTagName('div')[0],
   );
 };
+main();
+// module.exports = main;
 
+/*
 if (typeof module !== 'undefined') module.exports = main;
 else main();
+*/

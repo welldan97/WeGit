@@ -9,6 +9,16 @@ const WeWeWeChatSource = readFileSync(
   'utf-8',
 );
 
+const WeBoxSource = readFileSync(
+  __dirname + '../../../apps/WeBox/index.jsx',
+  'utf-8',
+);
+
+const WeGitSource = readFileSync(
+  __dirname + '../../../apps/WeGit/dist/index.js',
+  //__dirname + '../../../apps/WeGit/dist/index.js',
+  'utf-8',
+);
 const baseConfig = JSON.parse(
   readFileSync(__dirname + '../../../config.json', 'utf-8'),
 );
@@ -36,6 +46,8 @@ export default () => ({
   ...baseConfig,
   initialApps: [
     parseAppSource(WeWeWeChatSource),
+    parseAppSource(WeBoxSource),
+    parseAppSource(WeGitSource),
     ...(baseConfig.initialApps ?? []),
   ],
 });

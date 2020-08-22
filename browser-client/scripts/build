@@ -2,6 +2,14 @@
 
 set -e
 
+# build wegit app
+(
+  cd ../apps/WeGit
+  rm -rf ./dist
+  npx parcel build --no-source-maps --no-content-hash index.jsx
+  head -n 7 < index.jsx | cat - ./dist/index.js > ./dist/next.js && mv ./dist/next.js ./dist/index.js
+)
+
 #rm -rf .cache
 rm -rf ./dist
 # NOTE: build:appShell is needed for development

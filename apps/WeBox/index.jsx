@@ -1,8 +1,8 @@
 // ==WgApp==
-// @id WE-WE-WE-WE-WE-WECHAT
-// @name WeWeWeChat
-// @description Hello world application of WeGit
-// @icon '\u{1F919}'
+// @id WE-WE-WE-WE-WE-WE-BOX
+// @name WeBox
+// @description Share your files privately
+// @icon '\u{1F4E5}'
 // @user { "userName": "welldan97" }
 // ==/WgApp==
 
