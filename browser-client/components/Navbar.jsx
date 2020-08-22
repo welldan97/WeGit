@@ -62,6 +62,12 @@ export default function Navbar({
             Share
           </a>
         </li>
+
+        <li className={`nav-item ${active === 'share' ? 'active' : ''}`}>
+          <a className="nav-link" href="#" onClick={() => onActivate('about')}>
+            About
+          </a>
+        </li>
       </ul>
       <ul className="navbar-nav ml-auto">
         <li className="nav-item dropdown">
@@ -92,16 +98,6 @@ export default function Navbar({
               }}
             >
               Settings
-            </a>
-            <a
-              className="dropdown-item"
-              href="#"
-              onClick={() => {
-                setDropdownIsOpen(false);
-                onActivate('about');
-              }}
-            >
-              About
             </a>
           </div>
         </li>

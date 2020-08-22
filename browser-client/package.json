@@ -22,10 +22,12 @@
     "wegit": "file:../apps/WeGit"
   },
   "dependencies": {
+    "eventemitter3": "^4.0.4",
     "js-cookie": "^2.2.1",
     "lodash": "^4.17.15",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
+    "react-youtube": "^7.11.3",
     "webrtc-adapter": "^7.4.0",
     "wegit-lib": "file:../lib",
     "wegit-signalling-firebase": "file:../signalling/firebase",

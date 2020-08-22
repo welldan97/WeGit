@@ -1,6 +1,8 @@
 // Imports
 // =============================================================================
 
+import EventEmitter from 'eventemitter3';
+
 import receiveInChunksMiddleware from 'wegit-lib/utils/receiveInChunksMiddleware';
 import sendInChunksMiddleware from 'wegit-lib/utils/sendInChunksMiddleware';
 
@@ -9,7 +11,7 @@ import config from '../config';
 // Utils
 // =============================================================================
 
-const callMethod = (method, [...args] = []) => {
+const callMethod = (method, args = []) => {
   window.top.postMessage({ method, args }, '*');
 };
 
@@ -29,7 +31,7 @@ const { appShellLocalApp } = config();
 
 const main = () => {
   let AppShell;
-  const eventTarget = new EventTarget();
+  const eventEmitter = new EventEmitter();
   let options = {};
 
   const { send, onMessage } = receiveInChunksMiddleware(
@@ -39,9 +41,7 @@ const main = () => {
       },
 
       onMessage(message, options) {
-        const appEvent = new Event('message');
-        appEvent.data = message;
-        eventTarget.dispatchEvent(appEvent);
+        eventEmitter.emit('message', message);
       },
     }),
   );
@@ -52,9 +52,9 @@ const main = () => {
 
   const on = (type, fn, nextOptions = {}) => {
     if (type !== 'message' && type !== 'saveUsers') return;
-    eventTarget.addEventListener(type, e => {
+    eventEmitter.on(type, data => {
       options = nextOptions;
-      fn(e.data /* message */);
+      fn(data /* message */);
     });
   };
 
@@ -99,9 +99,7 @@ const main = () => {
       case 'os:saveUsers': {
         AppShell.users = payload.users;
 
-        const appEvent = new Event('saveUsers');
-        appEvent.data = AppShell.users;
-        eventTarget.dispatchEvent(appEvent);
+        eventEmitter.emit('saveUsers', AppShell.users);
 
         return;
       }

@@ -1,7 +1,7 @@
 // Imports
 // =============================================================================
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 import Navbar from './Navbar';
 import RunningAppTab from './RunningAppTab';
@@ -9,6 +9,7 @@ import AppsTab from './AppsTab';
 import NetworkTab from './NetworkTab';
 import ShareTab from './ShareTab';
 import SettingsTab from './SettingsTab';
+import AboutTab from './AboutTab';
 
 import useWgOs from './useWgOs';
 
@@ -61,6 +62,11 @@ export default function App({ utils, source }) {
         .map(c => c.user),
     [meshState && meshState.connections],
   );
+
+  useEffect(() => {
+    document.body.style.transition = 'all 300ms ease 0s';
+  });
+
   return (
     <>
       <Navbar
@@ -119,6 +125,7 @@ export default function App({ utils, source }) {
               />
             )}
             {mainTabState === 'share' && <ShareTab onDownload={onDownload} />}
+            {mainTabState === 'about' && <AboutTab />}
             {mainTabState === 'settings' && (
               <SettingsTab
                 config={config}
