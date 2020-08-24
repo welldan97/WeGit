@@ -17,7 +17,10 @@ export default function Tabs({ active, onActivate }) {
                 active === 'main' ? 'active bg-secondary' : ''
               }`}
               href="#"
-              onClick={() => onActivate('main')}
+              onClick={e => {
+                e.preventDefault();
+                onActivate('main');
+              }}
             >
               {'\u{1F3E0} '}Home
             </a>
@@ -28,7 +31,10 @@ export default function Tabs({ active, onActivate }) {
                 active === 'pullRequests' ? 'active bg-secondary' : ''
               }`}
               href="#"
-              onClick={() => onActivate('pullRequests')}
+              onClick={e => {
+                e.preventDefault();
+                onActivate('pullRequests');
+              }}
             >
               {'\u{21A9} '}Pull Requests
             </a>
@@ -39,7 +45,10 @@ export default function Tabs({ active, onActivate }) {
                 active === 'ciCd' ? 'active bg-secondary' : ''
               }`}
               href="#"
-              onClick={() => onActivate('ciCd')}
+              onClick={e => {
+                e.preventDefault();
+                onActivate('ciCd');
+              }}
             >
               {'\u{1F4E6} '}CI / CD
             </a>
@@ -50,7 +59,10 @@ export default function Tabs({ active, onActivate }) {
                 active === 'settings' ? 'active bg-secondary' : ''
               }`}
               href="#"
-              onClick={() => onActivate('settings')}
+              onClick={e => {
+                e.preventDefault();
+                onActivate('settings');
+              }}
             >
               {'\u{2699} '}Settings
             </a>

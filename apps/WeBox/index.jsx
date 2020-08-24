@@ -128,6 +128,7 @@ const renderPage = () => `
                 class="form-control-file"
                 type="file"
               >
+              <span id="file-size"><span/>
             </div>
               <button
                 type="submit"
@@ -151,10 +152,36 @@ const createPage = () => {
   document.body.appendChild(pageContents);
 };
 
+// Source: https://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable-string/10420404
+const humanFileSize = (bytes, si = false, dp = 1) => {
+  const thresh = si ? 1000 : 1024;
+
+  if (Math.abs(bytes) < thresh) {
+    return bytes + ' B';
+  }
+
+  const units = si
+    ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+    : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+  let u = -1;
+  const r = 10 ** dp;
+
+  do {
+    bytes /= thresh;
+    ++u;
+  } while (
+    Math.round(Math.abs(bytes) * r) / r >= thresh &&
+    u < units.length - 1
+  );
+
+  return bytes.toFixed(dp) + ' ' + units[u];
+};
+
 const main = () => {
   createPage();
   const $formFile = document.getElementById('form-file');
   const $inputFile = document.getElementById('input-file');
+  const $fileSize = document.getElementById('file-size');
 
   const $downloadBox = document.getElementById('download-box');
   const $fileName = document.getElementById('file-name');
@@ -237,6 +264,12 @@ const main = () => {
         name: $inputFile.files[0].name,
       },
     });
+  });
+
+  $inputFile.addEventListener('change', e => {
+    if (!$inputFile.files[0]) return;
+
+    $fileSize.innerText = humanFileSize($inputFile.files[0].size, true);
   });
 };
 

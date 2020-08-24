@@ -19,7 +19,7 @@ import Progressbar from './Progressbar';
 // =============================================================================
 
 export default function App({ AppShell }) {
-  const [activeTab, setActiveTab] = useState('ciCd');
+  const [activeTab, setActiveTab] = useState('main');
   const [basePath, setBasePath] = useState('/');
   const onPathChange = useCallback(path => setBasePath(path), [setBasePath]);
 

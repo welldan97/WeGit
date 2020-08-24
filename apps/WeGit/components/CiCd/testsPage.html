@@ -205,6 +205,8 @@
         const message = e.data;
         if (message.type !== 'run') return;
         const { ciCd, oid, id } = message.payload;
+        window.weGit = window.weGit || {};
+        window.weGit.tests = true;
         eval(ciCd.testsTarget);
         eval(ciCd.tests);
         mocha.run((err) => {
