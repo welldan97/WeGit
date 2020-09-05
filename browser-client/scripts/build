@@ -2,6 +2,8 @@
 
 set -e
 
+export NODE_ENV=production;
+
 # build wegit app
 (
   cd ../apps/WeGit
