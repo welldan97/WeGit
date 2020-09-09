@@ -39,19 +39,23 @@ const download = (filename, text) => {
 // Main
 // =============================================================================
 
-const defaultConfig = getConfig();
-const {
-  config: loadedConfig,
-  currentUser: loadedCurrentUser,
-  apps: loadedApps,
-} = JSON.parse(localStorage.getItem('weGit') || '{}');
+const { initialApps: defaultInitialApps, ...defaultConfig } = getConfig();
+const { config: loadedConfig } = JSON.parse(
+  localStorage.getItem('weGit:config') || '{}',
+);
+const { currentUser: loadedCurrentUser } = JSON.parse(
+  localStorage.getItem('weGit:currentUser') || '{}',
+);
+const { apps: loadedApps } = JSON.parse(
+  localStorage.getItem('weGit:apps') || '{}',
+);
 
 const initialConfig = defaultConfig.alwaysDefaultConfig
   ? defaultConfig
   : loadedConfig || defaultConfig;
 const initialApps = defaultConfig.alwaysDefaultConfig
-  ? defaultConfig.initialApps
-  : loadedApps || defaultConfig.initialApps;
+  ? defaultInitialApps
+  : loadedApps || defaultInitialApps;
 const initialCurrentUser = loadedCurrentUser || {
   userName: undefined,
   type: 'browser',
@@ -257,15 +261,37 @@ export default function useWgOs({ source }) {
   };
 
   useEffect(() => {
-    localStorage.setItem(
-      'weGit',
-      JSON.stringify({
-        config,
-        currentUser,
-        apps,
-      }),
-    );
-  }, [apps, config, currentUser]);
+    try {
+      localStorage.setItem(
+        'weGit:apps',
+        JSON.stringify({
+          apps,
+        }),
+      );
+    } catch (e) {}
+  }, [apps]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        'weGit:config',
+        JSON.stringify({
+          config,
+        }),
+      );
+    } catch (e) {}
+  }, [config]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        'weGit:currentUser',
+        JSON.stringify({
+          currentUser,
+        }),
+      );
+    } catch (e) {}
+  }, [currentUser]);
 
   const onCreateApp = app => {
     if (app.source.startsWith('// ==WgApp=='))
