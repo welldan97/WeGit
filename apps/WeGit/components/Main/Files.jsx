@@ -76,7 +76,14 @@ export default function Files({
             )}
             {files.map((f, i) => (
               <tr className="border border-info" key={i}>
-                <th scope="row" style={{ minWidth: '180px' }}>
+                <th
+                  scope="row"
+                  style={{
+                    minWidth: '180px',
+                    textAlign: 'left',
+                    color: 'red',
+                  }}
+                >
                   <a
                     href="#"
                     onClick={e => {
