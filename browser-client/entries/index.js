@@ -31,7 +31,8 @@ const isIframe = () => {
 
 const main = async () => {
   const source = document.body.innerHTML.trim() + '\n';
-  document.documentElement.innerHTML = '<head></head><body><div></div></body>';
+  document.documentElement.innerHTML =
+    '<head><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"></head><body><div></div></body>';
   addStyles(styles);
 
   ReactDOM.render(

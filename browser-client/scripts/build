@@ -27,3 +27,4 @@ parcel build --no-source-maps --no-content-hash entries/index.js
   cat ./dist/index.js
   echo '</script>'
 } > ./dist/index.html
+cp ./public/* dist
