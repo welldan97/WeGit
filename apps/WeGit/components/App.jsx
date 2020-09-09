@@ -111,7 +111,7 @@ export default function App({ AppShell }) {
             </p>
           </div>
         </div>
-        <Tabs active={activeTab} onActivate={setActiveTab} />
+        <Tabs active={activeTab} onActivate={setActiveTab} hasRepo={hasRepo} />
         {activeTab === 'main' && (
           <Main
             {...{
@@ -134,7 +134,7 @@ export default function App({ AppShell }) {
           />
         )}
 
-        {activeTab === 'pullRequests' && (
+        {hasRepo && activeTab === 'pullRequests' && (
           <PullRequests
             {...{
               currentBranch,
@@ -147,7 +147,7 @@ export default function App({ AppShell }) {
             }}
           />
         )}
-        {activeTab === 'ciCd' && (
+        {hasRepo && activeTab === 'ciCd' && (
           <CiCd {...{ ciCd, ciCdState, commitHoldersLog, onBuild }} />
         )}
         {activeTab === 'settings' && (

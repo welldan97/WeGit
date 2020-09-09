@@ -127,7 +127,6 @@ export default function CiCd({
     const result = evaluateBuild(ciCd.buildTarget);
     baseOnBuild(result);
   };
-  console.log(ciCd.build);
   return (
     <div className="row mt-4">
       <div className="col-12">

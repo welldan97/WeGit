@@ -258,7 +258,8 @@ export default ({
               ? `${progressPrefixRef.current}: ${nextProgress.phase}`
               : nextProgress.phase,
             phaseNo:
-              phaseNos[progressPrefixRef.current][nextProgress.phase] || '!!',
+              phaseNos[progressPrefixRef.current][nextProgress.phase] ||
+              '1' /*TODO*/,
             phasesTotal: 4,
           },
         );
@@ -289,10 +290,10 @@ export default ({
         onMessage: message => {
           const { type, payload } = message;
           if (type === 'testsDone') onTestsDoneRef.current(message);
-          console.log(message, '!!!!!!!');
+          //console.log(message, '!!!!!!!');
         },
         send: (userId, message, options) => {
-          console.log('[->]', message);
+          //console.log('[->]', message);
           return AppShell.send(userId, message, options);
         },
       });
@@ -338,7 +339,7 @@ export default ({
       AppShell.on(
         'message',
         (...args) => {
-          console.log('[<-]', ...args);
+          //console.log('[<-]', ...args);
           return onMessage(...args);
         },
         {

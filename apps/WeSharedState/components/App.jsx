@@ -39,7 +39,7 @@ export default function App({ AppShell }) {
   };
 
   const onInnerStateChange = async nextState => {
-    console.log('statechange', JSON.stringify(nextState, undefined, 2));
+    //console.log('statechange', JSON.stringify(nextState, undefined, 2));
     setInnerState(nextState);
   };
 
@@ -57,7 +57,7 @@ export default function App({ AppShell }) {
         initialUsers: AppShell.users,
       })({
         onMessage: message => {
-          console.log(message, '!!!!!!!');
+          //    console.log(message, '!!!!!!!');
         },
         send: (userId, message, options) =>
           AppShell.send(userId, message, options),

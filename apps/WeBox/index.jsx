@@ -195,7 +195,7 @@ const main = () => {
 
   const sendChunk = message => {
     reader.read().then(({ done, value }) => {
-      console.log({ done, value });
+      //console.log({ done, value });
       if (done) {
         reader = undefined;
         return AppShell.send(message.path[0], {

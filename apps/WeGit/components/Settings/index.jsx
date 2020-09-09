@@ -12,7 +12,6 @@ export default function Settings({
   onChangeRepoName,
 }) {
   const [repoName, setRepoName] = useState(baseRepoName || '');
-  console.log(repoName);
   useEffect(() => {
     if (baseRepoName !== undefined && repoName !== baseRepoName)
       setRepoName(baseRepoName);

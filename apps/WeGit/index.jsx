@@ -18,7 +18,6 @@ import App from './components/App';
 // Main
 // =============================================================================
 const main = () => {
-  console.log('!');
   document.body.innerHTML = '<div></div>';
   ReactDOM.render(
     <App AppShell={AppShell} />,

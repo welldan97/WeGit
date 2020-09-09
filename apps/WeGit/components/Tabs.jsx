@@ -6,7 +6,7 @@ import React from 'react';
 // Main
 // =============================================================================
 
-export default function Tabs({ active, onActivate }) {
+export default function Tabs({ active, onActivate, hasRepo }) {
   return (
     <div className="row">
       <div className="col-12">
@@ -29,9 +29,12 @@ export default function Tabs({ active, onActivate }) {
             <a
               className={`nav-link ${
                 active === 'pullRequests' ? 'active bg-secondary' : ''
-              }`}
+              }
+              ${hasRepo ? '' : 'disabled'}
+              `}
               href="#"
               onClick={e => {
+                if (!hasRepo) return;
                 e.preventDefault();
                 onActivate('pullRequests');
               }}
@@ -43,9 +46,13 @@ export default function Tabs({ active, onActivate }) {
             <a
               className={`nav-link ${
                 active === 'ciCd' ? 'active bg-secondary' : ''
-              }`}
+              }
+              ${hasRepo ? '' : 'disabled'}
+              `}
               href="#"
               onClick={e => {
+                if (!hasRepo) return;
+
                 e.preventDefault();
                 onActivate('ciCd');
               }}

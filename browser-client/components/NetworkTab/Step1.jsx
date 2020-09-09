@@ -29,7 +29,7 @@ export default function Step1({
             </div>
           )}
 
-          {meshState.globalState !== 'disconnected' && (
+          {meshState.globalState === 'connected' && (
             <div className="alert alert-secondary" role="alert">
               👯 You are already connected, but you can always connect to more
               peers. More people - more fun!
