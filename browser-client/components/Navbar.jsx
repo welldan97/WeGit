@@ -12,6 +12,7 @@ export default function Navbar({
   runningApp,
   meshState,
   userName,
+  onDownload,
 }) {
   const [dropdownIsOpen, setDropdownIsOpen] = useState(false);
 
@@ -58,8 +59,8 @@ export default function Navbar({
           </a>
         </li>
         <li className={`nav-item ${active === 'share' ? 'active' : ''}`}>
-          <a className="nav-link" href="#" onClick={() => onActivate('share')}>
-            Share
+          <a className="nav-link" href="#" onClick={onDownload}>
+            Download
           </a>
         </li>
 

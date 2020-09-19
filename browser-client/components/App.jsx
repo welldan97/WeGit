@@ -7,7 +7,6 @@ import Navbar from './Navbar';
 import RunningAppTab from './RunningAppTab';
 import AppsTab from './AppsTab';
 import NetworkTab from './NetworkTab';
-import ShareTab from './ShareTab';
 import SettingsTab from './SettingsTab';
 import AboutTab from './AboutTab';
 
@@ -75,6 +74,7 @@ export default function App({ utils, source }) {
         runningApp={runningApp}
         meshState={meshState}
         userName={currentUser.userName}
+        onDownload={onDownload}
       />
       <main role="main">
         <RunningAppTab
@@ -124,7 +124,6 @@ export default function App({ utils, source }) {
                 }}
               />
             )}
-            {mainTabState === 'share' && <ShareTab onDownload={onDownload} />}
             {mainTabState === 'about' && <AboutTab />}
             {mainTabState === 'settings' && (
               <SettingsTab
