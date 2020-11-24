@@ -484,8 +484,9 @@ export default function Logo() {
     let chars = [];
 
     const draw = async (prevTime, time) => {
-      if (!playerRef.current?.internalPlayer) return;
-      const nextTime = await playerRef.current.internalPlayer.getCurrentTime();
+      //if (!playerRef.current?.internalPlayer) return;
+      const nextTime =
+        (await playerRef.current?.internalPlayer.getCurrentTime()) ?? 0;
       if (!ctxRef.current) return;
       if (!running) return;
       const ctx = ctxRef.current;
@@ -508,8 +509,8 @@ export default function Logo() {
   ]);
 
   const opts = {
-    height: '480',
-    width: '640',
+    height: '120',
+    width: '160',
     playerVars: {
       autoplay: 1,
       start: 25,
@@ -533,8 +534,16 @@ export default function Logo() {
         style={{ border: '2px solid white', background: 'black' }}
         ref={ref}
       ></canvas>
-      <div style={{ height: '500px' }} />
-      <YouTube videoId="ntklTGMzL28" opts={opts} ref={playerRef} />
+      <div
+        style={{
+          position: 'absolute',
+          right: '-400px',
+          top: '-60px',
+          opacity: '0.5',
+        }}
+      >
+        {<YouTube videoId="ntklTGMzL28" opts={opts} ref={playerRef} />}
+      </div>
     </>
   );
 }

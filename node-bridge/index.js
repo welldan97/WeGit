@@ -1,5 +1,8 @@
+#!/usr/bin/env node
+
 // Imports
 // =============================================================================
+
 const fs = require('fs');
 
 const connectUi = require('./lib/connectUi');

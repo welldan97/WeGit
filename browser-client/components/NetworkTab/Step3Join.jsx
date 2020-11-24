@@ -45,7 +45,7 @@ export default function Step3Join({
             className="form-control bg-light text-monospace"
             rows="6"
             placeholder="Your Answer will appear here"
-            disabled
+            readOnly
             value={wgAnswerKey}
           />
           {wgAnswerKey && (

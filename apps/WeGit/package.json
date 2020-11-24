@@ -1,7 +1,7 @@
 {
   "name": "wegit-app",
   "version": "0.0.1",
-  "description": "",
+  "description": "Distributed P2P Git Hosting Provider Network",
   "main": "index.jsx",
   "dependencies": {
     "browserfs": "^1.4.3",
@@ -13,12 +13,32 @@
     "react-dom": "^16.12.0",
     "react-markdown": "^4.3.1",
     "regenerator-runtime": "^0.13.3",
-    "wegit-lib": "file:../../lib"
+    "wegit-lib": "0.0.1"
   },
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC"
+  "author": {
+    "name": "Dmitry Yakimov",
+    "url": "http://welldan97.com"
+  },
+  "keywords": [
+    "WeGit",
+    "p2p",
+    "peer",
+    "webrtc",
+    "git",
+    "git hosting",
+    "network"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/welldan97/WeGit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/welldan97/WeGit/issues"
+  },
+  "homepage": "https://github.com/welldan97/WeGit",
+  "license": "MIT"
 }

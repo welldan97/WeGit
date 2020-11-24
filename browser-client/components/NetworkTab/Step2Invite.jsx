@@ -52,7 +52,7 @@ export default function Step2Invite({
             className="form-control bg-light text-monospace"
             rows="6"
             placeholder="Your Offer will appear here"
-            disabled
+            readOnly
             value={wgOfferKey}
           />
           {wgOfferKey && (

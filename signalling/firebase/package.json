@@ -1,13 +1,33 @@
 {
   "name": "wegit-signalling-firebase",
   "version": "0.0.1",
-  "description": "",
+  "description": "Distributed P2P Git Hosting Provider Network",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": {
+    "name": "Dmitry Yakimov",
+    "url": "http://welldan97.com"
+  },
+  "keywords": [
+    "WeGit",
+    "p2p",
+    "peer",
+    "webrtc",
+    "git",
+    "git hosting",
+    "network"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/welldan97/WeGit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/welldan97/WeGit/issues"
+  },
+  "homepage": "https://github.com/welldan97/WeGit",
+  "license": "MIT",
   "dependencies": {
     "firebase": "^7.14.1",
     "nanoid": "^2.1.11"

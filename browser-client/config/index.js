@@ -16,8 +16,8 @@ const WeBoxSource = readFileSync(
 );
 
 const WeGitSource = readFileSync(
+  //__dirname + '../../../apps/WeGit/index.jsx',
   __dirname + '../../../apps/WeGit/dist/index.js',
-  //__dirname + '../../../apps/WeGit/dist/index.js',
   'utf-8',
 );
 

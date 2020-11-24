@@ -1,7 +1,7 @@
 {
   "name": "wegit-browser-client",
   "version": "0.0.1",
-  "description": "",
+  "description": "Distributed P2P Git Hosting Provider Network",
   "main": "index.js",
   "scripts": {
     "dev": "parcel -p 2001 entries/index.html",
@@ -9,8 +9,28 @@
     "build": "./scripts/build",
     "build:appShell": "parcel build --no-source-maps --no-content-hash entries/appShell.js"
   },
-  "author": "",
-  "license": "ISC",
+  "author": {
+    "name": "Dmitry Yakimov",
+    "url": "http://welldan97.com"
+  },
+  "keywords": [
+    "WeGit",
+    "p2p",
+    "peer",
+    "webrtc",
+    "git",
+    "git hosting",
+    "network"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/welldan97/WeGit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/welldan97/WeGit/issues"
+  },
+  "homepage": "https://github.com/welldan97/WeGit",
+  "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.8.3",
     "@babel/plugin-transform-classes": "^7.8.3",
@@ -29,9 +49,9 @@
     "react-dom": "^16.12.0",
     "react-youtube": "^7.11.3",
     "webrtc-adapter": "^7.4.0",
-    "wegit-lib": "file:../lib",
-    "wegit-signalling-firebase": "file:../signalling/firebase",
-    "wegit-signalling-https": "file:../signalling/https"
+    "wegit-lib": "0.0.1",
+    "wegit-signalling-firebase": "0.0.1",
+    "wegit-signalling-https": "0.0.1"
   },
   "babel": {
     "presets": [

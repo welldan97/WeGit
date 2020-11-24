@@ -1,20 +1,43 @@
 {
-  "name": "wegit-node-client",
+  "name": "wegit-node-bridge",
   "version": "0.0.1",
-  "description": "",
+  "description": "Distributed P2P Git Hosting Provider Network",
   "main": "index.js",
+  "bin": {
+    "wegit-node-bridge": "./index.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "author": {
+    "name": "Dmitry Yakimov",
+    "url": "http://welldan97.com"
+  },
+  "keywords": [
+    "WeGit",
+    "p2p",
+    "peer",
+    "webrtc",
+    "git",
+    "git hosting",
+    "network"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/welldan97/WeGit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/welldan97/WeGit/issues"
+  },
+  "homepage": "https://github.com/welldan97/WeGit",
+  "license": "MIT",
   "dependencies": {
     "chalk": "^4.0.0",
     "clipboardy": "^2.3.0",
     "inquirer": "^7.1.0",
     "ora": "^4.0.4",
-    "wegit-lib": "file:../lib",
-    "wegit-signalling-firebase": "file:../signalling/firebase",
-    "wegit-signalling-https": "file:../signalling/https"
-  },
-  "author": "",
-  "license": "ISC"
+    "wegit-lib": "0.0.1",
+    "wegit-signalling-firebase": "0.0.1",
+    "wegit-signalling-https": "0.0.1"
+  }
 }

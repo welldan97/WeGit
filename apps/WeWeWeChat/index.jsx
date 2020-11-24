@@ -69,9 +69,7 @@ const createPage = () => {
 
 const renderMessage = ({ userName, message, highlighted, godmode }) => {
   // Formatted current time
-  const time = new Date().toLocaleDateString(navigator.language, {
-    timeStyle: 'medium',
-  });
+  const time = new Date().toLocaleTimeString(navigator.language);
   const godmodeStyles =
     "color: gold!important;font-family: Papyrus,'Comic Sans MS'";
   return `
