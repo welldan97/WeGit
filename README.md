@@ -4,6 +4,7 @@ WeGit
 Distributed P2P Git Hosting Network
 
 Checkout video: https://www.youtube.com/watch?v=7EQDqoBrzT0
+
 Running app: https://wegit.network/
 
 - Can manage repository. Works with regular git CLI commands i.e. push/pull/clone
